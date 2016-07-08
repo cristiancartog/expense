@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/main_menu_search_db"
+        android:title="@string/mainMenuSearchDatabase"/>
+    <item
+        android:id="@+id/main_menu_order_by"
+        android:title="@string/mainMenuOrderBy">
+        <menu>
+            <item
+                android:id="@+id/main_menu_order_by_date_ascending"
+                android:orderInCategory="1"
+                android:title="@string/mainMenuOrderByDateAscending" />
+            <item
+                android:id="@+id/main_menu_order_by_date_descending"
+                android:orderInCategory="2"
+                android:title="@string/mainMenuOrderByDateDescending" />
+            <item
+                android:id="@+id/main_menu_order_by_type_ascending"
+                android:orderInCategory="3"
+                android:title="@string/mainMenuOrderByTypeAscending" />
+            <item
+                android:id="@+id/main_menu_order_by_type_descending"
+                android:orderInCategory="4"
+                android:title="@string/mainMenuOrderByTypeDescending" />
+            <item
+                android:id="@+id/main_menu_order_by_value_ascending"
+                android:orderInCategory="5"
+                android:title="@string/mainMenuOrderByValueAscending" />
+            <item
+                android:id="@+id/main_menu_order_by_value_descending"
+                android:orderInCategory="6"
+                android:title="@string/mainMenuOrderByValueDescending" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/main_menu_database"
+        android:title="@string/mainMenuDatabase">
+        <menu>
+            <item
+                android:id="@+id/main_menu_database_import"
+                android:title="@string/mainMenuDatabaseImport" />
+            <item
+                android:id="@+id/main_menu_database_export"
+                android:title="@string/mainMenuDatabaseExport" />
+        </menu>
+    </item>
+
+    <item android:title="@string/mainMenuChart">
+        <menu>
+            <item
+                android:id="@+id/main_menu_chart_pie"
+                android:title="@string/mainMenuChartPie"/>
+            <item
+                android:id="@+id/main_menu_chart_bar"
+                android:title="@string/mainMenuChartBar"/>
+            <item
+                android:id="@+id/main_menu_chart_line"
+                android:title="@string/mainMenuChartLine"/>
+        </menu>
+    </item>
+</menu>

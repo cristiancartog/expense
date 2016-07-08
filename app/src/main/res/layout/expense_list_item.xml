@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="horizontal"
+    android:weightSum="1">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:descendantFocusability="blocksDescendants"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/expenseListItemNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="6pt"
+            android:gravity="end"
+            android:text="nrCrt" />
+
+        <TextView
+            android:id="@+id/expenseListItemType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_margin="3pt"
+            android:layout_toEndOf="@id/expenseListItemNumber"
+            android:text="dummy item type"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/expenseListItemDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/expenseListItemType"
+            android:layout_toEndOf="@id/expenseListItemType"
+            android:layout_alignParentEnd="true"
+            android:gravity="end"
+            android:text="dummy date"/>
+
+        <TextView
+            android:id="@+id/expenseListItemDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/expenseListItemNumber"
+            android:layout_below="@+id/expenseListItemNumber"
+            android:text="dummy comment" />
+
+        <TextView
+            android:id="@+id/expenseListItemValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/expenseListItemDescription"
+            android:layout_below="@id/expenseListItemNumber"
+            android:layout_alignRight="@id/expenseListItemDate"
+            android:layout_alignParentRight="true"
+            android:gravity="end"
+            android:text="dummy value"
+            android:textColor="@android:color/white"
+            />
+    </RelativeLayout>
+    <ImageButton
+        android:id="@+id/expenseListItemDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:onClick="deleteButtonPressed"
+        android:src="@drawable/delete"
+        android:layout_weight="0.50"
+        android:cropToPadding="false"
+        android:adjustViewBounds="false" />
+</LinearLayout>

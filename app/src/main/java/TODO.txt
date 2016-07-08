@@ -1,0 +1,12 @@
+- scroll to end of list after expense add - DONE
+- improve expense filtering dialog - DONE
+- restore db from .csv file - DONE
+- edit mode - fix integer display - DONE
+- remove UNAVOIDABLE and HEALTH and replace with comments - DONE
+- add comment query support - DONE
+
+- send exported csv to mail
+- add drawer layout in main expense list to temporarily remove expnses - filtering variant
+- implement expense type hierarchy
+- add preferences activity: parameterize backup folder and default email
+

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Expense</string>
+
+    <!-- dummy strings -->
+    <string name="checkbox">Checkbox</string>
+
+    <!-- expense types -->
+    <string name="OTHER">Other</string>
+    <string name="GAS">Natural gas bill</string>
+    <string name="ELECTRICITY">Electricity bill</string>
+    <string name="PHONE">Phone bill</string>
+    <string name="INTERNET">Internet bill</string>
+    <string name="TAXES">Taxes bill</string>
+    <string name="GYM">Gym subscription</string>
+    <string name="PETROL">Gasolene / fuel</string>
+    <string name="FOOD">Food</string>
+    <string name="RESTAURANT">Restaurant</string>
+    <string name="CAR">Car maintenance</string>
+    <string name="HEALTH">Health related</string>
+    <string name="UNAVOIDABLE">Unavoidable expense</string>
+
+    <!-- expense list activity -->
+    <string name="expenseListActivityFilterButton">"Filter.."</string>
+    <string name="expenseListActivityFiltered">"Filtered"</string>
+    <string name="expenseListActivityTotalLabel">Total:</string>
+    <string name="expenseListActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
+    <string name="expenseListActivityZero">0.00</string>
+
+    <!-- expense main list activity -->
+    <string name="expenseListActivityAddExpenseButton">Add expense</string>
+    <string name="expenseListActivityChangeMonth">"Change month"</string>
+    <string name="expenseListActivityExportSuccessful">"Export successful"</string>
+
+    <!-- expense search result-->
+    <string name="expenseSearchResultActivityTotalLabel">Total:</string>
+    <string name="expenseSearchResultActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
+    <string name="expenseSearchResultActivityZero">0.00</string>
+    <string name="expenseSearchResultActivityFilterButton">"Filter.."</string>
+
+    <!-- add/edit expense activity -->
+    <string name="addEditExpenseActivityExpenseTypeLabel">Expense Type:</string>
+    <string name="addEditExpenseActivityValueLabel">Value:</string>
+    <string name="addEditExpenseActivityDateLabel">Date:</string>
+    <string name="addEditExpenseActivityCommentLabel">Comment:</string>
+    <string name="addEditExpenseActivitySaveButton">Save</string>
+
+    <!-- remove expense dialog -->
+    <string name="removeExpenseDialogTitle">Confirm</string>
+    <string name="removeExpenseDialogMessage">Really delete expense</string>
+    <string name="removeExpenseDialogYes">Yes</string>
+    <string name="removeExpenseDialogNo">No</string>
+
+    <!-- filter expenses dialog -->
+    <string name="filterExpenseDialogTitle">Expense Type selection</string>
+    <string name="filterExpenseDialogOk">OK</string>
+    <string name="filterExpenseDialogCancel">Cancel</string>
+    <string name="filterExpenseDialogSelectAll">  All  </string>
+    <string name="filterExpenseDialogSelectNone">None</string>
+    <string name="filterExpenseDialogInvertSelection">Invert</string>
+    <string name="filterExpenseDialogSelectSingles">Singles</string>
+    <string name="filterExpenseDialogComment">Comment:</string>
+    <string name="filterExpenseDialogAddComment">+</string>
+    <string name="filterExpenseDialogRemoveComment">-</string>
+    <string name="filterExpenseDialogEmptySelection">The filter selection is empty.</string>
+
+    <!-- main menu -->
+    <string name="mainMenuSearchDatabase">Search database..</string>
+    <string name="mainMenuOrderBy">Order by..</string>
+    <string name="mainMenuOrderByDateAscending">..date ascending</string>
+    <string name="mainMenuOrderByDateDescending">..date descending</string>
+    <string name="mainMenuOrderByValueAscending">..value ascending</string>
+    <string name="mainMenuOrderByValueDescending">..value descending</string>
+    <string name="mainMenuOrderByTypeAscending">..type ascending</string>
+    <string name="mainMenuOrderByTypeDescending">..type descending</string>
+    <string name="mainMenuFilter">Filter..</string>
+    <string name="mainMenuChart">Chart..</string>
+    <string name="mainMenuChartPie">Pie</string>
+    <string name="mainMenuChartBar">Bar</string>
+    <string name="mainMenuChartLine">Line</string>
+    <string name="mainMenuDatabase">Database..</string>
+    <string name="mainMenuDatabaseImport">Import</string>
+    <string name="mainMenuDatabaseExport">Export</string>
+
+</resources>

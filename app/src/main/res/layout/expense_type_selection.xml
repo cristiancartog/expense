@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent" android:weightSum="1">
+
+    <ListView
+            android:id="@+id/expenseTypeSelectionDialogListView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:choiceMode="multipleChoice"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="4"
+            android:orientation="horizontal">
+        <Button android:id="@+id/expenseTypeSelectionDialogSelectAllButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogSelectAll"/>
+        <Button android:id="@+id/expenseTypeSelectionDialogSelectNoneButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogSelectNone"/>
+        <Button android:id="@+id/expenseTypeSelectionDialogInverSelectionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogInvertSelection"/>
+        <Button android:id="@+id/expenseTypeSelectionDialogSinglesButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogSelectSingles"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/expenseTypeSelectionDialogComments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filterExpenseDialogComment"/>
+        <EditText
+            android:id="@+id/expenseTypeSelectionDialogCommentEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"/>
+        <Button
+            android:id="@+id/expenseTypeSelectionDialogAddCommentButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/filterExpenseDialogAddComment"/>
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+        <Button android:id="@+id/expenseTypeSelectionDialogOkButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogOk"/>
+        <Button android:id="@+id/expenseTypeSelectionDialogCancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/filterExpenseDialogCancel"/>
+    </LinearLayout>
+</LinearLayout>
