@@ -1,6 +1,7 @@
 package ro.pandemonium.expense.activity;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -17,7 +18,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 
-public class AddEditExpenseActivity extends Activity implements View.OnClickListener, TextWatcher {
+public class AddEditExpenseActivity extends Activity
+        implements View.OnClickListener, TextWatcher, DatePickerDialog.OnDateSetListener {
 
     public static final int ADD_EXPENSE_ACTIVITY_ID = 2;
     private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat(Constants.ADD_ACTIVITY_FORMAT_PATTERN);
@@ -103,6 +105,11 @@ public class AddEditExpenseActivity extends Activity implements View.OnClickList
         calendar.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
 
         return calendar.getTime();
+    }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+
     }
 
     @Override

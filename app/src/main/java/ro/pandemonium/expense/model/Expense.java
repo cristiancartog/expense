@@ -52,6 +52,14 @@ public class Expense implements Serializable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof Expense) {
+            return ((Expense) o).id.equals(id);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return id + ", " + expenseType.name() + ", " + value  + ", " + date + ", " + comment;
     }

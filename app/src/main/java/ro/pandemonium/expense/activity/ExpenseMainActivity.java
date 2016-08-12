@@ -20,6 +20,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +28,6 @@ import java.util.Locale;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.BarChartActivity;
-import ro.pandemonium.expense.activity.chart.ChartIntentFactory;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
@@ -73,7 +73,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         monthOfYear = cal.get(Calendar.MONTH) + 1;
 
         repopulateExpenseList(year, monthOfYear);
-        sortExpenses(1);
     }
 
     @Override
@@ -123,19 +122,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 break;
 
             case R.id.main_menu_chart_line:
-                expenseTypeSelectionDialog.show(null,
-                        expenseListAdapter.expenseTypeSet(),
-                        new ExpenseTypeSelectionDialog.Callback() {
-                            @Override
-                            public void expenseTypesSelected(final Filters filters) {
-                                final List<Expense> expenses = expenseDao.fetchExpenses(filters.getExpenseTypes());
-                                final Intent intent = ChartIntentFactory.createLineChartIntent(ExpenseMainActivity.this, expenses);
-                                intent.putExtra(Constants.INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
-                                startActivity(intent);
-                            }
-                        });
                 break;
-
             case R.id.main_menu_chart_bar:
                 expenseTypeSelectionDialog.show(null,
                         Arrays.asList(ExpenseType.values()),
@@ -223,9 +210,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             if (expenseId == null) { // add new expense
                 if (isInSameMonth(expense.getDate())) {
-                    if (expenseListAdapter.isFiltered()) {
-                        expenseListAdapter.clearFilters();
-                    }
+                    clearFilters();
                     expenseListAdapter.addExpense(expense);
                     newExpenseAddedThisMonth = true;
                 }
@@ -233,6 +218,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             } else { // update existing expense
                 if (isInSameMonth(expense.getDate())) {
                     expenseListAdapter.updateExpense(expense);
+                } else {
+                    expenseListAdapter.deleteExpense(expense);
                 }
                 expenseDao.updateExpense(expense);
             }
@@ -274,6 +261,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void repopulateExpenseList(final int year, final int monthOfYear) {
         clearFilters();
         final List<Expense> expensesFromDb = expenseDao.fetchExpenses(year, monthOfYear);
+        Collections.sort(expensesFromDb, mapSortingMenuItemToComparator.get(1));
         expenseListAdapter.updateExpenseList(expensesFromDb);
         updateTotal();
         updateMonthButtonLabel();
@@ -294,7 +282,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        expenseDao.closeDatabase();
+//        expenseDao.closeDatabase();
         importFileSelectionDialog.dismiss();
     }
 }

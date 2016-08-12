@@ -11,6 +11,7 @@ import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class ExpenseDao {
+public class ExpenseDao implements Serializable {
 
     private static final String EXPENSES_TABLE = "EXPENSES";
     private static final String FETCH_EXPENSES_QUERY_BASE = "SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT FROM " + EXPENSES_TABLE;
@@ -35,6 +36,9 @@ public class ExpenseDao {
             final String msg = "No database handle!";
             Log.e(Constants.APPLICATION_NAME, msg);
             throw new RuntimeException(msg);
+        }
+        if (!database.isOpen()) {
+
         }
     }
 

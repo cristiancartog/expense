@@ -5,7 +5,8 @@
     <!-- permissions -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application android:label="@string/app_name">
+    <application android:label="@string/app_name"
+        android:name="ro.pandemonium.expense.ExpenseApplication">
         <!-- activities -->
         <activity android:name=".activity.ExpenseMainActivity"
                   android:icon="@drawable/money"
@@ -21,7 +22,6 @@
                 android:screenOrientation="portrait"/>
         <activity android:name=".activity.ExpenseSearchResultActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name="org.achartengine.GraphicalActivity"/>
         <activity android:name=".activity.chart.PieChartActivity"/>
         <activity android:name=".activity.chart.BarChartActivity"/>
     </application>

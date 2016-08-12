@@ -13,11 +13,11 @@ import android.widget.TextView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.activity.chart.ChartIntentFactory;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
 
@@ -48,7 +48,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity imp
         filtersButton.setOnLongClickListener(this);
 
         repopulateExpenseList(expenses);
-        sortExpenses(1);
     }
 
     @Override
@@ -127,6 +126,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity imp
     }
 
     private void repopulateExpenseList(final List<Expense> expenses) {
+        Collections.sort(expenses, mapSortingMenuItemToComparator.get(1));
         expenseListAdapter.updateExpenseList(expenses);
         updateTotal();
     }

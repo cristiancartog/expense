@@ -98,6 +98,10 @@ public class ExpenseListAdapter extends BaseAdapter {
         mapExpenseIdToExpense.put(expense.getId(), expense);
     }
 
+    /**
+     * Updates the data for the current expenses with what is provided.
+     * @param expenses - expenses with new data
+     */
     public void updateExpenses(final List<Expense> expenses) {
         for (Expense expense: expenses) {
             updateExpense(expense);
@@ -105,7 +109,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void updateExpense(final Expense expense) {
-        Expense localExpense = mapExpenseIdToExpense.get(expense.getId());
+        final Expense localExpense = mapExpenseIdToExpense.get(expense.getId());
         if (localExpense != null) {
             localExpense.setExpenseType(expense.getExpenseType());
             localExpense.setValue(expense.getValue());
@@ -114,6 +118,10 @@ public class ExpenseListAdapter extends BaseAdapter {
         }
     }
 
+    /**
+     * Replaces current expenses with the ones provided.
+     * @param newExpenses - the new expenses
+     */
     public void updateExpenseList(final List<Expense> newExpenses) {
         if (isFiltered()) {
             clearFilters();
@@ -165,24 +173,31 @@ public class ExpenseListAdapter extends BaseAdapter {
         return expense;
     }
 
+    public void deleteExpense(final Expense expense) {
+        expenses.remove(expense);
+        if (isFiltered()) {
+            backupExpenses.remove(expense);
+        }
+    }
+
     public void sortExpenses(final Comparator<Expense> comparator) {
         Collections.sort(expenses, comparator);
         notifyDataSetChanged();
     }
 
     public boolean isFiltered() {
-        return !backupExpenses.isEmpty() || (expenses.isEmpty() && backupExpenses.isEmpty());
+        return filters != null;
     }
 
     public void filterBy(final Filters filters) {
-        this.filters = filters;
-
         if (isFiltered()) {
             expenses.clear();
             expenses.addAll(backupExpenses);
         } else {
             backupExpenses.addAll(expenses);
         }
+
+        this.filters = filters;
 
         final Iterator<Expense> expensesIterator = expenses.iterator();
         while (expensesIterator.hasNext()) {

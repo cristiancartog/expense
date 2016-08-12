@@ -18,11 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ro.pandemonium.expense.Constants;
+import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.PieChartActivity;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.db.ExpenseOpenHelper;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.model.comparator.ExpenseDateComparator;
@@ -64,9 +64,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
 
         setContentView(getLayoutId());
 
-        final ExpenseOpenHelper openHelper = new ExpenseOpenHelper(this);
-        expenseDao = new ExpenseDao(openHelper.getWritableDatabase());
-
+        expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
     }
 

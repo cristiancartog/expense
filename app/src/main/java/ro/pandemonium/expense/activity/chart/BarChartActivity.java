@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import ro.pandemonium.expense.Constants;
+import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.db.ExpenseOpenHelper;
 import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
 
@@ -36,8 +36,8 @@ public class BarChartActivity extends Activity {
 
         setContentView(R.layout.bar_chart_activity);
 
-        final ExpenseOpenHelper openHelper = new ExpenseOpenHelper(this);
-        final ExpenseDao expenseDao = new ExpenseDao(openHelper.getWritableDatabase());
+
+        final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         @SuppressWarnings("unchecked")
         List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS);
