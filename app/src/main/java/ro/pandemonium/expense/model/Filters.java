@@ -8,8 +8,8 @@ import java.util.Set;
 
 public class Filters implements Serializable {
 
-    private List<ExpenseType> expenseTypes;
-    private Set<String> comments;
+    private final List<ExpenseType> expenseTypes;
+    private final Set<String> comments;
 
     public Filters(List<ExpenseType> expenseTypes, Set<String> comments) {
         this.expenseTypes = expenseTypes;

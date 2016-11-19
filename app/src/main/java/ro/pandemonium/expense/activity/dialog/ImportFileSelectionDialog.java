@@ -20,7 +20,7 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
         void fileSelected(String fileName);
     }
 
-    private Spinner spinner;
+    private final Spinner spinner;
     private Callback callback;
 
     public ImportFileSelectionDialog(final Context context) {

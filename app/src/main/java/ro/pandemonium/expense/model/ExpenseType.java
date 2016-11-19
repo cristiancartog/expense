@@ -23,22 +23,22 @@ public enum ExpenseType {
     GYM(60, 1, Color.rgb(173, 179, 79), 10, R.string.GYM),
     CAR(100, Integer.MAX_VALUE, Color.rgb(233, 233, 133), 11, R.string.CAR);
 
-    private int maxOccurences;
-    private int dbId;
-    private int color;
-    private int order;
-    private int textResource;
+    private final int maxOccurrences;
+    private final int dbId;
+    private final int color;
+    private final int order;
+    private final int textResource;
 
-    ExpenseType(final int dbId, final int monthlyOccurences, final int color, final int order, final int textResource) {
+    ExpenseType(final int dbId, final int monthlyOccurrences, final int color, final int order, final int textResource) {
         this.dbId = dbId;
-        this.maxOccurences = monthlyOccurences;
+        this.maxOccurrences = monthlyOccurrences;
         this.color = color;
         this.order = order;
         this.textResource = textResource;
     }
 
-    public int getMaxOccurences() {
-        return maxOccurences;
+    public int getMaxOccurrences() {
+        return maxOccurrences;
     }
 
     public int getDbId() {

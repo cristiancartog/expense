@@ -25,7 +25,10 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity imp
 
     public static final int EXPENSE_SEARCH_RESULT_ACTIVITY_ID = 3;
 
-    private List<Expense> changedExpenses = new ArrayList<>();
+    private final List<Expense> changedExpenses = new ArrayList<>();
+
+    public ExpenseSearchResultActivity() {
+    }
 
     @Override
     int getLayoutId() {

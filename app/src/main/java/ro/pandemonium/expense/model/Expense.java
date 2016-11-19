@@ -52,11 +52,8 @@ public class Expense implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof Expense) {
-            return ((Expense) o).id.equals(id);
-        }
-        return false;
+    public boolean equals(final Object other) {
+        return other instanceof Expense && ((Expense) other).id.equals(id);
     }
 
     @Override

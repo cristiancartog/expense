@@ -2,6 +2,7 @@ package ro.pandemonium.expense.util;
 
 import android.os.Environment;
 import android.util.Log;
+
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
@@ -13,7 +14,8 @@ import java.util.*;
 
 public class FileUtil {
 
-    public static final String EXPENSE_DB_BACKUP_FOLDER = "/expense_db_backup";
+    private static final String CLASS_NAME = FileUtil.class.getSimpleName();
+    private static final String EXPENSE_DB_BACKUP_FOLDER = "/expense_db_backup";
     private static final String DEFAULT_FILE_NAME_PREFIX = "expenses-";
     private static final String DEFAULT_FILE_NAME_SUFFIX = ".csv";
 
@@ -22,12 +24,16 @@ public class FileUtil {
 
     public static void exportExpenses(final List<Expense> expenses) throws IOException {
         final String fileName = DEFAULT_FILE_NAME_PREFIX + FILE_NAME_DATE_FORMAT.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
-        final File exportFile = new File(getStorageDir().getAbsolutePath() + "/" + fileName);
+        final File storageFolder = ensureStorageFolder();
+        final File exportFile = new File(storageFolder.getAbsolutePath() + "/" + fileName);
 
-        exportFile.createNewFile();
+        boolean fileCreated = exportFile.createNewFile();
+        if (!fileCreated) {
+            throw new FileUtilException("File already exists, wait a second and try again.");
+        }
 
         final FileOutputStream outputStream = new FileOutputStream(exportFile);
-        for (Expense expense: expenses) {
+        for (Expense expense : expenses) {
             outputStream.write(serializeExpenseToCsvItem(expense));
         }
 
@@ -35,11 +41,11 @@ public class FileUtil {
         outputStream.close();
     }
 
-    public static List<Expense> importExpenses (String fileName) throws IOException {
+    public static List<Expense> importExpenses(String fileName) throws IOException {
         final List<Expense> expenses = new ArrayList<>();
 
         try {
-            final BufferedReader in = new BufferedReader(new FileReader(getStorageDir().getAbsolutePath() + File.separator + fileName));
+            final BufferedReader in = new BufferedReader(new FileReader(getStorageFolder().getAbsolutePath() + File.separator + fileName));
             String line;
 
             do {
@@ -50,7 +56,7 @@ public class FileUtil {
             } while (line != null);
 
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.w(CLASS_NAME, e.getMessage());
             throw new IOException(e.getMessage());
         }
 
@@ -58,25 +64,32 @@ public class FileUtil {
     }
 
     public static List<String> fetchAllBackupFiles() {
-        final String[] fileNames = getStorageDir().list(new FilenameFilter() {
+        final String[] fileNames = getStorageFolder().list(new FilenameFilter() {
             @Override
-            public boolean accept(final File filder, final String fileName) {
+            public boolean accept(final File folder, final String fileName) {
                 return fileName.endsWith(DEFAULT_FILE_NAME_SUFFIX);
             }
         });
 
-        return Arrays.asList(fileNames);
+        return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<String>();
     }
 
-    public static File getStorageDir() {
-        final String filesDirPath = Environment.getExternalStorageDirectory().toString() + EXPENSE_DB_BACKUP_FOLDER;
-        final File folder = new File(filesDirPath);
+    private static File getStorageFolder() {
+        return new File(Environment.getExternalStorageDirectory().toString() + EXPENSE_DB_BACKUP_FOLDER);
+    }
 
-        if(!folder.exists()) {
-            folder.mkdirs();
+    private static File ensureStorageFolder() throws IOException {
+        final File storageFolder = getStorageFolder();
+
+        if (!storageFolder.exists()) {
+            boolean folderCreated = storageFolder.mkdirs();
+
+            if (!folderCreated) {
+                throw new FileUtilException("Could not create folder for backup.");
+            }
         }
 
-        return folder;
+        return storageFolder;
     }
 
     private static byte[] serializeExpenseToCsvItem(final Expense expense) {

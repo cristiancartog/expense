@@ -4,7 +4,7 @@ public class Constants {
 
     public static final String APPLICATION_NAME = "EXPENSES";
 
-    // formatters
+    // formatter(s)
     public static final String NUMBER_FORMAT_PATTERN = "###,###.##";
     public static final String ADD_ACTIVITY_FORMAT_PATTERN = "#.##";
     public static final String DATE_FORMAT_PATTERN_DB = "yyyy-MM-dd";

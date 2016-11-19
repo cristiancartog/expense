@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class ExpenseMonthlySummary {
 
-    private String yearMonth;
-    private Map<ExpenseType, Double> values = new HashMap<>();
+    private final String yearMonth;
+    private final Map<ExpenseType, Double> values = new HashMap<>();
 
     public ExpenseMonthlySummary(String yearMonth) {
         this.yearMonth = yearMonth;

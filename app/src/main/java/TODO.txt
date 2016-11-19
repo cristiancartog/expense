@@ -5,8 +5,13 @@
 - remove UNAVOIDABLE and HEALTH and replace with comments - DONE
 - add comment query support - DONE
 
+
+- move processing out of UI thread
+- provide feedback on DB restore and export
+
+
 - send exported csv to mail
-- add drawer layout in main expense list to temporarily remove expnses - filtering variant
+- add drawer layout in main expense list to temporarily remove expenses - filtering variant
 - implement expense type hierarchy
 - add preferences activity: parameterize backup folder and default email
 

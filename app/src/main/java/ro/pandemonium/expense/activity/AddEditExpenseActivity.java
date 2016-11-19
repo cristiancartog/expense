@@ -32,7 +32,7 @@ public class AddEditExpenseActivity extends Activity
 
     private Button saveExpenseButton;
 
-    private Calendar calendar = Calendar.getInstance();
+    private final Calendar calendar = Calendar.getInstance();
     private Long expenseId;
 
     @Override

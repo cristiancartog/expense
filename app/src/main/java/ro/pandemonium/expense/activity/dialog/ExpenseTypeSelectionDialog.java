@@ -26,7 +26,7 @@ import ro.pandemonium.expense.view.adapter.ExpenseTypeListAdapter;
 
 public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickListener {
 
-    public static final LinearLayout.LayoutParams COMMENT_LAYOUT_PARAMS =
+    private static final LinearLayout.LayoutParams COMMENT_LAYOUT_PARAMS =
             new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
 
     private ExpenseTypeListAdapter adapter;
@@ -34,7 +34,7 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
     private LinearLayout commentsSection;
     private EditText commentField;
     private Callback callback;
-    private Set<String> comments;
+    private final Set<String> comments;
 
     public interface Callback {
         void expenseTypesSelected(Filters filters);
@@ -59,7 +59,7 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
 
         final Button selectAllButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSelectAllButton);
         final Button selectNoneButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSelectNoneButton);
-        final Button invertSelectionButton = (Button) findViewById(R.id.expenseTypeSelectionDialogInverSelectionButton);
+        final Button invertSelectionButton = (Button) findViewById(R.id.expenseTypeSelectionDialogInvertSelectionButton);
         final Button singlesSelectionButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSinglesButton);
         final Button okButton = (Button) findViewById(R.id.expenseTypeSelectionDialogOkButton);
         final Button cancelButton = (Button) findViewById(R.id.expenseTypeSelectionDialogCancelButton);
@@ -121,10 +121,10 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
             case R.id.expenseTypeSelectionDialogSinglesButton:
                 for (int i = 0; i < adapterCount; i++) {
                     final ExpenseType expenseType = (ExpenseType) adapter.getItem(i);
-                    expenseTypeList.setItemChecked(i, expenseType.getMaxOccurences() == 1);
+                    expenseTypeList.setItemChecked(i, expenseType.getMaxOccurrences() == 1);
                 }
                 break;
-            case R.id.expenseTypeSelectionDialogInverSelectionButton:
+            case R.id.expenseTypeSelectionDialogInvertSelectionButton:
                 final SparseBooleanArray checkedItemPositions = expenseTypeList.getCheckedItemPositions();
                 for (int i = 0; i < adapterCount; i++) {
                     final boolean checked = checkedItemPositions.get(i, false);

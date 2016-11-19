@@ -32,15 +32,15 @@ import ro.pandemonium.expense.model.Filters;
 
 public class ExpenseListAdapter extends BaseAdapter {
 
-    private List<Expense> expenses = new LinkedList<>();
-    private List<Expense> backupExpenses = new LinkedList<>();
-    private Map<Object, Expense> mapDeleteButtonTagToExpense = new HashMap<>();
-    private Map<Long, Expense> mapExpenseIdToExpense = new HashMap<>();
+    private final List<Expense> expenses = new LinkedList<>();
+    private final List<Expense> backupExpenses = new LinkedList<>();
+    private final Map<Object, Expense> mapDeleteButtonTagToExpense = new HashMap<>();
+    private final Map<Long, Expense> mapExpenseIdToExpense = new HashMap<>();
 
     private Filters filters;
 
-    private NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
-    private SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
+    private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
 
     @Override
     public int getCount() {
@@ -143,8 +143,8 @@ public class ExpenseListAdapter extends BaseAdapter {
         return expensesToReturn;
     }
 
-    public HashMap<ExpenseType, Integer> getExpenseTypes() {
-        final HashMap<ExpenseType, Integer> mapExpenseTypesToCount = new HashMap<>();
+    public Map<ExpenseType, Integer> getExpenseTypes() {
+        final Map<ExpenseType, Integer> mapExpenseTypesToCount = new HashMap<>();
 
         for (Expense expense : expenses) {
             final ExpenseType expenseType = expense.getExpenseType();

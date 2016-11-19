@@ -27,6 +27,7 @@ public class PieChartActivity extends Activity {
         setContentView(R.layout.pie_chart_activity);
 
         PieChart pieChart = (PieChart) findViewById(R.id.expensePieChart);
+        pieChart.setDescription(null);
 
         @SuppressWarnings("unchecked")
         Map<ExpenseType, Double> expenseTypeValues = (Map<ExpenseType, Double>) getIntent().getSerializableExtra(Constants.INTENT_EXPENSE_VALUES_BY_TYPE);

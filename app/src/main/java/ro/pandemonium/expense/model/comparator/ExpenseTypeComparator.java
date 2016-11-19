@@ -6,7 +6,7 @@ import java.util.Comparator;
 
 public class ExpenseTypeComparator implements Comparator<Expense> {
 
-    private boolean isAscending;
+    private final boolean isAscending;
 
     public ExpenseTypeComparator(final boolean isAscending) {
         this.isAscending = isAscending;

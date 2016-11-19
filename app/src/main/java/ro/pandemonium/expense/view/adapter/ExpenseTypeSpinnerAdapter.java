@@ -14,7 +14,7 @@ import java.util.*;
 
 public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
 
-    private List<ExpenseType> expenseTypes = ExpenseType.orderedExpenseTypes();
+    private final List<ExpenseType> expenseTypes = ExpenseType.orderedExpenseTypes();
     private Map<ExpenseType, Integer> mapExpenseTypeToCount = new HashMap<>();
 
     public void setExpenseTypeMap(final Map<ExpenseType, Integer> expenseTypeMap) {
@@ -68,11 +68,11 @@ public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
 
         final ExpenseType expenseType = expenseTypes.get(index);
         final Integer count = mapExpenseTypeToCount.get(expenseType);
-        final boolean useGrayText = count != null && count >= expenseType.getMaxOccurences();
+        final boolean useGrayText = count != null && count >= expenseType.getMaxOccurrences();
         checkedTextView.setText(expenseType.getTextResource());
         checkedTextView.setTextColor(useGrayText ? Color.GRAY : Color.WHITE);
-        checkedTextView.setPadding(expenseType.getMaxOccurences() == 1 ? 30 : 10, 0, 0, 0);
-        checkedTextView.setTypeface(null, expenseType.getMaxOccurences() == 1 ? Typeface.BOLD: Typeface.NORMAL);
+        checkedTextView.setPadding(expenseType.getMaxOccurrences() == 1 ? 30 : 10, 0, 0, 0);
+        checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD: Typeface.NORMAL);
 
         return checkedTextView;
     }

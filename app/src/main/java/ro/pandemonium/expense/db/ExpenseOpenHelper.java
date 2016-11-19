@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
 import ro.pandemonium.expense.Constants;
 
 public class ExpenseOpenHelper extends SQLiteOpenHelper {
@@ -32,15 +33,13 @@ public class ExpenseOpenHelper extends SQLiteOpenHelper {
     }
 
     private String generateExpenseTableSql() {
-        final StringBuilder createTableSql = new StringBuilder();
+        String query = "CREATE TABLE EXPENSES(";
+        query += " _ID INTEGER PRIMARY KEY AUTOINCREMENT,";
+        query += " EXPENSE_TYPE INTEGER NOT NULL,";
+        query += " VALUE REAL NOT NULL,";
+        query += " DATE TEXT NOT NULL,";
+        query += " COMMENT TEXT)";
 
-        createTableSql.append("CREATE TABLE EXPENSES(");
-        createTableSql.append(" _ID INTEGER PRIMARY KEY AUTOINCREMENT,");
-        createTableSql.append(" EXPENSE_TYPE INTEGER NOT NULL,");
-        createTableSql.append(" VALUE REAL NOT NULL,");
-        createTableSql.append(" DATE TEXT NOT NULL,");
-        createTableSql.append(" COMMENT TEXT)");
-
-        return createTableSql.toString();
+        return query;
     }
 }

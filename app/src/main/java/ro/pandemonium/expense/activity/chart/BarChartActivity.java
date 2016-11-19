@@ -36,7 +36,6 @@ public class BarChartActivity extends Activity {
 
         setContentView(R.layout.bar_chart_activity);
 
-
         final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         @SuppressWarnings("unchecked")
@@ -47,6 +46,8 @@ public class BarChartActivity extends Activity {
         BarChart barChart = (BarChart) findViewById(R.id.expenseBarChart);
 
         barChart.setDescription("Monthly expense type summary");
+        barChart.setDescriptionColor(Color.WHITE);
+//        barChart.setDescriptionPosition(0.5f, 200);
 
         final Map<Float, String> mapPointToMonthName = new HashMap<>();
 
@@ -87,8 +88,6 @@ public class BarChartActivity extends Activity {
         leftYAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         barChart.getAxisRight().setEnabled(false);
-
-
 
         // data
         float groupSpace = 0.04f;

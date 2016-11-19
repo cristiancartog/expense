@@ -61,8 +61,8 @@ public class ExpenseTypeListAdapter extends BaseAdapter {
         final ExpenseType expenseType = expenseTypes.get(index);
         checkedTextView.setText(expenseType.getTextResource());
         checkedTextView.setBackgroundColor(Color.rgb(255, 244, 244));
-        checkedTextView.setTextColor(expenseType.getMaxOccurences() == 1 ? Color.DKGRAY : Color.BLACK);
-        checkedTextView.setTypeface(null, expenseType.getMaxOccurences() == 1 ? Typeface.BOLD : Typeface.NORMAL);
+        checkedTextView.setTextColor(expenseType.getMaxOccurrences() == 1 ? Color.DKGRAY : Color.BLACK);
+        checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD : Typeface.NORMAL);
 
         return checkedTextView;
     }

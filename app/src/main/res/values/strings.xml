@@ -11,14 +11,12 @@
     <string name="ELECTRICITY">Electricity bill</string>
     <string name="PHONE">Phone bill</string>
     <string name="INTERNET">Internet bill</string>
-    <string name="TAXES">Taxes bill</string>
+    <string name="TAXES">Utilities bill</string>
     <string name="GYM">Gym subscription</string>
-    <string name="PETROL">Gasolene / fuel</string>
+    <string name="PETROL">Fuel</string>
     <string name="FOOD">Food</string>
     <string name="RESTAURANT">Restaurant</string>
     <string name="CAR">Car maintenance</string>
-    <string name="HEALTH">Health related</string>
-    <string name="UNAVOIDABLE">Unavoidable expense</string>
 
     <!-- expense list activity -->
     <string name="expenseListActivityFilterButton">"Filter.."</string>
@@ -81,5 +79,17 @@
     <string name="mainMenuDatabase">Database..</string>
     <string name="mainMenuDatabaseImport">Import</string>
     <string name="mainMenuDatabaseExport">Export</string>
+
+    <!-- import/export db -->
+    <string name="importExportDialogRestoreButton">Restore</string>
+    <string name="importExportDialogCancelButton">Cancel</string>
+
+    <!-- expense menu item -->
+    <string name="expenseMenuItemNr">No</string>
+    <string name="expenseMenuItemDummyComment">dummy comment</string>
+    <string name="expenseMenuItemDummyType">dummy type</string>
+    <string name="expenseMenuItemDummyDate">dummy date</string>
+    <string name="expenseMenuItemDummyValue">dummy value</string>
+    <string name="expenseMenuItemContentDescription">delete button</string>
 
 </resources>

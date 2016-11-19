@@ -33,21 +33,21 @@ import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
 public abstract class AbstractExpenseListActivity extends Activity {
 
-    protected ExpenseDao expenseDao;
-    protected ListView expenseList;
-    protected ExpenseListAdapter expenseListAdapter = new ExpenseListAdapter();
+    ExpenseDao expenseDao;
+    ListView expenseList;
+    final ExpenseListAdapter expenseListAdapter = new ExpenseListAdapter();
 
-    protected TextView totalTextView;
-    protected NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
+    TextView totalTextView;
+    private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
 
-    protected Map<Integer, Comparator<Expense>> mapSortingMenuItemToComparator = new HashMap<>();
+    final Map<Integer, Comparator<Expense>> mapSortingMenuItemToComparator = new HashMap<>();
 
     // dialogs
-    protected ExpenseTypeSelectionDialog expenseTypeSelectionDialog;
-    protected Filters lastUsedFilters;
-    protected Button filtersButton;
+    ExpenseTypeSelectionDialog expenseTypeSelectionDialog;
+    private Filters lastUsedFilters;
+    Button filtersButton;
 
-    public AbstractExpenseListActivity() {
+    AbstractExpenseListActivity() {
         mapSortingMenuItemToComparator.put(1, new ExpenseDateComparator(true));
         mapSortingMenuItemToComparator.put(2, new ExpenseDateComparator(false));
         mapSortingMenuItemToComparator.put(3, new ExpenseTypeComparator(true));
@@ -68,7 +68,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
     }
 
-    protected void showFiltersDialog() {
+    void showFiltersDialog() {
         expenseTypeSelectionDialog.show(lastUsedFilters,
                 expenseListAdapter.expenseTypeSet(),
                 new ExpenseTypeSelectionDialog.Callback() {
@@ -82,20 +82,20 @@ public abstract class AbstractExpenseListActivity extends Activity {
                 });
     }
 
-    protected void sortExpenses(int order) {
+    void sortExpenses(int order) {
         expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(order));
     }
 
-    protected void addEditExpense(int position) {
+    void addEditExpense(int position) {
         final Expense expense = (Expense) expenseListAdapter.getItem(position);
 
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
-        addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, expenseListAdapter.getExpenseTypes());
+        addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
         addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT, expense);
         startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
     }
 
-    protected void clearFilters() {
+    void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
             expenseListAdapter.clearFilters();
             filtersButton.setText(R.string.expenseListActivityFilterButton);
@@ -103,7 +103,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
         updateTotal();
     }
 
-    protected void updateTotal() {
+    void updateTotal() {
         final double total = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(true));
         final String formattedTotal = numberFormatter.format(total);
 
@@ -119,7 +119,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
         }
     }
 
-    protected void showPieChart() {
+    void showPieChart() {
         final Intent pieChartIntent = new Intent(this, PieChartActivity.class);
         pieChartIntent.putExtra(Constants.INTENT_EXPENSE_VALUES_BY_TYPE,
                 (Serializable) ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false)));

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,16 +39,19 @@ import ro.pandemonium.expense.util.FileUtil;
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements View.OnClickListener, DatePickerDialog.OnDateSetListener, AdapterView.OnItemClickListener, View.OnLongClickListener {
 
-    final Calendar cal = Calendar.getInstance();
+    private final Calendar calendar = Calendar.getInstance();
     private int year;
     private int monthOfYear;
 
     private Button changeMonthButton;
-    private DateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
+    private final DateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
 
     // dialogs
     private ImportFileSelectionDialog importFileSelectionDialog;
     private Filters lastUsedGlobalFilters;
+
+    public ExpenseMainActivity() {
+    }
 
     @Override
     int getLayoutId() {
@@ -69,8 +73,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         importFileSelectionDialog = new ImportFileSelectionDialog(this);
 
-        year = cal.get(Calendar.YEAR);
-        monthOfYear = cal.get(Calendar.MONTH) + 1;
+        year = calendar.get(Calendar.YEAR);
+        monthOfYear = calendar.get(Calendar.MONTH) + 1;
 
         repopulateExpenseList(year, monthOfYear);
     }
@@ -84,7 +88,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             case R.id.addExpenseButton:
                 final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
-                addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, expenseListAdapter.getExpenseTypes());
+                addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
                 startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
                 break;
 
@@ -244,8 +248,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private boolean isInSameMonth(final Date date) {
-        cal.setTime(date);
-        return cal.get(Calendar.YEAR) == year && (cal.get(Calendar.MONTH) + 1) == monthOfYear;
+        calendar.setTime(date);
+        return calendar.get(Calendar.YEAR) == year && (calendar.get(Calendar.MONTH) + 1) == monthOfYear;
     }
 
     @Override
@@ -269,9 +273,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void updateMonthButtonLabel() {
-        cal.set(Calendar.MONTH, monthOfYear - 1);
-        cal.set(Calendar.YEAR, year);
-        changeMonthButton.setText(dateFormat.format(cal.getTime()));
+        calendar.set(Calendar.MONTH, monthOfYear - 1);
+        calendar.set(Calendar.YEAR, year);
+        changeMonthButton.setText(dateFormat.format(calendar.getTime()));
     }
 
     @Override

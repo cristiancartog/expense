@@ -21,11 +21,12 @@ import java.util.Set;
 
 public class ExpenseDao implements Serializable {
 
+    private static final String CLASS_NAME = ExpenseDao.class.getSimpleName();
     private static final String EXPENSES_TABLE = "EXPENSES";
     private static final String FETCH_EXPENSES_QUERY_BASE = "SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT FROM " + EXPENSES_TABLE;
 
-    private SQLiteDatabase database;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
+    private final SQLiteDatabase database;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
 
     public ExpenseDao(SQLiteDatabase database) {
         this.database = database;
@@ -95,20 +96,11 @@ public class ExpenseDao implements Serializable {
     }
 
     private String createFetchExpensesQueryString(final Filters filters) {
-        final StringBuilder query = new StringBuilder(FETCH_EXPENSES_QUERY_BASE);
-
-        query.append(createExpenseTypeWhereClause(filters.getExpenseTypes()));
-        query.append(buildDescriptionClause(filters.getComments()));
-
-        return query.toString();
+        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments()) ;
     }
 
     private String createFetchExpensesQueryString(final List<ExpenseType> expenseTypes) {
-        final StringBuilder query = new StringBuilder(FETCH_EXPENSES_QUERY_BASE);
-
-        query.append(createExpenseTypeWhereClause(expenseTypes));
-
-        return query.toString();
+        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(expenseTypes);
     }
 
     private String buildDescriptionClause(final Set<String> comments) {
@@ -167,7 +159,7 @@ public class ExpenseDao implements Serializable {
                 try {
                     expense.setDate(dateFormat.parse(cursor.getString(3)));
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    Log.w(CLASS_NAME, e.getMessage());
                 }
                 expense.setComment(cursor.getString(4));
 
@@ -187,30 +179,31 @@ public class ExpenseDao implements Serializable {
 
         checkDatabaseAvailability();
 
-        final StringBuilder querySb = new StringBuilder("SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%Y-%m', DATE) AS MONTH FROM EXPENSES ");
-        querySb.append(createExpenseTypeWhereClause(expenseTypes));
-        querySb.append("GROUP BY EXPENSE_TYPE, MONTH ");
-        querySb.append("ORDER BY MONTH");
+        String query = "SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%Y-%m', DATE) AS MONTH FROM EXPENSES ";
+        query += createExpenseTypeWhereClause(expenseTypes);
+        query += "GROUP BY EXPENSE_TYPE, MONTH ";
+        query += "ORDER BY MONTH";
 
         ExpenseMonthlySummary currentMonthlySummary = null;
 
-        final Cursor cursor = database.rawQuery(querySb.toString(), null);
-        if (cursor.moveToFirst()) {
-            do {
-                String yearMonth = cursor.getString(2);
-                if (currentMonthlySummary == null) {
-                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                }
+        try(final Cursor cursor = database.rawQuery(query, null)) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String yearMonth = cursor.getString(2);
+                    if (currentMonthlySummary == null) {
+                        currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
+                    }
 
-                if (!currentMonthlySummary.isInSameMonth(yearMonth)) {
-                    monthlySummary.add(currentMonthlySummary);
-                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                }
-                currentMonthlySummary.addExpense(ExpenseType.forDbId(cursor.getInt(0)), cursor.getDouble(1));
+                    if (!currentMonthlySummary.isInSameMonth(yearMonth)) {
+                        monthlySummary.add(currentMonthlySummary);
+                        currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
+                    }
+                    currentMonthlySummary.addExpense(ExpenseType.forDbId(cursor.getInt(0)), cursor.getDouble(1));
 
-            } while (cursor.moveToNext());
+                } while (cursor.moveToNext());
 
-            monthlySummary.add(currentMonthlySummary);
+                monthlySummary.add(currentMonthlySummary);
+            }
         }
 
         return monthlySummary;
