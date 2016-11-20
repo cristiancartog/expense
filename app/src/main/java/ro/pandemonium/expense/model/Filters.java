@@ -28,9 +28,4 @@ public class Filters implements Serializable {
         return expenseTypes.isEmpty() && comments.isEmpty();
 
     }
-
-    public static Filters defaultFilters() {
-        Arrays.asList(ExpenseType.values());
-        return new Filters(Arrays.asList(ExpenseType.values()), new HashSet<String>());
-    }
 }

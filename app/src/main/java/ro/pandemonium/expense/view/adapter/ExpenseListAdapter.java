@@ -1,6 +1,7 @@
 package ro.pandemonium.expense.view.adapter;
 
 import android.graphics.Color;
+import android.util.LongSparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +37,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     private final List<Expense> expenses = new LinkedList<>();
     private final List<Expense> backupExpenses = new LinkedList<>();
     private final Map<Object, Expense> mapDeleteButtonTagToExpense = new HashMap<>();
-    private final Map<Long, Expense> mapExpenseIdToExpense = new HashMap<>();
+    private final LongSparseArray<Expense> mapExpenseIdToExpense = new LongSparseArray<>();
 
     private Filters filters;
 

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -15,7 +16,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
@@ -40,7 +40,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
     TextView totalTextView;
     private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
 
-    final Map<Integer, Comparator<Expense>> mapSortingMenuItemToComparator = new HashMap<>();
+    final SparseArray<Comparator<Expense>> mapSortingMenuItemToComparator = new SparseArray<>();
 
     // dialogs
     ExpenseTypeSelectionDialog expenseTypeSelectionDialog;
@@ -48,12 +48,12 @@ public abstract class AbstractExpenseListActivity extends Activity {
     Button filtersButton;
 
     AbstractExpenseListActivity() {
-        mapSortingMenuItemToComparator.put(1, new ExpenseDateComparator(true));
-        mapSortingMenuItemToComparator.put(2, new ExpenseDateComparator(false));
-        mapSortingMenuItemToComparator.put(3, new ExpenseTypeComparator(true));
-        mapSortingMenuItemToComparator.put(4, new ExpenseTypeComparator(false));
-        mapSortingMenuItemToComparator.put(5, new ExpenseValueComparator(true));
-        mapSortingMenuItemToComparator.put(6, new ExpenseValueComparator(false));
+        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator(true));
+        mapSortingMenuItemToComparator.append(2, new ExpenseDateComparator(false));
+        mapSortingMenuItemToComparator.append(3, new ExpenseTypeComparator(true));
+        mapSortingMenuItemToComparator.append(4, new ExpenseTypeComparator(false));
+        mapSortingMenuItemToComparator.append(5, new ExpenseValueComparator(true));
+        mapSortingMenuItemToComparator.append(6, new ExpenseValueComparator(false));
     }
 
     abstract int getLayoutId();

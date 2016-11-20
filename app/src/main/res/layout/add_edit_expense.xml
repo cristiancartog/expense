@@ -32,7 +32,7 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/addExpenseTypeLabel"
-                    android:gravity="right"
+                    android:gravity="end"
                     android:layout_marginStart="10dp"/>
             </RelativeLayout>
 
@@ -53,7 +53,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
                     android:maxLines="1"
-                    android:gravity="right"
+                    android:gravity="end"
                     android:layout_toEndOf="@+id/addExpenseValueLabel"
                     android:layout_marginStart="10dp"
                     tools:ignore="LabelFor" />
