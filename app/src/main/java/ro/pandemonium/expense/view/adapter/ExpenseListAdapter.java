@@ -29,6 +29,7 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseListAdapter extends BaseAdapter {
 
@@ -78,7 +79,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         final TextView expenseTypeView = (TextView) view.findViewById(R.id.expenseListItemType);
         final ExpenseType expenseType = expense.getExpenseType();
         expenseTypeView.setText(expenseType.getTextResource());
-        expenseTypeView.setTextColor(expenseType.getColor());
+        expenseTypeView.setTextColor(ExpenseTypeColor.color(expenseType));
 
         final TextView descriptionView = (TextView) view.findViewById(R.id.expenseListItemDescription);
         descriptionView.setText(expense.getComment());

@@ -3,14 +3,22 @@ package ro.pandemonium.expense.util;
 import android.os.Environment;
 import android.util.Log;
 
-import ro.pandemonium.expense.Constants;
-import ro.pandemonium.expense.model.Expense;
-import ro.pandemonium.expense.model.ExpenseType;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import ro.pandemonium.expense.Constants;
+import ro.pandemonium.expense.model.Expense;
 
 public class FileUtil {
 
@@ -20,7 +28,6 @@ public class FileUtil {
     private static final String DEFAULT_FILE_NAME_SUFFIX = ".csv";
 
     private static final SimpleDateFormat FILE_NAME_DATE_FORMAT = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
-    private static final SimpleDateFormat CSV_DATE_DATE_FORMAT = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
 
     public static void exportExpenses(final List<Expense> expenses) throws IOException {
         final String fileName = DEFAULT_FILE_NAME_PREFIX + FILE_NAME_DATE_FORMAT.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
@@ -34,7 +41,7 @@ public class FileUtil {
 
         final FileOutputStream outputStream = new FileOutputStream(exportFile);
         for (Expense expense : expenses) {
-            outputStream.write(serializeExpenseToCsvItem(expense));
+            outputStream.write(expense.toCsv().getBytes());
         }
 
         outputStream.flush();
@@ -51,7 +58,7 @@ public class FileUtil {
             do {
                 line = in.readLine();
                 if (!StringUtils.isEmpty(line)) {
-                    expenses.add(deserializeExpense(line));
+                    expenses.add(Expense.fromCsv(line));
                 }
             } while (line != null);
 
@@ -91,37 +98,4 @@ public class FileUtil {
 
         return storageFolder;
     }
-
-    private static byte[] serializeExpenseToCsvItem(final Expense expense) {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append(expense.getId());
-        sb.append(",");
-        sb.append(expense.getExpenseType().name());
-        sb.append(",");
-        sb.append(CSV_DATE_DATE_FORMAT.format(expense.getDate()));
-        sb.append(",");
-        sb.append(expense.getValue());
-        sb.append(",");
-        sb.append(expense.getComment());
-        sb.append("\n");
-
-        return sb.toString().getBytes();
-    }
-
-    private static Expense deserializeExpense(final String line) throws ParseException {
-        final String[] parts = line.split(",");
-
-        final Expense expense = new Expense();
-        expense.setId(Long.valueOf(parts[0]));
-        expense.setExpenseType(ExpenseType.valueOf(parts[1]));
-        expense.setDate(CSV_DATE_DATE_FORMAT.parse(parts[2]));
-        expense.setValue(Double.valueOf(parts[3]));
-        expense.setComment(parts.length == 5 ? parts[4] : "");
-
-        Log.i(Constants.APPLICATION_NAME, expense.toString());
-
-        return expense;
-    }
-
 }

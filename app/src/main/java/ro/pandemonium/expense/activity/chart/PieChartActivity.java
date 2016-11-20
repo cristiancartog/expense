@@ -17,6 +17,7 @@ import java.util.Map;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class PieChartActivity extends Activity {
 
@@ -46,8 +47,9 @@ public class PieChartActivity extends Activity {
 
         ArrayList<Integer> colors = new ArrayList<>();
         for (ExpenseType expenseType : ExpenseType.values()) {
-            if (expenseType.getColor() != Color.WHITE) {
-                colors.add(expenseType.getColor());
+            int color = ExpenseTypeColor.color(expenseType);
+            if (color != Color.WHITE) {
+                colors.add(color);
             }
         }
 

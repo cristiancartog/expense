@@ -27,6 +27,7 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class BarChartActivity extends Activity {
 
@@ -122,7 +123,7 @@ public class BarChartActivity extends Activity {
         for (ExpenseType expenseType: expenseTypes) {
             String text = resources.getString(expenseType.getTextResource());
             BarDataSet barDataSet = new BarDataSet(yValuesMap.get(expenseType), text);
-            barDataSet.setColor(expenseType.getColor());
+            barDataSet.setColor(ExpenseTypeColor.color(expenseType));
             barDataSet.setValueTextColor(Color.WHITE);
             barDataSet.setValueTextSize(9);
 

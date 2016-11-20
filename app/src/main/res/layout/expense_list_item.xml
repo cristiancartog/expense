@@ -70,7 +70,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="end"
         android:onClick="deleteButtonPressed"
-        android:src="@drawable/delete"
+        android:src="@drawable/ic_delete"
         android:layout_weight="0.50"
         android:cropToPadding="false"
         android:adjustViewBounds="false"
