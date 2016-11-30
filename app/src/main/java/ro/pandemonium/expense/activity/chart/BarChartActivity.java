@@ -91,8 +91,8 @@ public class BarChartActivity extends Activity {
         barChart.getAxisRight().setEnabled(false);
 
         // data
-        float groupSpace = 0.04f;
-        float barSpace = 0.02f;
+        float groupSpace = 0.04F;
+        float barSpace = 0.02F;
         float barWidth = (1 - groupSpace) / expenseTypes.size() - barSpace;
         // (barWidth + barSpace) * nrOfExpenseTypes + groupSpace = 1.00 (interval per group)
 

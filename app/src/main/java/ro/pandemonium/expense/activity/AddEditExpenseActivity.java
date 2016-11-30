@@ -74,7 +74,7 @@ public class AddEditExpenseActivity extends Activity
 
             valueField.setText(NUMBER_FORMATTER.format(expense.getValue()));
             spinner.setSelection(position);
-            calendar.setTime(expense.getDate());
+            calendar.setTime(new Date(expense.getTime()));
             dateField.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
             commentField.setText(expense.getComment());
         }

@@ -112,19 +112,18 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity imp
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        if (requestCode == AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID) {
-            if (resultCode == RESULT_OK) {
-                final Expense expense = (Expense) data.getSerializableExtra(Constants.INTENT_EXPENSE);
-                Log.i(Constants.APPLICATION_NAME, expense.toString());
+        if (requestCode == AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID
+                && resultCode == RESULT_OK) {
+            final Expense expense = (Expense) data.getSerializableExtra(Constants.INTENT_EXPENSE);
+            Log.i(Constants.APPLICATION_NAME, expense.toString());
 
-                expenseDao.updateExpense(expense);
-                expenseListAdapter.updateExpense(expense);
-                expenseListAdapter.notifyDataSetChanged();
+            expenseDao.updateExpense(expense);
+            expenseListAdapter.updateExpense(expense);
+            expenseListAdapter.notifyDataSetChanged();
 
-                updateTotal();
+            updateTotal();
 
-                changedExpenses.add(expense);
-            }
+            changedExpenses.add(expense);
         }
     }
 

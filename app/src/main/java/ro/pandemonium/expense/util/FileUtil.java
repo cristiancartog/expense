@@ -27,10 +27,9 @@ public class FileUtil {
     private static final String DEFAULT_FILE_NAME_PREFIX = "expenses-";
     private static final String DEFAULT_FILE_NAME_SUFFIX = ".csv";
 
-    private static final SimpleDateFormat FILE_NAME_DATE_FORMAT = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
-
     public static void exportExpenses(final List<Expense> expenses) throws IOException {
-        final String fileName = DEFAULT_FILE_NAME_PREFIX + FILE_NAME_DATE_FORMAT.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
+        final SimpleDateFormat fileNameDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
+        final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormat.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
         final File storageFolder = ensureStorageFolder();
         final File exportFile = new File(storageFolder.getAbsolutePath() + "/" + fileName);
 
@@ -39,9 +38,10 @@ public class FileUtil {
             throw new FileUtilException("File already exists, wait a second and try again.");
         }
 
+        final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
         final FileOutputStream outputStream = new FileOutputStream(exportFile);
         for (Expense expense : expenses) {
-            outputStream.write(expense.toCsv().getBytes());
+            outputStream.write(expense.toCsv(csvDateFormat).getBytes());
         }
 
         outputStream.flush();
@@ -52,19 +52,23 @@ public class FileUtil {
         final List<Expense> expenses = new ArrayList<>();
 
         try {
-            final BufferedReader in = new BufferedReader(new FileReader(getStorageFolder().getAbsolutePath() + File.separator + fileName));
-            String line;
+            final String filePath = getStorageFolder().getAbsolutePath() + File.separator + fileName;
 
-            do {
-                line = in.readLine();
-                if (!StringUtils.isEmpty(line)) {
-                    expenses.add(Expense.fromCsv(line));
-                }
-            } while (line != null);
+            try (final BufferedReader in = new BufferedReader(new FileReader(filePath))) {
+                final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
+                String line;
+
+                do {
+                    line = in.readLine();
+                    if (!StringUtils.isEmpty(line)) {
+                        expenses.add(Expense.fromCsv(line, csvDateFormat));
+                    }
+                } while (line != null);
+            }
 
         } catch (ParseException e) {
             Log.w(CLASS_NAME, e.getMessage());
-            throw new IOException(e.getMessage());
+            throw new IOException(e);
         }
 
         return expenses;

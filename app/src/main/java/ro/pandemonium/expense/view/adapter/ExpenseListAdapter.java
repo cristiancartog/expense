@@ -89,8 +89,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         valueView.setText(numberFormatter.format(expense.getValue()));
 
         final TextView dateView = (TextView) view.findViewById(R.id.expenseListItemDate);
-        final Date expenseDate = expense.getDate();
-        dateView.setText(expenseDate != null ? dateFormat.format(expense.getDate()) : "");
+        dateView.setText(expense.getFormattedDate(dateFormat));
 
         return view;
     }
@@ -115,7 +114,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         if (localExpense != null) {
             localExpense.setExpenseType(expense.getExpenseType());
             localExpense.setValue(expense.getValue());
-            localExpense.setDate(expense.getDate());
+            localExpense.setDate(new Date(expense.getTime()));
             localExpense.setComment(expense.getComment());
         }
     }

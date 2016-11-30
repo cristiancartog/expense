@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -36,11 +37,11 @@ public class ExpenseDao implements Serializable {
         if (database == null) {
             final String msg = "No database handle!";
             Log.e(Constants.APPLICATION_NAME, msg);
-            throw new RuntimeException(msg);
+            throw new ExpenseDaoException(msg);
         }
-        if (!database.isOpen()) {
-
-        }
+//        if (!database.isOpen()) {
+//
+//        }
     }
 
     public void persistExpense(final Expense expense) {
@@ -72,20 +73,13 @@ public class ExpenseDao implements Serializable {
         final ContentValues cv = new ContentValues();
         cv.put("EXPENSE_TYPE", expense.getExpenseType().getDbId());
         cv.put("VALUE", expense.getValue());
-        cv.put("DATE", dateFormat.format(expense.getDate()));
+        cv.put("DATE", dateFormat.format(new Date(expense.getTime())));
         cv.put("COMMENT", expense.getComment());
         return cv;
     }
 
     public void removeExpense(final Long expenseId) {
         database.execSQL("DELETE FROM EXPENSES WHERE _ID = " + expenseId);
-    }
-
-    public List<Expense> fetchExpenses(final List<ExpenseType> expenseTypes) {
-        checkDatabaseAvailability();
-
-        final Cursor cursor = database.rawQuery(createFetchExpensesQueryString(expenseTypes), null);
-        return extractExpenses(cursor);
     }
 
     public List<Expense> fetchExpenses(final Filters filters) {
@@ -97,10 +91,6 @@ public class ExpenseDao implements Serializable {
 
     private String createFetchExpensesQueryString(final Filters filters) {
         return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments()) ;
-    }
-
-    private String createFetchExpensesQueryString(final List<ExpenseType> expenseTypes) {
-        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(expenseTypes);
     }
 
     private String buildDescriptionClause(final Set<String> comments) {

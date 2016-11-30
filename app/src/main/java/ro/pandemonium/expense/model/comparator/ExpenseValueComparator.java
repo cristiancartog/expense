@@ -2,9 +2,10 @@ package ro.pandemonium.expense.model.comparator;
 
 import ro.pandemonium.expense.model.Expense;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class ExpenseValueComparator implements Comparator<Expense> {
+public class ExpenseValueComparator implements Comparator<Expense>, Serializable {
 
     private final boolean isAscending;
 

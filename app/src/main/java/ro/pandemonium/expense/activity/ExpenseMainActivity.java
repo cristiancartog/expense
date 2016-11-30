@@ -21,7 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -213,14 +212,14 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             boolean newExpenseAddedThisMonth = false;
 
             if (expenseId == null) { // add new expense
-                if (isInSameMonth(expense.getDate())) {
+                if (isInSameMonth(expense.getTime())) {
                     clearFilters();
                     expenseListAdapter.addExpense(expense);
                     newExpenseAddedThisMonth = true;
                 }
                 expenseDao.persistExpense(expense);
             } else { // update existing expense
-                if (isInSameMonth(expense.getDate())) {
+                if (isInSameMonth(expense.getTime())) {
                     expenseListAdapter.updateExpense(expense);
                 } else {
                     expenseListAdapter.deleteExpense(expense);
@@ -247,8 +246,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
     }
 
-    private boolean isInSameMonth(final Date date) {
-        calendar.setTime(date);
+    private boolean isInSameMonth(final long time) {
+        calendar.setTimeInMillis(time);
         return calendar.get(Calendar.YEAR) == year && (calendar.get(Calendar.MONTH) + 1) == monthOfYear;
     }
 
