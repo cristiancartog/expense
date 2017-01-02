@@ -241,6 +241,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         expenses.clear();
         expenses.addAll(backupExpenses);
         backupExpenses.clear();
+        filters = null;
         notifyDataSetChanged();
     }
 }

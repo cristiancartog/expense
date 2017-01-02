@@ -2,7 +2,6 @@ package ro.pandemonium.expense.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseArray;
@@ -71,14 +70,11 @@ public abstract class AbstractExpenseListActivity extends Activity {
     void showFiltersDialog() {
         expenseTypeSelectionDialog.show(lastUsedFilters,
                 expenseListAdapter.expenseTypeSet(),
-                new ExpenseTypeSelectionDialog.Callback() {
-                    @Override
-                    public void expenseTypesSelected(final Filters filters) {
-                        lastUsedFilters = filters;
-                        expenseListAdapter.filterBy(filters);
-                        filtersButton.setText(R.string.expenseListActivityFiltered);
-                        updateTotal();
-                    }
+                filters -> {
+                    lastUsedFilters = filters;
+                    expenseListAdapter.filterBy(filters);
+                    filtersButton.setText(R.string.expenseListActivityFiltered);
+                    updateTotal();
                 });
     }
 
@@ -131,13 +127,10 @@ public abstract class AbstractExpenseListActivity extends Activity {
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(R.string.removeExpenseDialogTitle)
                 .setMessage(R.string.removeExpenseDialogMessage)
-                .setPositiveButton(R.string.removeExpenseDialogYes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        final Expense expense = expenseListAdapter.deleteExpenseForTag(view.getTag());
-                        expenseDao.removeExpense(expense.getId());
-                        updateTotal();
-                    }
+                .setPositiveButton(R.string.removeExpenseDialogYes, (dialog, which) -> {
+                    final Expense expense = expenseListAdapter.deleteExpenseForTag(view.getTag());
+                    expenseDao.removeExpense(expense.getId());
+                    updateTotal();
                 })
                 .setNegativeButton(R.string.removeExpenseDialogNo, null)
                 .show();
