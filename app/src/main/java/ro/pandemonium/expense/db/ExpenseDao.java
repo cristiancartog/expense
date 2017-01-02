@@ -181,7 +181,7 @@ public class ExpenseDao implements Serializable {
         return expenses;
     }
 
-    public List<ExpenseMonthlySummary> getMonthlySummary2(final List<ExpenseType> expenseTypes) {
+    public List<ExpenseMonthlySummary> getMonthlySummary(final List<ExpenseType> expenseTypes) {
         final List<ExpenseMonthlySummary> monthlySummary = new ArrayList<>();
 
         checkDatabaseAvailability();

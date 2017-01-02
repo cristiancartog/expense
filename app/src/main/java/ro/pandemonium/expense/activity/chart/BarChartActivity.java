@@ -42,7 +42,7 @@ public class BarChartActivity extends Activity {
         @SuppressWarnings("unchecked")
         List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS);
 
-        List<ExpenseMonthlySummary> monthlySummary = expenseDao.getMonthlySummary2(expenseTypes);
+        List<ExpenseMonthlySummary> monthlySummary = expenseDao.getMonthlySummary(expenseTypes);
 
         BarChart barChart = (BarChart) findViewById(R.id.expenseBarChart);
 
