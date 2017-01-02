@@ -28,7 +28,6 @@ import java.util.Locale;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.BarChartActivity;
-import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
@@ -149,27 +148,21 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             case R.id.main_menu_chart_bar:
                 expenseTypeSelectionDialog.show(null,
                         Arrays.asList(ExpenseType.values()),
-                        new ExpenseTypeSelectionDialog.Callback() {
-                            @Override
-                            public void expenseTypesSelected(final Filters filters) {
-                                final Intent intent = new Intent(ExpenseMainActivity.this, BarChartActivity.class);
-                                intent.putExtra(Constants.INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
-                                startActivity(intent);
-                            }
+                        filters -> {
+                            final Intent intent = new Intent(ExpenseMainActivity.this, BarChartActivity.class);
+                            intent.putExtra(Constants.INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
+                            startActivity(intent);
                         });
                 break;
 
             case R.id.main_menu_database_import:
-                importFileSelectionDialog.show(new ImportFileSelectionDialog.Callback() {
-                    @Override
-                    public void fileSelected(final String fileName) {
-                        try {
-                            final List<Expense> expenses = FileUtil.importExpenses(fileName);
-                            expenseDao.restoreExpenses(expenses);
-                            repopulateExpenseList(year, monthOfYear);
-                        } catch (IOException e) {
-                            Toast.makeText(ExpenseMainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
+                importFileSelectionDialog.show(fileName -> {
+                    try {
+                        final List<Expense> expenses = FileUtil.importExpenses(fileName);
+                        expenseDao.restoreExpenses(expenses);
+                        repopulateExpenseList(year, monthOfYear);
+                    } catch (IOException e) {
+                        Toast.makeText(ExpenseMainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
                 break;
@@ -187,15 +180,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             case R.id.main_menu_search_db:
                 expenseTypeSelectionDialog.show(lastUsedGlobalFilters,
                         ExpenseType.orderedExpenseTypes(),
-                        new ExpenseTypeSelectionDialog.Callback() {
-                            @Override
-                            public void expenseTypesSelected(final Filters filters) {
-                                lastUsedGlobalFilters = filters;
+                        filters -> {
+                            lastUsedGlobalFilters = filters;
 
-                                final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-                                searchDatabaseIntent.putExtra(Constants.INTENT_FILTERS, filters);
-                                startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
-                            }
+                            final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+                            searchDatabaseIntent.putExtra(Constants.INTENT_FILTERS, filters);
+                            startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
                         });
                 break;
             case R.id.main_menu_order_by_date_ascending:

@@ -75,12 +75,8 @@ public class FileUtil {
     }
 
     public static List<String> fetchAllBackupFiles() {
-        final String[] fileNames = getStorageFolder().list(new FilenameFilter() {
-            @Override
-            public boolean accept(final File folder, final String fileName) {
-                return fileName.endsWith(DEFAULT_FILE_NAME_SUFFIX);
-            }
-        });
+        final String[] fileNames = getStorageFolder()
+                .list((folder, fileName) -> fileName.endsWith(DEFAULT_FILE_NAME_SUFFIX));
 
         return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<>();
     }

@@ -31,11 +31,12 @@ public class PieChartActivity extends Activity {
         pieChart.setDescription(null);
 
         @SuppressWarnings("unchecked")
-        Map<ExpenseType, Double> expenseTypeValues = (Map<ExpenseType, Double>) getIntent().getSerializableExtra(Constants.INTENT_EXPENSE_VALUES_BY_TYPE);
+        Map<ExpenseType, Double> expenseTypeValues = (Map<ExpenseType, Double>) getIntent()
+                .getSerializableExtra(Constants.INTENT_EXPENSE_VALUES_BY_TYPE);
 
         final List<PieEntry> entries = new ArrayList<>();
         final Resources resources = getResources();
-        for (Map.Entry<ExpenseType, Double> entry: expenseTypeValues.entrySet()) {
+        for (Map.Entry<ExpenseType, Double> entry : expenseTypeValues.entrySet()) {
             String text = resources.getString(entry.getKey().getTextResource());
             entries.add(new PieEntry(entry.getValue().floatValue(), text));
         }
@@ -55,16 +56,13 @@ public class PieChartActivity extends Activity {
 
         pieDataSet.setColors(colors);
 
-
         PieData data = new PieData(pieDataSet);
         data.setValueTextSize(11f);
         data.setValueTextColor(Color.WHITE);
 
         pieChart.setHoleColor(Color.TRANSPARENT);
         pieChart.setData(data);
-
-        // undo all highlights
-        pieChart.highlightValues(null);
+        pieChart.highlightValues(null); // undo all highlights
 
         pieChart.invalidate();
     }
