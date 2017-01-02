@@ -5,7 +5,7 @@
               android:layout_height="match_parent" android:onClick="onClick">
 
     <ListView
-            android:id="@+id/expansesSearchResultListView"
+            android:id="@+id/specialExpensesListView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"/>
@@ -13,7 +13,7 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
 
         <TextView
-                android:id="@+id/expenseSearchResultTotalLabel"
+                android:id="@+id/specialExpensesTotalLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/expenseListActivityTotalLabel"
@@ -21,14 +21,21 @@
                 android:layout_gravity="start"
                 />
         <TextView
-                android:id="@+id/expenseSearchResultTotal"
+                android:id="@+id/specialExpensesActivityTotalLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/expenseListActivityZero"
+                android:text="@string/specialExpensesActivityZero"
                 android:textSize="9pt"
                 android:layout_gravity="end"
                 android:gravity="end"
                 />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/specialExpensesAddExpenseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="@string/specialExpensesActivityAddExpenseButton" />
 </LinearLayout>
 

@@ -17,6 +17,7 @@
     <string name="FOOD">Food</string>
     <string name="RESTAURANT">Restaurant</string>
     <string name="CAR">Car maintenance</string>
+    <string name="SPECIAL">Special</string>
 
     <!-- expense list activity -->
     <string name="expenseListActivityFilterButton">"Filter.."</string>
@@ -35,6 +36,11 @@
     <string name="expenseSearchResultActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
     <string name="expenseSearchResultActivityZero">0.00</string>
     <string name="expenseSearchResultActivityFilterButton">"Filter.."</string>
+
+    <!-- special expenses-->
+    <string name="specialExpensesActivityAddExpenseButton">Add expense</string>
+    <string name="specialExpensesActivityTotalLabel">Total:</string>
+    <string name="specialExpensesActivityZero">0.00</string>
 
     <!-- add/edit expense activity -->
     <string name="addEditExpenseActivityExpenseTypeLabel">Expense Type:</string>
