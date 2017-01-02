@@ -4,5 +4,4 @@
     style="?android:attr/spinnerDropDownItemStyle"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
-    android:ellipsize="marquee"
-    android:maxLength="1" />
+    android:ellipsize="marquee" />

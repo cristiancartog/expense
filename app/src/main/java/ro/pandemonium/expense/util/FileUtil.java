@@ -82,7 +82,7 @@ public class FileUtil {
             }
         });
 
-        return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<String>();
+        return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<>();
     }
 
     private static File getStorageFolder() {

@@ -102,7 +102,7 @@ public class BarChartActivity extends Activity {
         final Map<ExpenseType, List<BarEntry>> yValuesMap = new HashMap<>();
 
         for (ExpenseType expenseType: expenseTypes) {
-            yValuesMap.put(expenseType, new ArrayList<BarEntry>());
+            yValuesMap.put(expenseType, new ArrayList<>());
         }
 
         int counter = 0;
