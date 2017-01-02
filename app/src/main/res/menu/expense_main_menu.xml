@@ -3,7 +3,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/main_menu_search_db"
-        android:title="@string/mainMenuSearchDatabase"/>
+        android:title="@string/mainMenuSearchDatabase" />
+    <item
+        android:id="@+id/main_menu_special_expenses"
+        android:title="@string/mainMenuSpecialExpenses" />
     <item
         android:id="@+id/main_menu_order_by"
         android:title="@string/mainMenuOrderBy">
@@ -52,13 +55,13 @@
         <menu>
             <item
                 android:id="@+id/main_menu_chart_pie"
-                android:title="@string/mainMenuChartPie"/>
+                android:title="@string/mainMenuChartPie" />
             <item
                 android:id="@+id/main_menu_chart_bar"
-                android:title="@string/mainMenuChartBar"/>
+                android:title="@string/mainMenuChartBar" />
             <item
                 android:id="@+id/main_menu_chart_line"
-                android:title="@string/mainMenuChartLine"/>
+                android:title="@string/mainMenuChartLine" />
         </menu>
     </item>
 </menu>

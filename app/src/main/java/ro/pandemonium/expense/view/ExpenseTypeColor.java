@@ -22,6 +22,7 @@ public class ExpenseTypeColor {
         EXPENSE_TYPE_TO_COLOR.put(ExpenseType.PHONE, Color.rgb(220, 130, 29));
         EXPENSE_TYPE_TO_COLOR.put(ExpenseType.GYM, Color.rgb(173, 179, 79));
         EXPENSE_TYPE_TO_COLOR.put(ExpenseType.CAR, Color.rgb(233, 233, 133));
+        EXPENSE_TYPE_TO_COLOR.put(ExpenseType.SPECIAL, Color.rgb(166, 0, 83));
     }
 
     public static int color(final ExpenseType expenseType) {

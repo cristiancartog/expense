@@ -25,6 +25,8 @@
                 android:screenOrientation="portrait"/>
         <activity android:name=".activity.ExpenseSearchResultActivity"
             android:screenOrientation="portrait"/>
+        <activity android:name=".activity.SpecialExpensesActivity"
+            android:screenOrientation="portrait"/>
         <activity android:name=".activity.chart.PieChartActivity"/>
         <activity android:name=".activity.chart.BarChartActivity"/>
     </application>

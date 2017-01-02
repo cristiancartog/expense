@@ -145,6 +145,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             case R.id.main_menu_chart_line:
                 break;
+
             case R.id.main_menu_chart_bar:
                 expenseTypeSelectionDialog.show(null,
                         Arrays.asList(ExpenseType.values()),
@@ -188,6 +189,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                             startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
                         });
                 break;
+
+            case R.id.main_menu_special_expenses:
+                startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
+                break;
+
             case R.id.main_menu_order_by_date_ascending:
             case R.id.main_menu_order_by_date_descending:
             case R.id.main_menu_order_by_type_ascending:
@@ -222,16 +228,18 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             boolean newExpenseAddedThisMonth = false;
 
             if (expenseId == null) { // add new expense
+                expenseDao.persistExpense(expense);
+
                 if (isInSameMonth(expense.getTime())) {
                     clearFilters();
-                    expenseListAdapter.addExpense(expense);
-                    newExpenseAddedThisMonth = true;
+
+                    if (expense.getExpenseType() != ExpenseType.SPECIAL) {
+                        expenseListAdapter.addExpense(expense);
+                        newExpenseAddedThisMonth = true;
+                    }
                 }
-                expenseDao.persistExpense(expense);
             } else { // update existing expense
-                if (isInSameMonth(expense.getTime())) {
-                    expenseListAdapter.updateExpense(expense);
-                } else {
+                if (!isInSameMonth(expense.getTime())) {
                     expenseListAdapter.deleteExpense(expense);
                 }
                 expenseDao.updateExpense(expense);

@@ -29,7 +29,7 @@ public class ExpenseDao implements Serializable {
     private final SQLiteDatabase database;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
 
-    public ExpenseDao(SQLiteDatabase database) {
+    public ExpenseDao(final SQLiteDatabase database) {
         this.database = database;
     }
 
@@ -89,8 +89,19 @@ public class ExpenseDao implements Serializable {
         return extractExpenses(cursor);
     }
 
+    public List<Expense> fetchSpecialExpenses() {
+        checkDatabaseAvailability();
+
+        final String query = FETCH_EXPENSES_QUERY_BASE
+                + " WHERE EXPENSE_TYPE = " + ExpenseType.SPECIAL.getDbId()
+                + " ORDER BY DATE DESC";
+        final Cursor cursor = database.rawQuery(query, null);
+
+        return extractExpenses(cursor);
+    }
+
     private String createFetchExpensesQueryString(final Filters filters) {
-        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments()) ;
+        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments());
     }
 
     private String buildDescriptionClause(final Set<String> comments) {
@@ -106,7 +117,10 @@ public class ExpenseDao implements Serializable {
     }
 
     private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
-        final StringBuilder sb = new StringBuilder(" WHERE EXPENSE_TYPE IN (");
+        final StringBuilder sb = new StringBuilder(" WHERE ");
+        sb.append(" EXPENSE_TYPE <> ");
+        sb.append(ExpenseType.SPECIAL.getDbId());
+        sb.append(" AND EXPENSE_TYPE IN (");
 
         final int expenseTypeListSize = expenseTypes.size();
         for (int i = 0; i < expenseTypeListSize; i++) {
@@ -132,7 +146,10 @@ public class ExpenseDao implements Serializable {
         String query = FETCH_EXPENSES_QUERY_BASE;
 
         if (monthOfYear != null) {
-            query += " WHERE CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year + " AND CAST(STRFTIME('%m', DATE) AS NUMBER) = " + monthOfYear;
+            query += " WHERE "
+                    + "EXPENSE_TYPE <> " + ExpenseType.SPECIAL.getDbId()
+                    + " AND CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year
+                    + " AND CAST(STRFTIME('%m', DATE) AS NUMBER) = " + monthOfYear;
         }
 
         return query;
@@ -176,7 +193,7 @@ public class ExpenseDao implements Serializable {
 
         ExpenseMonthlySummary currentMonthlySummary = null;
 
-        try(final Cursor cursor = database.rawQuery(query, null)) {
+        try (final Cursor cursor = database.rawQuery(query, null)) {
             if (cursor.moveToFirst()) {
                 do {
                     String yearMonth = cursor.getString(2);

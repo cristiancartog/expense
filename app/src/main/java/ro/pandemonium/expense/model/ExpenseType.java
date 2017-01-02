@@ -19,7 +19,8 @@ public enum ExpenseType {
     INTERNET(40, 1, 8, R.string.INTERNET),
     PHONE(30, 1, 9, R.string.PHONE),
     GYM(60, 1, 10, R.string.GYM),
-    CAR(100, Integer.MAX_VALUE, 11, R.string.CAR);
+    CAR(100, Integer.MAX_VALUE, 11, R.string.CAR),
+    SPECIAL(999, Integer.MAX_VALUE, 12, R.string.SPECIAL);
 
     private final int maxOccurrences;
     private final int dbId;

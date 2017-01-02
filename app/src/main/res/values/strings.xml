@@ -64,6 +64,7 @@
 
     <!-- main menu -->
     <string name="mainMenuSearchDatabase">Search database..</string>
+    <string name="mainMenuSpecialExpenses">Special expenses</string>
     <string name="mainMenuOrderBy">Order by..</string>
     <string name="mainMenuOrderByDateAscending">..date ascending</string>
     <string name="mainMenuOrderByDateDescending">..date descending</string>

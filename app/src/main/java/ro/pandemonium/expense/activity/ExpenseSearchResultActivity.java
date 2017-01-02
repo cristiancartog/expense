@@ -21,7 +21,10 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
 
-public class ExpenseSearchResultActivity extends AbstractExpenseListActivity implements View.OnClickListener, AdapterView.OnItemClickListener, View.OnLongClickListener {
+public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
+        implements View.OnClickListener,
+        AdapterView.OnItemClickListener,
+        View.OnLongClickListener {
 
     public static final int EXPENSE_SEARCH_RESULT_ACTIVITY_ID = 3;
 
