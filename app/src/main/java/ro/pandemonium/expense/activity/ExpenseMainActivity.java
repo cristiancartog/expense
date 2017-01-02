@@ -94,6 +94,26 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             case R.id.expenseListFiltersButton:
                 showFiltersDialog();
                 break;
+
+            case R.id.expenseListPreviousMonth:
+                monthOfYear--;
+                if (monthOfYear < 1) {
+                    monthOfYear = 12;
+                    year--;
+                }
+
+                repopulateExpenseList(year, monthOfYear);
+                break;
+
+            case R.id.expenseListNextMonth:
+                monthOfYear++;
+                if (monthOfYear > 12) {
+                    monthOfYear = 1;
+                    year++;
+                }
+
+                repopulateExpenseList(year, monthOfYear);
+                break;
         }
     }
 

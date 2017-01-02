@@ -9,21 +9,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <ImageButton
+            android:id="@+id/expenseListPreviousMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:src="@drawable/ic_arrow_left_icon"/>
+
         <Button
             android:id="@+id/expenseListChangeMonthButton"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="10"
             android:onClick="onClick"
             android:text="@string/expenseListActivityChangeMonth" />
+
+        <ImageButton
+            android:id="@+id/expenseListNextMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:src="@drawable/ic_arrow_right_icon"/>
 
         <Button
             android:id="@+id/expenseListFiltersButton"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="4"
             android:onClick="onClick"
             android:text="@string/expenseListActivityFilterButton" />
 
