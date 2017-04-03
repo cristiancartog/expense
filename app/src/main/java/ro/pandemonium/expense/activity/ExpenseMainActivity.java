@@ -25,24 +25,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.BarChartActivity;
 import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.model.MonthWrapper;
+import ro.pandemonium.expense.task.ExpenseLoaderTask;
 import ro.pandemonium.expense.util.FileUtil;
 
+import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
+import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
+import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+
 public class ExpenseMainActivity extends AbstractExpenseListActivity
-        implements View.OnClickListener, DatePickerDialog.OnDateSetListener, AdapterView.OnItemClickListener, View.OnLongClickListener {
+        implements View.OnClickListener,
+        DatePickerDialog.OnDateSetListener,
+        AdapterView.OnItemClickListener,
+        View.OnLongClickListener {
 
     private final Calendar calendar = Calendar.getInstance();
     private int year;
     private int monthOfYear;
 
     private Button changeMonthButton;
-    private final DateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
+    private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
 
     // dialogs
     private ImportFileSelectionDialog importFileSelectionDialog;
@@ -86,7 +97,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             case R.id.addExpenseButton:
                 final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
-                addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
+                addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
                 startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
                 break;
 
@@ -134,7 +145,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
-        Log.i(Constants.APPLICATION_NAME, item.getTitle().toString());
+        Log.i(APPLICATION_NAME, item.getTitle().toString());
 
         final int menuItemId = item.getItemId();
 
@@ -151,7 +162,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                         Arrays.asList(ExpenseType.values()),
                         filters -> {
                             final Intent intent = new Intent(ExpenseMainActivity.this, BarChartActivity.class);
-                            intent.putExtra(Constants.INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
+                            intent.putExtra(INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
                             startActivity(intent);
                         });
                 break;
@@ -185,7 +196,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                             lastUsedGlobalFilters = filters;
 
                             final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-                            searchDatabaseIntent.putExtra(Constants.INTENT_FILTERS, filters);
+                            searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
                             startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
                         });
                 break;
@@ -221,8 +232,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     private void processAddEditExpenseResult(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            final Expense expense = (Expense) data.getSerializableExtra(Constants.INTENT_EXPENSE);
-            Log.i(Constants.APPLICATION_NAME, expense.toString());
+            final Expense expense = (Expense) data.getSerializableExtra(INTENT_EXPENSE);
+            Log.i(APPLICATION_NAME, expense.toString());
 
             final Long expenseId = expense.getId();
             boolean newExpenseAddedThisMonth = false;
@@ -258,7 +269,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @SuppressWarnings("unchecked")
     private void processSearchResultActivityResult(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(Constants.INTENT_CHANGED_EXPENSES);
+            List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES);
             expenseListAdapter.updateExpenses(changedExpenses);
             expenseListAdapter.notifyDataSetChanged();
         }
@@ -280,13 +291,14 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void repopulateExpenseList(final int year, final int monthOfYear) {
-        clearFilters();
-        final List<Expense> expensesFromDb = expenseDao.fetchExpenses(year, monthOfYear);
-        Collections.sort(expensesFromDb, mapSortingMenuItemToComparator.get(1));
-        expenseListAdapter.updateExpenseList(expensesFromDb);
-        updateTotal();
-        updateMonthButtonLabel();
-        expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
+        new ExpenseLoaderTask(expenseDao, expenses -> {
+            clearFilters();
+            Collections.sort(expenses, mapSortingMenuItemToComparator.get(1));
+            expenseListAdapter.updateExpenseList(expenses);
+            updateTotal();
+            updateMonthButtonLabel();
+            expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
+        }).execute(new MonthWrapper(year, monthOfYear));
     }
 
     private void updateMonthButtonLabel() {

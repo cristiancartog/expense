@@ -34,6 +34,8 @@ import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseListAdapter extends BaseAdapter {
 
+    private final static Filters EMPTY_FILTERS = new Filters(ExpenseType.orderedExpenseTypes(), new HashSet<>());
+
     private final List<Expense> expenses = new LinkedList<>();
     private final List<Expense> backupExpenses = new LinkedList<>();
     private final Map<Object, Expense> mapDeleteButtonTagToExpense = new HashMap<>();
@@ -104,7 +106,7 @@ public class ExpenseListAdapter extends BaseAdapter {
      * @param expenses - expenses with new data
      */
     public void updateExpenses(final List<Expense> expenses) {
-        for (Expense expense: expenses) {
+        for (Expense expense : expenses) {
             updateExpense(expense);
         }
     }
@@ -131,7 +133,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         expenses.addAll(newExpenses);
 
         mapExpenseIdToExpense.clear();
-        for (Expense expense: newExpenses) {
+        for (Expense expense : newExpenses) {
             mapExpenseIdToExpense.put(expense.getId(), expense);
         }
 
@@ -213,7 +215,8 @@ public class ExpenseListAdapter extends BaseAdapter {
     public Set<ExpenseType> expenseTypeSet() {
         Set<ExpenseType> expenseTypeSet = new HashSet<>();
 
-        for (Expense expense: isFiltered() ? backupExpenses : expenses) {
+        List<Expense> expensesSource = isFiltered() ? backupExpenses : this.expenses;
+        for (Expense expense : expensesSource) {
             expenseTypeSet.add(expense.getExpenseType());
         }
 
