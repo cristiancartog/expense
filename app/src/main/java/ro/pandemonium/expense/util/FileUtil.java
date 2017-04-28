@@ -5,9 +5,8 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,13 +38,15 @@ public class FileUtil {
         }
 
         final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-        final FileOutputStream outputStream = new FileOutputStream(exportFile);
+        final FileWriter fileWriter = new FileWriter(exportFile);
+
         for (Expense expense : expenses) {
-            outputStream.write(expense.toCsv(csvDateFormat).getBytes());
+            fileWriter.write(expense.toCsv(csvDateFormat));
+            fileWriter.write("\n");
         }
 
-        outputStream.flush();
-        outputStream.close();
+        fileWriter.flush()  ;
+        fileWriter.close();
     }
 
     public static List<Expense> importExpenses(String fileName) throws IOException {
