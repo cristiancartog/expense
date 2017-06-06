@@ -2,17 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "ro.pandemonium.expense"
         minSdkVersion 19
         versionCode 1
         versionName "1.0"
-
-        jackOptions {
-            enabled true
-        }
     }
 
     buildTypes {
