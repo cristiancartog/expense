@@ -2,4 +2,8 @@
 
 <resources>
     <item name="menu_item_odd" type="color">#ff222529</item>
+
+    <item name="report_variation_table_delimiter" type="color">#465363</item>
+    <item name="report_variation_positive" type="color">#1a911c</item>
+    <item name="report_variation_negative" type="color">#a61414</item>
 </resources>

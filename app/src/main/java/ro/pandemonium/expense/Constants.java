@@ -5,7 +5,8 @@ public class Constants {
     public static final String APPLICATION_NAME = "EXPENSES";
 
     // formatter(s)
-    public static final String NUMBER_FORMAT_PATTERN = "###,###.##";
+    public static final String NUMBER_FORMAT_PATTERN = "###,###.00";
+    public static final String PERCENT_FORMAT_PATTERN = "+##.00 %;-##.00 %";
     public static final String ADD_ACTIVITY_FORMAT_PATTERN = "#.##";
     public static final String DATE_FORMAT_PATTERN_DB = "yyyy-MM-dd";
     public static final String DATE_FORMAT_PATTERN_FILE_TIMESTAMP = "yyyy-MM-dd--HH-mm-ss";
@@ -19,6 +20,7 @@ public class Constants {
     public static final String INTENT_EXPENSE = "expense";
     public static final String INTENT_CHANGED_EXPENSES = "changedExpenses";
     public static final String INTENT_YEAR = "year";
+    public static final String INTEN_EXPENSE_TYPE = "expenseType";
 
     // chart intent parameters
     public static final String INTENT_EXPENSE_VALUES_BY_TYPE = "expenseValuesByType";

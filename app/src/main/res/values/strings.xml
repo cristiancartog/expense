@@ -33,6 +33,7 @@
 
     <!-- yearly report activity -->
     <string name="yearlyReportYear">Year</string>
+    <string name="yearlyReportExpenseTypePerYear">Expense \\ Year</string>
     <string name="yearlyReportCurrentYear">Current Year</string>
     <string name="yearlyReportLastYear">Last Year</string>
     <string name="yearlyReportVariation">Variation</string>

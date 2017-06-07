@@ -1,7 +1,9 @@
 package ro.pandemonium.expense.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -15,22 +17,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
+import ro.pandemonium.expense.activity.chart.YearlyComparisonChartActivity;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 
 public class YearlyExpenseReportActivity extends Activity implements View.OnClickListener {
 
     private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
+    private final NumberFormat percentFormatter = new DecimalFormat(PERCENT_FORMAT_PATTERN);
 
     private ExpenseDao expenseDao;
 
+    private TextView currentYearText;
+    private TextView currentYearLabel;
+    private TextView lastYearLabel;
     private TextView currentYearWithSpecialText;
     private TextView lastYearWithSpecialText;
     private TextView currentYearWithoutSpecialText;
@@ -49,6 +58,9 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
         setContentView(R.layout.yearly_report_activity);
 
+        currentYearText = (TextView) findViewById(R.id.yearlyReportCurrentYearText);
+        currentYearLabel = (TextView) findViewById(R.id.yearlyReportCurrentYearLabel);
+        lastYearLabel = (TextView) findViewById(R.id.yearlyReportLastYearLabel);
         currentYearWithSpecialText = (TextView) findViewById(R.id.yearlyReportCurrentYearWithSpecial);
         lastYearWithSpecialText = (TextView) findViewById(R.id.yearlyReportLastYearWithSpecial);
         currentYearWithoutSpecialText = (TextView) findViewById(R.id.yearlyReportCurrentYearWithoutSpecial);
@@ -65,28 +77,34 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
         year = getIntent().getExtras().getInt(INTENT_YEAR);
 
-        TableLayout byExpenseTypeLayout = (TableLayout) findViewById(R.id.yearlyReportByExpenseTypeLayout);
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.yearlyReportByExpenseTypeLayout);
 
+        int index = 2;
         for (ExpenseType expenseType : ExpenseType.values()) {
             TableRow tableRow = new TableRow(this);
+            tableRow.setPadding(0, 5, 0, 5);
+            tableRow.setOnClickListener(view ->
+                    startActivity(new Intent(this, YearlyComparisonChartActivity.class)
+                            .putExtra(Constants.INTEN_EXPENSE_TYPE, expenseType)));
 
-            TextView expenseTypeLabel = new TextView(this);
+            TextView expenseTypeLabel = valueTextView();
+            expenseTypeLabel.setGravity(Gravity.START);
             expenseTypeLabel.setText(expenseType.getTextResource());
             tableRow.addView(expenseTypeLabel);
-
-            TextView currentYear = valueTextView();
-            tableRow.addView(currentYear);
-            currentYearSumTexts.put(expenseType, currentYear);
 
             TextView lastYear = valueTextView();
             tableRow.addView(lastYear);
             lastYearSumTexts.put(expenseType, lastYear);
 
+            TextView currentYear = valueTextView();
+            tableRow.addView(currentYear);
+            currentYearSumTexts.put(expenseType, currentYear);
+
             TextView variation = valueTextView();
             tableRow.addView(variation);
             variationTexts.put(expenseType, variation);
 
-            byExpenseTypeLayout.addView(tableRow);
+            tableLayout.addView(tableRow, index++);
         }
 
         recomputeReport();
@@ -94,7 +112,8 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
     private TextView valueTextView() {
         TextView textView = new TextView(this);
-        textView.setGravity(Gravity.RIGHT);
+        textView.setGravity(Gravity.END);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         return textView;
     }
 
@@ -113,6 +132,10 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
     }
 
     private void recomputeReport() {
+        currentYearText.setText(year + "");
+        currentYearLabel.setText(year + "");
+        lastYearLabel.setText((year - 1) + "");
+
         List<Expense> currentYearExpenses = expenseDao.getExpensesInYear(year);
         List<Expense> lastYearExpenses = expenseDao.getExpensesInYear(year - 1);
 
@@ -125,8 +148,8 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
         currentYearWithoutSpecialText.setText(numberFormatter.format(totalCurrentYearWithoutSpecial));
         lastYearWithSpecialText.setText(numberFormatter.format(totalLastYearWithSpecial));
         lastYearWithoutSpecialText.setText(numberFormatter.format(totalLastYearWithoutSpecial));
-        withSpecialVariationText.setText(numberFormatter.format(computeVariation(totalCurrentYearWithSpecial, totalLastYearWithSpecial)));
-        withoutSpecialVariationText.setText(numberFormatter.format(computeVariation(totalCurrentYearWithoutSpecial, totalLastYearWithoutSpecial)));
+        updateVariationText(withSpecialVariationText, computeVariation(totalCurrentYearWithSpecial, totalLastYearWithSpecial));
+        updateVariationText(withoutSpecialVariationText, computeVariation(totalCurrentYearWithoutSpecial, totalLastYearWithoutSpecial));
 
         Map<ExpenseType, Double> currentYearSums = groupTotalsByExpenseType(currentYearExpenses);
         Map<ExpenseType, Double> lastYearSums = groupTotalsByExpenseType(lastYearExpenses);
@@ -137,8 +160,16 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
             currentYearSumTexts.get(expenseType).setText(numberFormatter.format(currentYearValue));
             lastYearSumTexts.get(expenseType).setText(numberFormatter.format(lastYearValue));
-            variationTexts.get(expenseType).setText(numberFormatter.format(computeVariation(currentYearValue, lastYearValue)));
+
+            double variation = computeVariation(currentYearValue, lastYearValue);
+            TextView variationText = variationTexts.get(expenseType);
+            updateVariationText(variationText, variation);
         }
+    }
+
+    private void updateVariationText(final TextView textView, double value) {
+        textView.setTextColor(getResources().getColor(value < 0 ? R.color.report_variation_negative : R.color.report_variation_positive));
+        textView.setText(percentFormatter.format(value));
     }
 
     private double totalExpenseValue(final List<Expense> expenses, final boolean useSpecial) {
@@ -173,7 +204,7 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
     private double computeVariation(final Double currentYearValue, final Double lastYearValue) {
         return lastYearValue != null ?
-                (currentYearValue - lastYearValue) / lastYearValue * 100 :
+                (currentYearValue - lastYearValue) / lastYearValue :
                 0;
     }
 }

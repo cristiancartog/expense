@@ -2,14 +2,18 @@ package ro.pandemonium.expense;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
-/**
- * To work on unit tests, switch the Test Artifact in the Build Variants view.
- */
+import static org.junit.Assert.*;
+import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+
 public class ExampleUnitTest {
+
+    private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
+
     @Test
     public void addition_isCorrect() throws Exception {
-        assertEquals(4, 2 + 2);
+        assertEquals("1.234,00", numberFormatter.format(1234));
     }
 }
