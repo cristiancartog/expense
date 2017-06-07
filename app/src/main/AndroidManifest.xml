@@ -1,33 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="ro.pandemonium.expense">
+    package="ro.pandemonium.expense">
 
     <!-- permissions -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application android:label="@string/app_name"
+    <application
         android:name="ro.pandemonium.expense.ExpenseApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name">
         <!-- activities -->
-        <activity android:name=".activity.ExpenseMainActivity"
-                  android:icon="@mipmap/ic_launcher"
-                  android:label="@string/app_name"
-                  android:screenOrientation="portrait">
+        <activity
+            android:name=".activity.ExpenseMainActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
 
             </intent-filter>
         </activity>
         <activity
-                android:name=".activity.AddEditExpenseActivity"
-                android:screenOrientation="portrait"/>
-        <activity android:name=".activity.ExpenseSearchResultActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".activity.SpecialExpensesActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".activity.chart.PieChartActivity"/>
-        <activity android:name=".activity.chart.BarChartActivity"/>
+            android:name=".activity.AddEditExpenseActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.ExpenseSearchResultActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.SpecialExpensesActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.YearlyExpenseReportActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".activity.chart.CurrentMonthPieChartActivity" />
+        <activity android:name=".activity.chart.ExpenseHistoryChartActivity" />
+        <activity android:name=".activity.chart.YearlyComparisonChartActivity" />
     </application>
 </manifest> 

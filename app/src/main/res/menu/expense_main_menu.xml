@@ -8,6 +8,9 @@
         android:id="@+id/main_menu_special_expenses"
         android:title="@string/mainMenuSpecialExpenses" />
     <item
+        android:id="@+id/main_menu_yearly_report"
+        android:title="@string/mainMenuYearlyReport" />
+    <item
         android:id="@+id/main_menu_order_by"
         android:title="@string/mainMenuOrderBy">
         <menu>
@@ -54,14 +57,14 @@
     <item android:title="@string/mainMenuChart">
         <menu>
             <item
-                android:id="@+id/main_menu_chart_pie"
-                android:title="@string/mainMenuChartPie" />
+                android:id="@+id/main_menu_chart_current_month_pie"
+                android:title="@string/mainMenuChartCurrentMonth" />
             <item
-                android:id="@+id/main_menu_chart_bar"
-                android:title="@string/mainMenuChartBar" />
+                android:id="@+id/main_menu_chart_expense_history"
+                android:title="@string/mainMenuChartExpenseHistory" />
             <item
-                android:id="@+id/main_menu_chart_line"
-                android:title="@string/mainMenuChartLine" />
+                android:id="@+id/main_menu_chart_yearly_comparison"
+                android:title="@string/mainMenuChartYearlyComparison" />
         </menu>
     </item>
 </menu>

@@ -191,13 +191,9 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
 
             final Button removeCommentButton = new Button(commentLineItem.getContext());
             removeCommentButton.setText(R.string.filterExpenseDialogRemoveComment);
-            removeCommentButton.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View view) {
-                    commentsSection.removeView(commentLineItem);
-                    comments.remove(textView.getText().toString());
-                }
+            removeCommentButton.setOnClickListener(view -> {
+                commentsSection.removeView(commentLineItem);
+                comments.remove(textView.getText().toString());
             });
 
             commentLineItem.addView(textView);

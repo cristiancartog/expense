@@ -16,10 +16,10 @@ import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.activity.chart.PieChartActivity;
+import ro.pandemonium.expense.activity.chart.CurrentMonthPieChartActivity;
+import ro.pandemonium.expense.activity.chart.YearlyComparisonChartActivity;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
@@ -30,6 +30,11 @@ import ro.pandemonium.expense.model.comparator.ExpenseValueComparator;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_VALUES_BY_TYPE;
+import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+
 public abstract class AbstractExpenseListActivity extends Activity {
 
     ExpenseDao expenseDao;
@@ -37,7 +42,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
     final ExpenseListAdapter expenseListAdapter = new ExpenseListAdapter();
 
     TextView totalTextView;
-    private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
 
     final SparseArray<Comparator<Expense>> mapSortingMenuItemToComparator = new SparseArray<>();
 
@@ -86,8 +91,8 @@ public abstract class AbstractExpenseListActivity extends Activity {
         final Expense expense = (Expense) expenseListAdapter.getItem(position);
 
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
-        addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
-        addExpenseIntent.putExtra(Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT, expense);
+        addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
+        addExpenseIntent.putExtra(INTENT_EXPENSE_EXPENSE_TO_EDIT, expense);
         startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
     }
 
@@ -115,11 +120,16 @@ public abstract class AbstractExpenseListActivity extends Activity {
         }
     }
 
-    void showPieChart() {
-        final Intent pieChartIntent = new Intent(this, PieChartActivity.class);
-        pieChartIntent.putExtra(Constants.INTENT_EXPENSE_VALUES_BY_TYPE,
+    void showCurrentMonthPieChart() {
+        final Intent pieChartIntent = new Intent(this, CurrentMonthPieChartActivity.class);
+        pieChartIntent.putExtra(INTENT_EXPENSE_VALUES_BY_TYPE,
                 (Serializable) ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false)));
         startActivity(pieChartIntent);
+    }
+
+    void showYearlyComparisonChart() {
+        final Intent yearlyExpenseChartIntent = new Intent(this, YearlyComparisonChartActivity.class);
+        startActivity(yearlyExpenseChartIntent);
     }
 
     public void deleteButtonPressed(final View view) {

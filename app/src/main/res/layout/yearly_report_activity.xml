@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/yearlyReportYear" />
+
+        <Button
+            android:id="@+id/yearlyReportPreviousYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_left_icon" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
+
+        <Button
+            android:id="@+id/yearlyReportNextYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_right_icon" />
+
+    </LinearLayout>
+
+    <TableLayout
+        android:id="@+id/yearlyReportByExpenseTypeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1, 2, 3">
+
+        <TableRow>
+
+            <TextView
+                android:layout_column="1"
+                android:gravity="center"
+                android:text="@string/yearlyReportCurrentYear" />
+
+            <TextView
+                android:layout_column="2"
+                android:gravity="center"
+                android:text="@string/yearlyReportLastYear" />
+
+            <TextView
+                android:layout_column="2"
+                android:gravity="center"
+                android:text="@string/yearlyReportVariation" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView android:text="@string/yearlyReportWithSpecial" />
+
+            <TextView
+                android:id="@+id/yearlyReportCurrentYearWithSpecial"
+                android:gravity="right" />
+
+            <TextView
+                android:id="@+id/yearlyReportLastYearWithSpecial"
+                android:gravity="right" />
+
+            <TextView
+                android:id="@+id/yearlyReportWithSpecialVariation"
+                android:gravity="right" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_column="0"
+                android:text="@string/yearlyReportWithoutSpecial" />
+
+            <TextView
+                android:id="@+id/yearlyReportCurrentYearWithoutSpecial"
+                android:gravity="right" />
+
+            <TextView
+                android:id="@+id/yearlyReportLastYearWithoutSpecial"
+                android:gravity="right" />
+
+            <TextView
+                android:id="@+id/yearlyReportWithoutSpecialVariation"
+                android:gravity="right" />
+        </TableRow>
+
+    </TableLayout>
+</LinearLayout>

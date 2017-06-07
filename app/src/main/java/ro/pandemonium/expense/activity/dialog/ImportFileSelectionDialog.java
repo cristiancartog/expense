@@ -8,7 +8,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import ro.pandemonium.expense.R;
@@ -42,12 +41,7 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
         this.callback = callback;
 
         final List<String> fileNames = FileUtil.fetchAllBackupFiles();
-        Collections.sort(fileNames, new Comparator<String>() {
-            @Override
-            public int compare(final String s1, final String s2) {
-                return -s1.compareTo(s2);
-            }
-        });
+        Collections.sort(fileNames, (s1, s2) -> -s1.compareTo(s2));
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, fileNames));
     }

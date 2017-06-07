@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.activity.chart.BarChartActivity;
+import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
 import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
@@ -41,6 +41,7 @@ import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements View.OnClickListener,
@@ -150,18 +151,19 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         final int menuItemId = item.getItemId();
 
         switch (menuItemId) {
-            case R.id.main_menu_chart_pie:
-                showPieChart();
+            case R.id.main_menu_chart_current_month_pie:
+                showCurrentMonthPieChart();
                 break;
 
-            case R.id.main_menu_chart_line:
+            case R.id.main_menu_chart_yearly_comparison:
+                showYearlyComparisonChart();
                 break;
 
-            case R.id.main_menu_chart_bar:
+            case R.id.main_menu_chart_expense_history:
                 expenseTypeSelectionDialog.show(null,
                         Arrays.asList(ExpenseType.values()),
                         filters -> {
-                            final Intent intent = new Intent(ExpenseMainActivity.this, BarChartActivity.class);
+                            final Intent intent = new Intent(ExpenseMainActivity.this, ExpenseHistoryChartActivity.class);
                             intent.putExtra(INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
                             startActivity(intent);
                         });
@@ -203,6 +205,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             case R.id.main_menu_special_expenses:
                 startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
+                break;
+
+            case R.id.main_menu_yearly_report:
+                Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
+                yearlyReportIntent.putExtra(INTENT_YEAR, year);
+
+                startActivity(yearlyReportIntent);
                 break;
 
             case R.id.main_menu_order_by_date_ascending:

@@ -18,6 +18,7 @@ public class Constants {
     public static final String INTENT_FILTERS = "filters";
     public static final String INTENT_EXPENSE = "expense";
     public static final String INTENT_CHANGED_EXPENSES = "changedExpenses";
+    public static final String INTENT_YEAR = "year";
 
     // chart intent parameters
     public static final String INTENT_EXPENSE_VALUES_BY_TYPE = "expenseValuesByType";

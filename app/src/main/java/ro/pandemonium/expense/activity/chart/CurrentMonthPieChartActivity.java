@@ -19,10 +19,10 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
 
-public class PieChartActivity extends Activity {
+public class CurrentMonthPieChartActivity extends Activity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.pie_chart_activity);

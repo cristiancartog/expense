@@ -216,6 +216,16 @@ public class ExpenseDao implements Serializable {
         return monthlySummary;
     }
 
+    public List<Expense> getExpensesInYear(final int year) {
+        checkDatabaseAvailability();
+
+        String query = FETCH_EXPENSES_QUERY_BASE + " WHERE CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year;
+
+        final Cursor cursor = database.rawQuery(query, null);
+        return extractExpenses(cursor);
+
+    }
+
     public void restoreExpenses(final List<Expense> expenses) {
         database.execSQL("DELETE FROM " + EXPENSES_TABLE);
 

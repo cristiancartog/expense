@@ -31,6 +31,15 @@
     <string name="expenseListActivityChangeMonth">"Change month"</string>
     <string name="expenseListActivityExportSuccessful">"Export successful"</string>
 
+    <!-- yearly report activity -->
+    <string name="yearlyReportYear">Year</string>
+    <string name="yearlyReportCurrentYear">Current Year</string>
+    <string name="yearlyReportLastYear">Last Year</string>
+    <string name="yearlyReportVariation">Variation</string>
+    <string name="yearlyReportWithSpecial">With Special</string>
+    <string name="yearlyReportWithoutSpecial">Without Special</string>
+
+
     <!-- expense search result-->
     <string name="expenseSearchResultActivityTotalLabel">Total:</string>
     <string name="expenseSearchResultActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
@@ -71,6 +80,7 @@
     <!-- main menu -->
     <string name="mainMenuSearchDatabase">Search database..</string>
     <string name="mainMenuSpecialExpenses">Special expenses</string>
+    <string name="mainMenuYearlyReport">Yearly report</string>
     <string name="mainMenuOrderBy">Order by..</string>
     <string name="mainMenuOrderByDateAscending">..date ascending</string>
     <string name="mainMenuOrderByDateDescending">..date descending</string>
@@ -80,9 +90,9 @@
     <string name="mainMenuOrderByTypeDescending">..type descending</string>
     <string name="mainMenuFilter">Filter..</string>
     <string name="mainMenuChart">Chart..</string>
-    <string name="mainMenuChartPie">Pie</string>
-    <string name="mainMenuChartBar">Bar</string>
-    <string name="mainMenuChartLine">Line</string>
+    <string name="mainMenuChartCurrentMonth">Current month pie</string>
+    <string name="mainMenuChartExpenseHistory">History by type</string>
+    <string name="mainMenuChartYearlyComparison">Yearly comparison</string>
     <string name="mainMenuDatabase">Database..</string>
     <string name="mainMenuDatabaseImport">Import</string>
     <string name="mainMenuDatabaseExport">Export</string>

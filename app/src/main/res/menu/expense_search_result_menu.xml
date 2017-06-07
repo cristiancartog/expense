@@ -5,7 +5,7 @@
         <menu>
             <item
                 android:id="@+id/expense_search_result_menu_chart_pie"
-                android:title="@string/mainMenuChartPie" />
+                android:title="@string/mainMenuChartCurrentMonth" />
         </menu>
     </item>
 
