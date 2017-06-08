@@ -16,9 +16,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class ExpenseDao implements Serializable {
 
@@ -146,6 +149,29 @@ public class ExpenseDao implements Serializable {
         }
 
         return query;
+    }
+
+    public Map<String, Double> getMonthlySummaryInYear(final ExpenseType expenseType, final int year) {
+        String query = "SELECT SUM(VALUE), STRFTIME('%m', DATE) AS MONTH FROM EXPENSES ";
+        query += "WHERE EXPENSE_TYPE = " + expenseType.getDbId();
+        query += "  AND CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year;
+        query += " GROUP BY MONTH ";
+        query += " ORDER BY MONTH";
+
+        Map<String, Double> summary = new TreeMap<>();
+
+        try (final Cursor cursor = database.rawQuery(query, null)) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String yearMonth = cursor.getString(1);
+                    Double value = cursor.getDouble(0);
+
+                    summary.put(yearMonth, value);
+                } while (cursor.moveToNext());
+            }
+        }
+
+        return summary;
     }
 
     public List<ExpenseMonthlySummary> getMonthlySummary(final List<ExpenseType> expenseTypes) {

@@ -10,10 +10,10 @@ import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 
 public class ExampleUnitTest {
 
-    private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = new DecimalFormat("00");
 
     @Test
     public void addition_isCorrect() throws Exception {
-        assertEquals("1.234,00", numberFormatter.format(1234));
+        assertEquals("10", numberFormatter.format(10));
     }
 }

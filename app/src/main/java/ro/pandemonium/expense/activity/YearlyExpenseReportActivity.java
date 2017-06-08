@@ -3,7 +3,6 @@ package ro.pandemonium.expense.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -14,22 +13,19 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.activity.chart.YearlyComparisonChartActivity;
+import ro.pandemonium.expense.activity.chart.YearComparisonChartActivity;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 
-import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
@@ -103,8 +99,9 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
             TableRow tableRow = new TableRow(this);
             tableRow.setPadding(0, 5, 0, 5);
             tableRow.setOnClickListener(view ->
-                    startActivity(new Intent(this, YearlyComparisonChartActivity.class)
-                            .putExtra(Constants.INTEN_EXPENSE_TYPE, expenseType)));
+                    startActivity(new Intent(this, YearComparisonChartActivity.class)
+                            .putExtra(INTENT_EXPENSE_TYPE, expenseType)
+                            .putExtra(INTENT_YEAR, year)));
 
             TextView expenseTypeLabel = valueTextView();
             expenseTypeLabel.setGravity(Gravity.START);
@@ -202,10 +199,6 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
         Date currentYearExpensesEndDate = useYearToDate ? latestEntryDate : endOfYear(year);
         Date lastYearExpensesStartDate = useYearFromDate ? earliestEntryDate : startOfYear(year - 1);
         Date lastYearExpensesEndDate = useYearToDate ? addYears(latestEntryDate, -1) : endOfYear(year - 1);
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-        Log.d(APPLICATION_NAME, "current year: " + dateFormat.format(currentYearExpensesStartDate) + " -> " + dateFormat.format(currentYearExpensesEndDate));
-        Log.d(APPLICATION_NAME, "last year   : " + dateFormat.format(lastYearExpensesStartDate) + " -> " + dateFormat.format(lastYearExpensesEndDate));
 
         List<Expense> currentYearExpenses = expenseDao.getExpensesInInterval(currentYearExpensesStartDate, currentYearExpensesEndDate);
         List<Expense> lastYearExpenses = expenseDao.getExpensesInInterval(lastYearExpensesStartDate, lastYearExpensesEndDate);

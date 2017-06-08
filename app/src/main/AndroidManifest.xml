@@ -37,6 +37,6 @@
 
         <activity android:name=".activity.chart.CurrentMonthPieChartActivity" />
         <activity android:name=".activity.chart.ExpenseHistoryChartActivity" />
-        <activity android:name=".activity.chart.YearlyComparisonChartActivity" />
+        <activity android:name=".activity.chart.YearComparisonChartActivity" />
     </application>
 </manifest> 

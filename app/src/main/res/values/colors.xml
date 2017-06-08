@@ -6,4 +6,7 @@
     <item name="report_variation_table_delimiter" type="color">#465363</item>
     <item name="report_variation_positive" type="color">#1a911c</item>
     <item name="report_variation_negative" type="color">#a61414</item>
+
+    <item name="comparison_chart_current_year_bar" type="color">#29d916</item>
+    <item name="comparison_chart_last_year_bar" type="color">#45536b</item>
 </resources>
