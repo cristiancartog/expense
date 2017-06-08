@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
@@ -33,8 +33,6 @@ import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseListAdapter extends BaseAdapter {
-
-    private final static Filters EMPTY_FILTERS = new Filters(ExpenseType.orderedExpenseTypes(), new HashSet<>());
 
     private final List<Expense> expenses = new LinkedList<>();
     private final List<Expense> backupExpenses = new LinkedList<>();
@@ -72,7 +70,7 @@ public class ExpenseListAdapter extends BaseAdapter {
 
         view.setBackgroundColor(index % 2 == 0 ? view.getResources().getColor(R.color.menu_item_odd) : Color.BLACK);
 
-        final ImageButton deleteButton = (ImageButton) view.findViewById(R.id.expenseListItemDelete);
+        final Button deleteButton = (Button) view.findViewById(R.id.expenseListItemDelete);
         deleteButton.setTag(index);
         mapDeleteButtonTagToExpense.put(deleteButton.getTag(), expense);
 

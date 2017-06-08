@@ -14,7 +14,7 @@
             android:id="@+id/yearlyReportPreviousYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_arrow_left_icon" />
+            android:background="@drawable/ic_arrow_left_icon" />
 
         <TextView
             android:id="@+id/yearlyReportCurrentYearText"
@@ -28,7 +28,7 @@
             android:id="@+id/yearlyReportNextYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_arrow_right_icon" />
+            android:background="@drawable/ic_arrow_right_icon" />
     </LinearLayout>
 
     <TableLayout
