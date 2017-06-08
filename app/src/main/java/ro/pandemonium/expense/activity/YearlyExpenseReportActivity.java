@@ -3,6 +3,7 @@ package ro.pandemonium.expense.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -13,8 +14,11 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import ro.pandemonium.expense.Constants;
@@ -25,10 +29,15 @@ import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 
+import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
+import static ro.pandemonium.expense.util.DateUtil.addYears;
+import static ro.pandemonium.expense.util.DateUtil.endOfYear;
+import static ro.pandemonium.expense.util.DateUtil.extractYear;
+import static ro.pandemonium.expense.util.DateUtil.startOfYear;
 
 public class YearlyExpenseReportActivity extends Activity implements View.OnClickListener {
 
@@ -46,8 +55,17 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
     private TextView lastYearWithoutSpecialText;
     private TextView withSpecialVariationText;
     private TextView withoutSpecialVariationText;
+    private Button nextYearButton;
+    private Button previousYearButton;
 
     private int year;
+    private int earliestEntryYear;
+    private int latestEntryYear;
+    private Date earliestEntryDate;
+    private Date latestEntryDate;
+    private boolean useYearToDate;
+    private boolean useYearFromDate;
+
     private Map<ExpenseType, TextView> currentYearSumTexts = new HashMap<>();
     private Map<ExpenseType, TextView> lastYearSumTexts = new HashMap<>();
     private Map<ExpenseType, TextView> variationTexts = new HashMap<>();
@@ -67,9 +85,10 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
         lastYearWithoutSpecialText = (TextView) findViewById(R.id.yearlyReportLastYearWithoutSpecial);
         withSpecialVariationText = (TextView) findViewById(R.id.yearlyReportWithSpecialVariation);
         withoutSpecialVariationText = (TextView) findViewById(R.id.yearlyReportWithoutSpecialVariation);
-        Button nextYearButton = (Button) findViewById(R.id.yearlyReportNextYear);
-        Button previousYearButton = (Button) findViewById(R.id.yearlyReportPreviousYear);
+        nextYearButton = (Button) findViewById(R.id.yearlyReportNextYear);
+        previousYearButton = (Button) findViewById(R.id.yearlyReportPreviousYear);
 
+        currentYearText.setOnClickListener(this);
         nextYearButton.setOnClickListener(this);
         previousYearButton.setOnClickListener(this);
 
@@ -107,6 +126,15 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
             tableLayout.addView(tableRow, index++);
         }
 
+        earliestEntryDate = new Date(expenseDao.getEarliestEntry().getTime());
+        latestEntryDate = new Date(expenseDao.getLatestEntry().getTime());
+        earliestEntryYear = extractYear(earliestEntryDate);
+        latestEntryYear = extractYear(latestEntryDate);
+        useYearToDate = latestEntryYear == year;
+        useYearFromDate = earliestEntryYear == year;
+
+        updateYearButtonsEnabledState();
+
         recomputeReport();
     }
 
@@ -120,24 +148,67 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
     @Override
     public void onClick(final View v) {
         switch (v.getId()) {
+
             case R.id.yearlyReportNextYear:
                 year++;
+                useYearToDate = false;
+                useYearFromDate = false;
+                updateYearButtonsEnabledState();
                 recomputeReport();
                 break;
+
             case R.id.yearlyReportPreviousYear:
                 year--;
+                useYearToDate = false;
+                useYearFromDate = false;
+                updateYearButtonsEnabledState();
                 recomputeReport();
+                break;
+
+            case R.id.yearlyReportCurrentYearText:
+                if ((year - 1) == earliestEntryYear) {
+                    useYearFromDate = !useYearFromDate;
+                    recomputeReport();
+                } else if (year == latestEntryYear) {
+                    useYearToDate = !useYearToDate;
+                    recomputeReport();
+                } else {
+                    useYearToDate = false;
+                    useYearFromDate = false;
+                }
+
                 break;
         }
     }
 
+    private void updateYearButtonsEnabledState() {
+        previousYearButton.setEnabled((year - 1) != earliestEntryYear);
+        nextYearButton.setEnabled(year != latestEntryYear);
+    }
+
     private void recomputeReport() {
-        currentYearText.setText(year + "");
+        String yearText = year + "";
+        if (useYearFromDate) {
+            yearText = "YFD " + yearText;
+        } else if (useYearToDate) {
+            yearText = year + " YTD";
+        }
+        currentYearText.setText(yearText);
+
         currentYearLabel.setText(year + "");
         lastYearLabel.setText((year - 1) + "");
 
-        List<Expense> currentYearExpenses = expenseDao.getExpensesInYear(year);
-        List<Expense> lastYearExpenses = expenseDao.getExpensesInYear(year - 1);
+        Date currentYearExpensesStartDate = useYearFromDate ? addYears(earliestEntryDate, 1) : startOfYear(year);
+        Date currentYearExpensesEndDate = useYearToDate ? latestEntryDate : endOfYear(year);
+        Date lastYearExpensesStartDate = useYearFromDate ? earliestEntryDate : startOfYear(year - 1);
+        Date lastYearExpensesEndDate = useYearToDate ? addYears(latestEntryDate, -1) : endOfYear(year - 1);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
+        Log.d(APPLICATION_NAME, "current year: " + dateFormat.format(currentYearExpensesStartDate) + " -> " + dateFormat.format(currentYearExpensesEndDate));
+        Log.d(APPLICATION_NAME, "last year   : " + dateFormat.format(lastYearExpensesStartDate) + " -> " + dateFormat.format(lastYearExpensesEndDate));
+
+        List<Expense> currentYearExpenses = expenseDao.getExpensesInInterval(currentYearExpensesStartDate, currentYearExpensesEndDate);
+        List<Expense> lastYearExpenses = expenseDao.getExpensesInInterval(lastYearExpensesStartDate, lastYearExpensesEndDate);
 
         double totalCurrentYearWithSpecial = totalExpenseValue(currentYearExpenses, true);
         double totalCurrentYearWithoutSpecial = totalExpenseValue(currentYearExpenses, false);

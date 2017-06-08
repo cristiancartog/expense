@@ -57,7 +57,6 @@ public class ExpenseDao implements Serializable {
         }
     }
 
-
     public void updateExpense(final Expense expense) {
         checkDatabaseAvailability();
 
@@ -90,14 +89,11 @@ public class ExpenseDao implements Serializable {
     }
 
     public List<Expense> fetchSpecialExpenses() {
-        checkDatabaseAvailability();
-
         final String query = FETCH_EXPENSES_QUERY_BASE
                 + " WHERE EXPENSE_TYPE = " + ExpenseType.SPECIAL.getDbId()
                 + " ORDER BY DATE DESC";
-        final Cursor cursor = database.rawQuery(query, null);
 
-        return extractExpenses(cursor);
+        return queryForExpenses(query);
     }
 
     private String createFetchExpensesQueryString(final Filters filters) {
@@ -136,10 +132,7 @@ public class ExpenseDao implements Serializable {
     }
 
     public List<Expense> fetchExpenses(final Integer year, final Integer monthOfYear) {
-        checkDatabaseAvailability();
-
-        final Cursor cursor = database.rawQuery(createFetchExpensesQueryString(year, monthOfYear), null);
-        return extractExpenses(cursor);
+        return queryForExpenses(createFetchExpensesQueryString(year, monthOfYear));
     }
 
     private String createFetchExpensesQueryString(final Integer year, final Integer monthOfYear) {
@@ -153,32 +146,6 @@ public class ExpenseDao implements Serializable {
         }
 
         return query;
-    }
-
-    private List<Expense> extractExpenses(final Cursor cursor) {
-        final List<Expense> expenses = new ArrayList<>();
-        if (cursor.moveToFirst()) {
-            do {
-                final Expense expense = new Expense();
-                expense.setId(cursor.getLong(0));
-                expense.setExpenseType(ExpenseType.forDbId(cursor.getInt(1)));
-                expense.setValue(cursor.getDouble(2));
-                try {
-                    expense.setDate(dateFormat.parse(cursor.getString(3)));
-                } catch (ParseException e) {
-                    Log.w(CLASS_NAME, e.getMessage());
-                }
-                expense.setComment(cursor.getString(4));
-
-                expenses.add(expense);
-            } while (cursor.moveToNext());
-        }
-
-        if (!cursor.isClosed()) {
-            cursor.close();
-        }
-
-        return expenses;
     }
 
     public List<ExpenseMonthlySummary> getMonthlySummary(final List<ExpenseType> expenseTypes) {
@@ -216,14 +183,68 @@ public class ExpenseDao implements Serializable {
         return monthlySummary;
     }
 
-    public List<Expense> getExpensesInYear(final int year) {
+    public Expense getEarliestEntry() {
+        String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1";
+        return queryForExpenses(query).iterator().next();
+    }
+
+    public Expense getLatestEntry() {
+        String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1";
+        return queryForExpenses(query).iterator().next();
+    }
+
+    public List<Expense> getExpensesInInterval(final Date start, final Date end) {
+        StringBuilder query = new StringBuilder(FETCH_EXPENSES_QUERY_BASE);
+
+        if (start != null || end != null) {
+            query.append(" WHERE ");
+            if (start != null) {
+                query.append(" DATE >= '");
+                query.append(dateFormat.format(start));
+                query.append("'");
+                if (end != null) {
+                    query.append(" AND ");
+                }
+            }
+
+            if (end != null) {
+                query.append(" DATE <= '");
+                query.append(dateFormat.format(end));
+                query.append("'");
+            }
+        }
+
+        return queryForExpenses(query.toString());
+    }
+
+    private List<Expense> queryForExpenses(final String query) {
         checkDatabaseAvailability();
 
-        String query = FETCH_EXPENSES_QUERY_BASE + " WHERE CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year;
+        try (Cursor cursor = database.rawQuery(query, null)) {
+            return extractExpenses(cursor);
+        }
+    }
 
-        final Cursor cursor = database.rawQuery(query, null);
-        return extractExpenses(cursor);
+    private List<Expense> extractExpenses(final Cursor cursor) {
+        final List<Expense> expenses = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                final Expense expense = new Expense();
+                expense.setId(cursor.getLong(0));
+                expense.setExpenseType(ExpenseType.forDbId(cursor.getInt(1)));
+                expense.setValue(cursor.getDouble(2));
+                try {
+                    expense.setDate(dateFormat.parse(cursor.getString(3)));
+                } catch (ParseException e) {
+                    Log.w(CLASS_NAME, e.getMessage());
+                }
+                expense.setComment(cursor.getString(4));
 
+                expenses.add(expense);
+            } while (cursor.moveToNext());
+        }
+
+        return expenses;
     }
 
     public void restoreExpenses(final List<Expense> expenses) {
