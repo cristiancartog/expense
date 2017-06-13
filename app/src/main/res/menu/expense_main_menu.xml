@@ -62,9 +62,6 @@
             <item
                 android:id="@+id/main_menu_chart_expense_history"
                 android:title="@string/mainMenuChartExpenseHistory" />
-            <item
-                android:id="@+id/main_menu_chart_yearly_comparison"
-                android:title="@string/mainMenuChartYearlyComparison" />
         </menu>
     </item>
 </menu>

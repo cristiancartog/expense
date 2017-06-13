@@ -19,7 +19,6 @@ import java.util.HashMap;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.CurrentMonthPieChartActivity;
-import ro.pandemonium.expense.activity.chart.YearComparisonChartActivity;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
@@ -125,11 +124,6 @@ public abstract class AbstractExpenseListActivity extends Activity {
         pieChartIntent.putExtra(INTENT_EXPENSE_VALUES_BY_TYPE,
                 (Serializable) ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false)));
         startActivity(pieChartIntent);
-    }
-
-    void showYearlyComparisonChart() {
-        final Intent yearlyExpenseChartIntent = new Intent(this, YearComparisonChartActivity.class);
-        startActivity(yearlyExpenseChartIntent);
     }
 
     public void deleteButtonPressed(final View view) {

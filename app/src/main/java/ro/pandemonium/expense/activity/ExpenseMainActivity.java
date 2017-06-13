@@ -155,10 +155,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 showCurrentMonthPieChart();
                 break;
 
-            case R.id.main_menu_chart_yearly_comparison:
-                showYearlyComparisonChart();
-                break;
-
             case R.id.main_menu_chart_expense_history:
                 expenseTypeSelectionDialog.show(null,
                         Arrays.asList(ExpenseType.values()),
