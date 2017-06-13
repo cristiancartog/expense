@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
@@ -70,7 +70,7 @@ public class ExpenseListAdapter extends BaseAdapter {
 
         view.setBackgroundColor(index % 2 == 0 ? view.getResources().getColor(R.color.menu_item_odd) : Color.BLACK);
 
-        final Button deleteButton = (Button) view.findViewById(R.id.expenseListItemDelete);
+        final ImageButton deleteButton = (ImageButton) view.findViewById(R.id.expenseListItemDelete);
         deleteButton.setTag(index);
         mapDeleteButtonTagToExpense.put(deleteButton.getTag(), expense);
 

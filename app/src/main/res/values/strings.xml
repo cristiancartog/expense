@@ -40,6 +40,14 @@
     <string name="yearlyReportWithSpecial">With Special</string>
     <string name="yearlyReportWithoutSpecial">Without Special</string>
 
+    <!-- year comparison activity -->
+    <string name="yearComparisonSwitchReport">Report</string>
+    <string name="yearComparisonSwitchChart">Chart</string>
+    <string name="yearComparisonMonthPerYear">Month \\ Year</string>
+    <string name="yearComparisonCurrentYear">Current Year</string>
+    <string name="yearComparisonLastYear">Last Year</string>
+    <string name="yearComparisonVariation">Variation</string>
+    <string name="yearComparisonTotal">Total</string>
 
     <!-- expense search result-->
     <string name="expenseSearchResultActivityTotalLabel">Total:</string>

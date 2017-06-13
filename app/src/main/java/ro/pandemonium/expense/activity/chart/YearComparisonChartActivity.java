@@ -4,7 +4,15 @@ import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -18,103 +26,110 @@ import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.util.DateUtil;
+import ro.pandemonium.expense.model.YearlyReportParams;
+import ro.pandemonium.expense.model.YearlyReportResult;
+import ro.pandemonium.expense.task.YearlyReportTask;
 
+import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
+import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
+import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
+import static ro.pandemonium.expense.util.DateUtil.extractYear;
 
-public class YearComparisonChartActivity extends Activity {
+public class YearComparisonChartActivity extends Activity
+        implements View.OnClickListener, Switch.OnCheckedChangeListener {
 
+    private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
+    private static final NumberFormat PERCENT_FORMATTER = new DecimalFormat(PERCENT_FORMAT_PATTERN);
+    private static final NumberFormat NUMBER_FORMAT = new DecimalFormat(LEADING_ZERO_FORMAT);
+
+    private static final String[] MONTHS = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
     private static final SparseArray<String> MONTHS_MAP = new SparseArray<>();
 
-    {
-        MONTHS_MAP.put(0, "JAN");
-        MONTHS_MAP.put(1, "FEB");
-        MONTHS_MAP.put(2, "MAR");
-        MONTHS_MAP.put(3, "APR");
-        MONTHS_MAP.put(4, "MAY");
-        MONTHS_MAP.put(5, "JUN");
-        MONTHS_MAP.put(6, "JUL");
-        MONTHS_MAP.put(7, "AUG");
-        MONTHS_MAP.put(8, "SEP");
-        MONTHS_MAP.put(9, "OCT");
-        MONTHS_MAP.put(10, "NOV");
-        MONTHS_MAP.put(11, "DEC");
+    static {
+        MONTHS_MAP.put(0, "Jan");
+        MONTHS_MAP.put(1, "Feb");
+        MONTHS_MAP.put(2, "Mar");
+        MONTHS_MAP.put(3, "Apr");
+        MONTHS_MAP.put(4, "May");
+        MONTHS_MAP.put(5, "Jun");
+        MONTHS_MAP.put(6, "Jul");
+        MONTHS_MAP.put(7, "Aug");
+        MONTHS_MAP.put(8, "Sep");
+        MONTHS_MAP.put(9, "Oct");
+        MONTHS_MAP.put(10, "Nov");
+        MONTHS_MAP.put(11, "Dec");
+        MONTHS_MAP.put(-1, "???");
     }
 
-    private final NumberFormat numberFormatter = new DecimalFormat("00");
+    private int year;
+    private int earliestYear;
+    private int latestYear;
+    private ExpenseType expenseType;
+
+    private Map<String, TextView> monthToLastYearValue = new HashMap<>();
+    private Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
+    private Map<String, TextView> monthToVariationLabel = new HashMap<>();
+
+    private BarChart barChart;
+    private TableLayout report;
+    private TextView currentYearLabel;
+    private TextView lastYearReportLabel;
+    private TextView currentYearReportLabel;
+    private TextView lastYearTotalLabel;
+    private TextView currentYearTotalLabel;
+
+    private ExpenseDao expenseDao;
+    private Resources resources;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Resources resources = getResources();
-
         setContentView(R.layout.year_comparison_chart_activity);
-        BarChart barChart = (BarChart) findViewById(R.id.yearComparisonBarChart);
+
+        expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
+        year = getIntent().getIntExtra(INTENT_YEAR, extractYear(new Date()));
+
+        barChart = (BarChart) findViewById(R.id.yearComparisonBarChart);
+        report = (TableLayout) findViewById(R.id.yearlyComparisonListReport);
+        Switch reportSwitch = (Switch) findViewById(R.id.yearComparisonSwitchChartReportButton);
+        currentYearLabel = (TextView) findViewById(R.id.yearlyComparisonCurrentYearText);
         TextView expenseTypeLabel = (TextView) findViewById(R.id.yearComparisonChartExpenseType);
+        lastYearReportLabel = (TextView) findViewById(R.id.yearComparisonLastYearLabel);
+        currentYearReportLabel = (TextView) findViewById(R.id.yearComparisonCurrentYearLabel);
+        lastYearTotalLabel = (TextView) findViewById(R.id.yearComparisonLastYearTotal);
+        currentYearTotalLabel = (TextView) findViewById(R.id.yearComparisonCurrentYearTotal);
 
-        ExpenseType expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
-        int year = getIntent().getIntExtra(INTENT_YEAR, DateUtil.extractYear(new Date()));
-
+        reportSwitch.setOnCheckedChangeListener(this);
         expenseTypeLabel.setText(expenseType.getTextResource());
 
-        //##########################
-        ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
+        resources = getResources();
+        expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        Map<String, Double> currentYearExpenses = expenseDao.getMonthlySummaryInYear(expenseType, year);
-        Map<String, Double> lastYearExpenses = expenseDao.getMonthlySummaryInYear(expenseType, year - 1);
-        fillMissingValues(currentYearExpenses, year);
-        fillMissingValues(lastYearExpenses, year - 1);
+        earliestYear = extractYear(new Date(expenseDao.getEarliestEntry().getTime()));
+        latestYear = extractYear(new Date(expenseDao.getLatestEntry().getTime()));
 
-        final List<IBarDataSet> dataSets = new ArrayList<>();
-
-        List<BarEntry> currentYearValues = new ArrayList<>();
-        int counter = 0;
-        for (Map.Entry<String, Double> currentMonth : currentYearExpenses.entrySet()) {
-            currentYearValues.add(new BarEntry(counter++, currentMonth.getValue().floatValue()));
-        }
-        List<BarEntry> lastYearValues = new ArrayList<>();
-        counter = 0;
-        for (Map.Entry<String, Double> currentMonth : lastYearExpenses.entrySet()) {
-            lastYearValues.add(new BarEntry(counter++, currentMonth.getValue().floatValue()));
-        }
-
-        BarDataSet currentYearDataSet = new BarDataSet(currentYearValues, year + "");
-        currentYearDataSet.setColor(resources.getColor(R.color.comparison_chart_current_year_bar));
-        currentYearDataSet.setValueTextColor(Color.WHITE);
-        currentYearDataSet.setValueTextSize(9);
-
-        BarDataSet lastYearDataSet = new BarDataSet(lastYearValues, (year - 1) + "");
-        lastYearDataSet.setColor(resources.getColor(R.color.comparison_chart_last_year_bar));
-        lastYearDataSet.setValueTextColor(Color.WHITE);
-        lastYearDataSet.setValueTextSize(9);
-
-        dataSets.add(lastYearDataSet);
-        dataSets.add(currentYearDataSet);
-        //###########################
-
-        // scaling can now only be done on x- and y-axis separately
-        barChart.setPinchZoom(false);
-        barChart.setDrawBarShadow(false);
-        barChart.setDrawGridBackground(false);
-
-        Legend l = barChart.getLegend();
-        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
-        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        l.setTextColor(Color.WHITE);
-        l.setYOffset(0f);
-        l.setYEntrySpace(0f);
-        l.setTextSize(8f);
+        Legend legend = barChart.getLegend();
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setTextColor(Color.WHITE);
+        legend.setYOffset(0f);
+        legend.setYEntrySpace(0f);
+        legend.setTextSize(8f);
 
         XAxis xl = barChart.getXAxis();
         xl.setGranularity(1f);
@@ -130,9 +145,126 @@ public class YearComparisonChartActivity extends Activity {
         leftYAxis.setTextColor(Color.WHITE);
         leftYAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
 
+        // scaling can now only be done on x- and y-axis separately
+        barChart.setPinchZoom(false);
+        barChart.setDrawBarShadow(false);
+        barChart.setDrawGridBackground(false);
+        barChart.setDescription(null);
+        barChart.getXAxis().setAxisMinimum(0);
         barChart.getAxisRight().setEnabled(false);
 
-        // data
+        // report data
+        int index = 2;
+        for (String month : MONTHS) {
+            TableRow tableRow = new TableRow(this);
+            tableRow.setPadding(0, 5, 0, 5);
+
+            TextView monthLabel = valueTextView();
+            monthLabel.setGravity(Gravity.START);
+            monthLabel.setText(MONTHS_MAP.get(parseLeadingZeroNumber(month) - 1));
+            tableRow.addView(monthLabel);
+
+            TextView lastYearLabel = valueTextView();
+            monthToLastYearValue.put(month, lastYearLabel);
+            tableRow.addView(lastYearLabel);
+
+            TextView currentYearLabel = valueTextView();
+            monthToCurrentYearValue.put(month, currentYearLabel);
+            tableRow.addView(currentYearLabel);
+
+            TextView variationLabel = valueTextView();
+            monthToVariationLabel.put(month, variationLabel);
+            tableRow.addView(variationLabel);
+
+            report.addView(tableRow, index++);
+        }
+
+        updateDataAsync();
+    }
+
+    private int parseLeadingZeroNumber(final String leadingZeroNumber) {
+        int number = 0;
+        try {
+            number = NUMBER_FORMAT.parse(leadingZeroNumber).intValue();
+        } catch (ParseException e) {
+            Log.w(APPLICATION_NAME, "Could not parse " + leadingZeroNumber + " ot number. Using default.");
+            e.printStackTrace();
+        }
+        return number;
+    }
+
+    private TextView valueTextView() {
+        TextView textView = new TextView(this);
+        textView.setGravity(Gravity.END);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        return textView;
+    }
+
+    private void updateDataAsync() {
+        new YearlyReportTask(expenseDao, this::updateData)
+                .execute(new YearlyReportParams(expenseType, year));
+    }
+
+    private void updateData(final YearlyReportResult yearlyReportResult) {
+        Map<String, Double> currentYearData = yearlyReportResult.getCurrentYearData();
+        Map<String, Double> lastYearData = yearlyReportResult.getLastYearData();
+
+        currentYearLabel.setText(year + "");
+        currentYearReportLabel.setText(year + "");
+        lastYearReportLabel.setText((year - 1) + "");
+        currentYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalCurrentYear()));
+        lastYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalLastYear()));
+
+        recreateDataSets(currentYearData, lastYearData);
+
+        for (String month : MONTHS) {
+            Double currentYearMonthValue = currentYearData.get(month);
+            Double lastYearMonthValue = lastYearData.get(month);
+
+            monthToCurrentYearValue.get(month).setText(VALUE_FORMATTER.format(currentYearMonthValue));
+            monthToLastYearValue.get(month).setText(VALUE_FORMATTER.format(lastYearMonthValue));
+
+            TextView variationLabel = monthToVariationLabel.get(month);
+            double variation = computeVariation(currentYearMonthValue, lastYearMonthValue);
+            variationLabel.setText(currentYearMonthValue.intValue() == 0 || lastYearMonthValue.intValue() == 0
+                    ? "-"
+                    : PERCENT_FORMATTER.format(variation));
+            variationLabel.setTextColor(resources.getColor(variation > 0
+                    ? R.color.report_variation_positive
+                    : R.color.report_variation_negative));
+        }
+    }
+
+    private void recreateDataSets(final Map<String, Double> currentYearData,
+                                  final Map<String, Double> lastYearData) {
+        List<BarEntry> currentYearValues = new ArrayList<>();
+        int counter = 0;
+        for (String month : MONTHS) {
+            BarEntry barEntry = new BarEntry(counter++, currentYearData.get(month).floatValue());
+            currentYearValues.add(barEntry);
+        }
+
+        List<BarEntry> lastYearValues = new ArrayList<>();
+        counter = 0;
+        for (String month : MONTHS) {
+            BarEntry barEntry = new BarEntry(counter++, lastYearData.get(month).floatValue());
+            lastYearValues.add(barEntry);
+        }
+
+        BarDataSet currentYearDataSet = new BarDataSet(currentYearValues, year + "");
+        currentYearDataSet.setColor(resources.getColor(R.color.comparison_chart_current_year_bar));
+        currentYearDataSet.setValueTextColor(Color.WHITE);
+        currentYearDataSet.setValueTextSize(9);
+
+        BarDataSet lastYearDataSet = new BarDataSet(lastYearValues, (year - 1) + "");
+        lastYearDataSet.setColor(resources.getColor(R.color.comparison_chart_last_year_bar));
+        lastYearDataSet.setValueTextColor(Color.WHITE);
+        lastYearDataSet.setValueTextSize(9);
+
+        List<IBarDataSet> dataSets = new ArrayList<>();
+        dataSets.add(lastYearDataSet);
+        dataSets.add(currentYearDataSet);
+
         float groupSpace = 0.04F;
         float barSpace = 0.02F;
         float barWidth = (1 - groupSpace) / dataSets.size() - barSpace;
@@ -142,19 +274,40 @@ public class YearComparisonChartActivity extends Activity {
         barData.setBarWidth(barWidth);
 
         barChart.setData(barData);
-        barChart.getXAxis().setAxisMinimum(0);
         barChart.groupBars(0, groupSpace, barSpace);
+        barChart.notifyDataSetChanged();
         barChart.invalidate();
     }
 
-    private void fillMissingValues(final Map<String, Double> monthlyExpenses, final int year) {
-        for (int i = 1; i <= 12; i++) {
-            String month = numberFormatter.format(i);
+    private double computeVariation(final Double currentYearValue, final Double lastYearValue) {
+        return lastYearValue != null ?
+                (currentYearValue - lastYearValue) / lastYearValue :
+                0;
+    }
 
-            if (!monthlyExpenses.containsKey(month)) {
-                monthlyExpenses.put(month, 0D);
-            }
+    @Override
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+        if (buttonView.getId() == R.id.yearComparisonSwitchChartReportButton) {
+            barChart.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            report.setVisibility(isChecked ? View.GONE : View.VISIBLE);
         }
     }
 
+    @Override
+    public void onClick(final View view) {
+        switch (view.getId()) {
+            case R.id.yearlyComparisonNextYear:
+                if (year < latestYear) {
+                    year++;
+                    updateDataAsync();
+                }
+                break;
+            case R.id.yearlyComparisonPreviousYear:
+                if (year - 1 > earliestYear) {
+                    year--;
+                    updateDataAsync();
+                }
+                break;
+        }
+    }
 }
