@@ -40,6 +40,9 @@
     <string name="yearlyReportWithSpecial">With Special</string>
     <string name="yearlyReportWithoutSpecial">Without Special</string>
 
+    <!-- -->
+    <string name="monthPieChartCurrentMonth">Current month</string>
+
     <!-- year comparison activity -->
     <string name="yearComparisonSwitchReport">Report</string>
     <string name="yearComparisonSwitchChart">Chart</string>

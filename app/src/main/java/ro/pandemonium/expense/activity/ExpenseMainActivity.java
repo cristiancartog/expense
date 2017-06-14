@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ro.pandemonium.expense.R;
+import ro.pandemonium.expense.activity.chart.CurrentMonthPieChartActivity;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
 import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
@@ -40,7 +41,9 @@ import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_VALUES_BY_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.Constants.INTENT_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
@@ -315,6 +318,16 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public void onItemClick(final AdapterView<?> adapterView, final View view, final int position, final long id) {
         addEditExpense(position);
+    }
+
+    void showCurrentMonthPieChart() {
+        final Intent pieChartIntent = new Intent(this, CurrentMonthPieChartActivity.class);
+        pieChartIntent
+//                .putExtra(INTENT_EXPENSE_VALUES_BY_TYPE,
+//                (Serializable) ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false)))
+                .putExtra(INTENT_YEAR, year)
+                .putExtra(INTENT_MONTH, monthOfYear);
+        startActivity(pieChartIntent);
     }
 
     @Override

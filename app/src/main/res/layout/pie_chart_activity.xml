@@ -3,8 +3,36 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/monthPieChartPreviousMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:background="@drawable/ic_arrow_left_icon" />
+
+        <TextView
+            android:id="@+id/monthPieChartCurrentMonthLabel"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/monthPieChartCurrentMonth" />
+
+        <Button
+            android:id="@+id/monthPieChartNextMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:background="@drawable/ic_arrow_right_icon" />
+    </LinearLayout>
+
     <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/expensePieChart"
+        android:id="@+id/monthPieChart"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 

@@ -32,7 +32,7 @@ import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 import static ro.pandemonium.expense.util.DateUtil.addYears;
 import static ro.pandemonium.expense.util.DateUtil.endOfYear;
-import static ro.pandemonium.expense.util.DateUtil.extractYear;
+import static ro.pandemonium.expense.util.DateUtil.year;
 import static ro.pandemonium.expense.util.DateUtil.startOfYear;
 
 public class YearlyExpenseReportActivity extends Activity implements View.OnClickListener {
@@ -125,8 +125,8 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
 
         earliestEntryDate = new Date(expenseDao.getEarliestEntry().getTime());
         latestEntryDate = new Date(expenseDao.getLatestEntry().getTime());
-        earliestEntryYear = extractYear(earliestEntryDate);
-        latestEntryYear = extractYear(latestEntryDate);
+        earliestEntryYear = year(earliestEntryDate);
+        latestEntryYear = year(latestEntryDate);
         useYearToDate = latestEntryYear == year;
         useYearFromDate = earliestEntryYear == year;
 

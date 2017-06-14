@@ -47,7 +47,7 @@ import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
-import static ro.pandemonium.expense.util.DateUtil.extractYear;
+import static ro.pandemonium.expense.util.DateUtil.year;
 
 public class YearComparisonChartActivity extends Activity
         implements View.OnClickListener, Switch.OnCheckedChangeListener {
@@ -102,7 +102,7 @@ public class YearComparisonChartActivity extends Activity
         setContentView(R.layout.year_comparison_chart_activity);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
-        year = getIntent().getIntExtra(INTENT_YEAR, extractYear(new Date()));
+        year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));
 
         barChart = (BarChart) findViewById(R.id.yearComparisonBarChart);
         report = (TableLayout) findViewById(R.id.yearlyComparisonListReport);
@@ -120,8 +120,8 @@ public class YearComparisonChartActivity extends Activity
         resources = getResources();
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        earliestYear = extractYear(new Date(expenseDao.getEarliestEntry().getTime()));
-        latestYear = extractYear(new Date(expenseDao.getLatestEntry().getTime()));
+        earliestYear = year(new Date(expenseDao.getEarliestEntry().getTime()));
+        latestYear = year(new Date(expenseDao.getLatestEntry().getTime()));
 
         Legend legend = barChart.getLegend();
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);

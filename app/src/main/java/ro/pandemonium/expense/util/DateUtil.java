@@ -10,10 +10,24 @@ public class DateUtil {
     private DateUtil() {
     }
 
-    public static int extractYear(final Date date) {
+    public static int currentYear() {
+        return year(new Date());
+    }
+
+    public static int currentMonth() {
+        return monthOfYear(new Date());
+    }
+
+    public static int year(final Date date) {
         calendar.setTime(date);
 
         return calendar.get(Calendar.YEAR);
+    }
+
+    public static int monthOfYear(final Date date) {
+        calendar.setTime(date);
+
+        return calendar.get(Calendar.MONTH);
     }
 
     public static Date startOfYear(final int year) {
