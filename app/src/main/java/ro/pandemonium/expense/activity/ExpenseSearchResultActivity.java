@@ -83,9 +83,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.expense_search_result_menu_chart_pie:
-                showCurrentMonthPieChart();
-                break;
             case R.id.expense_search_result_menu_order_by_date_ascending:
             case R.id.expense_search_result_menu_order_by_date_descending:
             case R.id.expense_search_result_menu_order_by_type_ascending:

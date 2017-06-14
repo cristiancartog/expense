@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
@@ -18,7 +17,6 @@ import java.util.HashMap;
 
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.activity.chart.CurrentMonthPieChartActivity;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
@@ -31,7 +29,6 @@ import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_VALUES_BY_TYPE;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 
 public abstract class AbstractExpenseListActivity extends Activity {
@@ -117,13 +114,6 @@ public abstract class AbstractExpenseListActivity extends Activity {
         } else {
             totalTextView.setText(formattedTotal);
         }
-    }
-
-    void showCurrentMonthPieChart() {
-        final Intent pieChartIntent = new Intent(this, CurrentMonthPieChartActivity.class);
-        pieChartIntent.putExtra(INTENT_EXPENSE_VALUES_BY_TYPE,
-                (Serializable) ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false)));
-        startActivity(pieChartIntent);
     }
 
     public void deleteButtonPressed(final View view) {

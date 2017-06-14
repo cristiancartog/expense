@@ -12,7 +12,7 @@
 
         <Button
             android:id="@+id/expenseListPreviousMonth"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onClick"
@@ -29,21 +29,11 @@
 
         <Button
             android:id="@+id/expenseListNextMonth"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onClick"
             android:background="@drawable/ic_arrow_right_icon"/>
-
-        <Button
-            android:id="@+id/expenseListFiltersButton"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:onClick="onClick"
-            android:text="@string/expenseListActivityFilterButton" />
-
     </LinearLayout>
 
     <ListView
@@ -51,6 +41,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/expenseListPieChart"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -74,11 +71,35 @@
             android:textSize="9pt" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/addExpenseButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="@string/expenseListActivityAddExpenseButton" />
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/expenseListFiltersButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:text="@string/expenseListActivityFilterButton" />
+
+        <Button
+            android:id="@+id/addExpenseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:layout_weight="1"
+            android:text="@string/expenseListActivityAddExpenseButton" />
+
+        <Switch
+            android:id="@+id/expenseListSwitchChartReportButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:checked="false"
+            android:textOff="@string/expenseListSwitchList"
+            android:textOn="@string/expenseListSwitchChart" />
+    </LinearLayout>
 </LinearLayout>
 

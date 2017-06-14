@@ -21,7 +21,5 @@ public class Constants {
     public static final String INTENT_EXPENSE = "expense";
     public static final String INTENT_CHANGED_EXPENSES = "changedExpenses";
     public static final String INTENT_YEAR = "year";
-    public static final String INTENT_MONTH = "month";
     public static final String INTENT_EXPENSE_TYPE = "expenseType";
-    public static final String INTENT_EXPENSE_VALUES_BY_TYPE = "expenseValuesByType";
 }

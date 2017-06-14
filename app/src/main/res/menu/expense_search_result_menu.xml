@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="@string/mainMenuChart">
-        <menu>
-            <item
-                android:id="@+id/expense_search_result_menu_chart_pie"
-                android:title="@string/mainMenuChartCurrentMonth" />
-        </menu>
-    </item>
-
     <item
         android:id="@+id/expense_search_result_menu_order_by"
         android:title="@string/mainMenuOrderBy">

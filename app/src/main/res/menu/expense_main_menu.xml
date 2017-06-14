@@ -11,6 +11,9 @@
         android:id="@+id/main_menu_yearly_report"
         android:title="@string/mainMenuYearlyReport" />
     <item
+        android:id="@+id/main_menu_chart_expense_history"
+        android:title="@string/mainMenuChartExpenseHistory" />
+    <item
         android:id="@+id/main_menu_order_by"
         android:title="@string/mainMenuOrderBy">
         <menu>
@@ -54,14 +57,4 @@
         </menu>
     </item>
 
-    <item android:title="@string/mainMenuChart">
-        <menu>
-            <item
-                android:id="@+id/main_menu_chart_current_month_pie"
-                android:title="@string/mainMenuChartCurrentMonth" />
-            <item
-                android:id="@+id/main_menu_chart_expense_history"
-                android:title="@string/mainMenuChartExpenseHistory" />
-        </menu>
-    </item>
 </menu>
