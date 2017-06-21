@@ -74,7 +74,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
                 filters -> {
                     lastUsedFilters = filters;
                     expenseListAdapter.filterBy(filters);
-                    filtersButton.setText(R.string.expenseListActivityFiltered);
+                    filtersButton.setBackground(getResources().getDrawable(R.mipmap.ic_filtered));
                     updateTotal();
                 });
     }
@@ -95,7 +95,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
     void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
             expenseListAdapter.clearFilters();
-            filtersButton.setText(R.string.expenseListActivityFilterButton);
+            filtersButton.setBackground(getResources().getDrawable(R.mipmap.ic_filter));
         }
         updateTotal();
     }

@@ -67,15 +67,14 @@
             android:textColor="@android:color/white"
             />
     </RelativeLayout>
-    <ImageButton
+    <Button
         android:id="@+id/expenseListItemDelete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:onClick="deleteButtonPressed"
-        android:src="@drawable/ic_delete"
+        android:background="@mipmap/ic_delete"
         android:layout_weight="0.50"
-        android:padding="0dp"
         android:cropToPadding="false"
         android:adjustViewBounds="false"
         android:contentDescription="@string/expenseMenuItemContentDescription"/>

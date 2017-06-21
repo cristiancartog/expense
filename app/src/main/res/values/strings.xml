@@ -20,8 +20,6 @@
     <string name="SPECIAL">Special</string>
 
     <!-- expense list activity -->
-    <string name="expenseListActivityFilterButton">Filter..</string>
-    <string name="expenseListActivityFiltered">Filtered</string>
     <string name="expenseListActivityTotalLabel">Total:</string>
     <string name="expenseListActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
     <string name="expenseListActivityZero">0.00</string>
