@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -93,7 +94,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         totalTextView = (TextView) findViewById(R.id.expenseListTotal);
         changeMonthButton = (Button) findViewById(R.id.expenseListChangeMonthButton);
-        filtersButton = (Button) findViewById(R.id.expenseListFiltersButton);
+        filtersButton = (ImageButton) findViewById(R.id.expenseListFiltersButton);
         filtersButton.setOnLongClickListener(this);
 
         pieChart = (PieChart) findViewById(R.id.expenseListPieChart);

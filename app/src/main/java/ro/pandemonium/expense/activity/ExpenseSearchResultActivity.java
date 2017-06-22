@@ -7,7 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -50,7 +50,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         List<Expense> expenses = expenseDao.fetchExpenses(filters);
 
         totalTextView = (TextView) findViewById(R.id.expenseSearchResultTotal);
-        filtersButton = (Button) findViewById(R.id.expenseSearchResultFiltersButton);
+        filtersButton = (ImageButton) findViewById(R.id.expenseSearchResultFiltersButton);
         filtersButton.setOnLongClickListener(this);
 
         repopulateExpenseList(expenses);

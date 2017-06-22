@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseArray;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -45,7 +45,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
     // dialogs
     ExpenseTypeSelectionDialog expenseTypeSelectionDialog;
     private Filters lastUsedFilters;
-    Button filtersButton;
+    ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
         mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator(true));
@@ -74,7 +74,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
                 filters -> {
                     lastUsedFilters = filters;
                     expenseListAdapter.filterBy(filters);
-                    filtersButton.setBackground(getResources().getDrawable(R.mipmap.ic_filtered));
+                    filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filtered));
                     updateTotal();
                 });
     }
@@ -95,7 +95,7 @@ public abstract class AbstractExpenseListActivity extends Activity {
     void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
             expenseListAdapter.clearFilters();
-            filtersButton.setBackground(getResources().getDrawable(R.mipmap.ic_filter));
+            filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filter));
         }
         updateTotal();
     }

@@ -78,12 +78,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/expenseListFiltersButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:background="@mipmap/ic_filter"
+            android:src="@mipmap/ic_filter"
+            android:background="@null"
             android:onClick="onClick" />
 
         <View
@@ -91,11 +92,12 @@
             android:layout_height="0dp"
             android:layout_weight="0.1" />
 
-        <Button
+        <ImageButton
             android:id="@+id/addExpenseButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@mipmap/ic_add_expense"
+            android:src="@mipmap/ic_add_expense"
+            android:background="@null"
             android:onClick="onClick" />
 
         <View

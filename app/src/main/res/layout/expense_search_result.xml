@@ -4,11 +4,12 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent" android:onClick="onClick">
 
-    <Button
+    <ImageButton
             android:id="@+id/expenseSearchResultFiltersButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/expenseSearchResultActivityFilterButton"
+            android:src="@mipmap/ic_filter"
+            android:background="@null"
             android:onClick="onClick"/>
 
     <ListView
