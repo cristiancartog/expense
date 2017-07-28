@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -110,7 +112,31 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH) + 1;
 
+//        expenseDao.getLatestEntry().getTime();
+
         repopulateExpenseList(year, month);
+
+        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, R.string.app_name, R.string.app_name) {
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getActionBar().setTitle("Expense closed");
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getActionBar().setTitle("Expense opened");
+            }
+        };
+
+        // Set the drawer toggle as the DrawerListener
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setHomeButtonEnabled(true);
     }
 
     @Override
@@ -155,6 +181,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public boolean onLongClick(final View view) {
         switch (view.getId()) {
+            case R.id.expenseListFiltersButton:
             case R.id.expenseListFiltersButton:
                 clearFilters();
                 break;

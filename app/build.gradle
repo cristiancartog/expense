@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 22
     buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "ro.pandemonium.expense"
-        minSdkVersion 19
+        minSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
@@ -31,5 +31,6 @@ repositories {
 
 dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+    compile 'com.android.support:support-v4:22.2.0'
     testCompile 'junit:junit:4.12'
 }
