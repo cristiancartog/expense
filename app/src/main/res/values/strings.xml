@@ -65,7 +65,7 @@
 
     <!-- add/edit expense activity -->
     <string name="addEditExpenseTitle">Expense</string>
-    <string name="addEditExpenseActivityExpenseTypeLabel">Expense Type:</string>
+    <string name="addEditExpenseActivityExpenseTypeLabel">Expense:</string>
     <string name="addEditExpenseActivityValueLabel">Value:</string>
     <string name="addEditExpenseActivityDateLabel">Date:</string>
     <string name="addEditExpenseActivityCommentLabel">Comment:</string>

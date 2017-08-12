@@ -1,101 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:padding="30dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="30dp">
 
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="4">
 
-        <LinearLayout
-            android:layout_width="fill_parent"
+        <TextView
+            android:id="@+id/addExpenseTypeLabel"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:text="@string/addEditExpenseActivityExpenseTypeLabel"
+            android:textSize="10pt"
+            android:layout_row="0"
+            android:layout_column="0"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/addExpenseTypeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/addEditExpenseActivityExpenseTypeLabel"
-                    android:textSize="10pt"
-                    android:layout_centerVertical="true"
-                    android:layout_alignParentStart="true" />
+        <Spinner
+            android:id="@+id/addExpenseSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|fill_horizontal"
+            android:layout_row="0"
+            android:layout_column="1"/>
 
-                <Spinner
-                    android:id="@+id/addExpenseSpinner"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/addExpenseTypeLabel"
-                    android:gravity="end"
-                    android:layout_marginStart="10dp"/>
-            </RelativeLayout>
+        <TextView
+            android:id="@+id/addExpenseValueLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/addEditExpenseActivityValueLabel"
+            android:textSize="10pt"
+            android:layout_row="1"
+            android:layout_column="0"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/addExpenseValueLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/addEditExpenseActivityValueLabel"
-                    android:textSize="10pt"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentStart="true" />
-                <EditText
-                    android:id="@+id/addExpenseValue"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:maxLines="1"
-                    android:gravity="end"
-                    android:layout_toEndOf="@+id/addExpenseValueLabel"
-                    android:layout_marginStart="10dp"
-                    tools:ignore="LabelFor" />
-            </RelativeLayout>
+        <EditText
+            android:id="@+id/addExpenseValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:inputType="numberDecimal"
+            android:maxLines="1"
+            android:layout_gravity="end|fill_horizontal"
+            android:layout_row="1"
+            android:layout_column="1"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/addExpenseCommentLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentStart="true"
-                    android:text="@string/addEditExpenseActivityCommentLabel"
-                    android:textSize="10pt" />
+        <TextView
+            android:id="@+id/addExpenseCommentLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/addEditExpenseActivityCommentLabel"
+            android:textSize="10pt"
+            android:layout_row="2"
+            android:layout_column="0"/>
 
-                <EditText
-                    android:id="@+id/addExpenseComment"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:gravity="end"
-                    android:layout_toEndOf="@id/addExpenseCommentLabel"
-                    android:layout_marginStart="10dp"/>
-            </RelativeLayout>
+        <EditText
+            android:id="@+id/addExpenseComment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:gravity="end"
+            android:maxLines="1"
+            android:layout_gravity="end|fill_horizontal"
+            android:layout_row="2"
+            android:layout_column="1"/>
 
-            <Button android:id="@+id/addExpenseDate"
-                android:onClick="onClick"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-    </ScrollView>
+        <Button
+            android:id="@+id/addExpenseDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:layout_row="3"
+            android:layout_column="0"
+            android:layout_columnSpan="2"/>
+    </GridLayout>
 
     <Button
         android:id="@+id/saveExpenseButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4pt"
+        android:layout_gravity="bottom"
         android:text="@string/addEditExpenseActivitySaveButton"
         android:textSize="13pt" />
-
 </LinearLayout>
+
