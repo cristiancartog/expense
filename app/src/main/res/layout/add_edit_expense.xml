@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:padding="30dp"
     android:orientation="vertical">
 
     <ScrollView
@@ -82,10 +83,10 @@
                     android:layout_marginStart="10dp"/>
             </RelativeLayout>
 
-            <DatePicker
-                android:id="@+id/addExpenseDatePicker"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+            <Button android:id="@+id/addExpenseDate"
+                android:onClick="onClick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
     </ScrollView>
 
