@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item
+        android:id="@+id/navigation_search_db"
+        android:icon="@drawable/ic_search_db"
+        android:title="@string/mainMenuSearchDatabase" />
+    <item
+        android:id="@+id/navigation_special_expenses"
+        android:icon="@drawable/ic_special_expenses"
+        android:title="@string/mainMenuSpecialExpenses" />
+    <item
+        android:id="@+id/navigation_yearly_report"
+        android:icon="@drawable/ic_yearly_report"
+        android:title="@string/mainMenuYearlyReport" />
+    <item
+        android:id="@+id/navigation_expense_history"
+        android:icon="@drawable/ic_history"
+        android:title="@string/mainMenuChartExpenseHistory" />
+
+    <item android:title="@string/mainMenuDatabase">
+        <menu>
+            <item
+                android:id="@+id/navigation_database_dump"
+                android:icon="@drawable/ic_db_dump"
+                android:title="@string/mainMenuDatabaseExport" />
+            <item
+                android:id="@+id/navigation_database_restore"
+                android:icon="@drawable/ic_db_restore"
+                android:title="@string/mainMenuDatabaseImport" />
+        </menu>
+    </item>
+
+</menu>

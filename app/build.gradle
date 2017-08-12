@@ -1,16 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '25.0.2'
-
+    compileSdkVersion 24
+    buildToolsVersion '26.0.0'
     defaultConfig {
         applicationId "ro.pandemonium.expense"
         minSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -21,9 +19,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    productFlavors {
+    }
 }
 
 repositories {
+    maven {
+        url "https://maven.google.com"
+    }
     maven {
         url "https://jitpack.io"
     }
@@ -31,6 +34,11 @@ repositories {
 
 dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
-    compile 'com.android.support:support-v4:22.2.0'
+
+    implementation 'com.android.support:appcompat-v7:24.2.1'
+    implementation 'com.android.support:support-v4:24.2.1'
+    implementation 'com.android.support:design:24.2.1'
+//    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+
     testCompile 'junit:junit:4.12'
 }

@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -64,12 +66,14 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         DatePickerDialog.OnDateSetListener,
         AdapterView.OnItemClickListener,
         View.OnLongClickListener,
-        CompoundButton.OnCheckedChangeListener {
+        CompoundButton.OnCheckedChangeListener,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private final Calendar calendar = Calendar.getInstance();
     private int year;
     private int month;
 
+    private DrawerLayout drawerLayout;
     private Button changeMonthButton;
     private PieChart pieChart;
     private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
@@ -83,12 +87,17 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     int getLayoutId() {
-        return R.layout.expense_list;
+        return R.layout.expense_main;
     }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.main_navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         expenseList = (ListView) findViewById(R.id.expansesListView);
         expenseList.setAdapter(expenseListAdapter);
@@ -112,31 +121,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH) + 1;
 
-//        expenseDao.getLatestEntry().getTime();
-
         repopulateExpenseList(year, month);
-
-        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, R.string.app_name, R.string.app_name) {
-
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                getActionBar().setTitle("Expense closed");
-            }
-
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getActionBar().setTitle("Expense opened");
-            }
-        };
-
-        // Set the drawer toggle as the DrawerListener
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeButtonEnabled(true);
     }
 
     @Override
@@ -182,7 +167,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public boolean onLongClick(final View view) {
         switch (view.getId()) {
             case R.id.expenseListFiltersButton:
-            case R.id.expenseListFiltersButton:
                 clearFilters();
                 break;
         }
@@ -203,47 +187,19 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         switch (menuItemId) {
             case R.id.main_menu_chart_expense_history:
-                expenseTypeSelectionDialog.show(null,
-                        Arrays.asList(ExpenseType.values()),
-                        filters -> {
-                            final Intent intent = new Intent(ExpenseMainActivity.this, ExpenseHistoryChartActivity.class);
-                            intent.putExtra(INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
-                            startActivity(intent);
-                        });
+                expenseHistoryRequested();
                 break;
 
             case R.id.main_menu_database_import:
-                importFileSelectionDialog.show(fileName -> {
-                    try {
-                        final List<Expense> expenses = FileUtil.importExpenses(fileName);
-                        expenseDao.restoreExpenses(expenses);
-                        repopulateExpenseList(year, month);
-                    } catch (IOException e) {
-                        Toast.makeText(ExpenseMainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
+                dbRestoreRequested();
                 break;
 
             case R.id.main_menu_database_export:
-                try {
-                    final List<Expense> allExpenses = expenseDao.fetchExpenses(null, null);
-                    FileUtil.exportExpenses(allExpenses);
-                    Toast.makeText(this, R.string.expenseListActivityExportSuccessful, Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                }
+                dbDumpRequested();
                 break;
 
             case R.id.main_menu_search_db:
-                expenseTypeSelectionDialog.show(lastUsedGlobalFilters,
-                        ExpenseType.orderedExpenseTypes(),
-                        filters -> {
-                            lastUsedGlobalFilters = filters;
-
-                            final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-                            searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
-                            startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
-                        });
+                dbSearchRequested();
                 break;
 
             case R.id.main_menu_special_expenses:
@@ -268,6 +224,79 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
 
         return true;
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(Gravity.START);
+        switch (item.getItemId()) {
+            case R.id.navigation_search_db:
+                dbSearchRequested();
+                break;
+            case R.id.navigation_special_expenses:
+                startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
+                break;
+            case R.id.navigation_yearly_report:
+                Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
+                yearlyReportIntent.putExtra(INTENT_YEAR, year);
+
+                startActivity(yearlyReportIntent);
+                break;
+            case R.id.navigation_expense_history:
+                expenseHistoryRequested();
+                break;
+            case R.id.navigation_database_dump:
+                dbDumpRequested();
+                break;
+            case R.id.navigation_database_restore:
+                dbRestoreRequested();
+                break;
+        }
+        return true;
+    }
+
+    private void dbSearchRequested() {
+        expenseTypeSelectionDialog.show(lastUsedGlobalFilters,
+                ExpenseType.orderedExpenseTypes(),
+                filters -> {
+                    lastUsedGlobalFilters = filters;
+
+                    final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+                    searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
+                    startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
+                });
+    }
+
+    private void expenseHistoryRequested() {
+        expenseTypeSelectionDialog.show(null,
+                Arrays.asList(ExpenseType.values()),
+                filters -> {
+                    final Intent intent = new Intent(ExpenseMainActivity.this, ExpenseHistoryChartActivity.class);
+                    intent.putExtra(INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
+                    startActivity(intent);
+                });
+    }
+
+    private void dbDumpRequested() {
+        try {
+            final List<Expense> allExpenses = expenseDao.fetchExpenses(null, null);
+            FileUtil.exportExpenses(allExpenses);
+            Toast.makeText(this, R.string.expenseListActivityExportSuccessful, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void dbRestoreRequested() {
+        importFileSelectionDialog.show(fileName -> {
+            try {
+                final List<Expense> expenses = FileUtil.importExpenses(fileName);
+                expenseDao.restoreExpenses(expenses);
+                repopulateExpenseList(year, month);
+            } catch (IOException e) {
+                Toast.makeText(ExpenseMainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override

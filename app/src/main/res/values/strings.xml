@@ -99,8 +99,8 @@
     <string name="mainMenuOrderByTypeDescending">..type descending</string>
     <string name="mainMenuChart">Chart..</string>
     <string name="mainMenuDatabase">Database..</string>
-    <string name="mainMenuDatabaseImport">Import</string>
-    <string name="mainMenuDatabaseExport">Export</string>
+    <string name="mainMenuDatabaseImport">Restore</string>
+    <string name="mainMenuDatabaseExport">Dump</string>
 
     <!-- import/export db -->
     <string name="importExportDialogRestoreButton">Restore</string>

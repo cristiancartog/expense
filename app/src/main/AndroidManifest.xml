@@ -8,6 +8,7 @@
     <application
         android:name="ro.pandemonium.expense.ExpenseApplication"
         android:allowBackup="true"
+        android:theme="@style/AppTheme"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name">
         <!-- activities -->
