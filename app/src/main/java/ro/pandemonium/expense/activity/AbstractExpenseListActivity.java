@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.SparseArray;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -56,13 +58,18 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         mapSortingMenuItemToComparator.append(6, new ExpenseValueComparator(false));
     }
 
-    abstract int getLayoutId();
+    abstract int layoutId();
+
+    abstract int toolbarId();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(getLayoutId());
+        setContentView(layoutId());
+
+        Toolbar toolbar = (Toolbar) findViewById(toolbarId());
+        setSupportActionBar(toolbar);
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
@@ -128,6 +135,22 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(R.string.removeExpenseDialogNo, null)
                 .show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.main_menu_order_by_date_ascending:
+            case R.id.main_menu_order_by_date_descending:
+            case R.id.main_menu_order_by_type_ascending:
+            case R.id.main_menu_order_by_type_descending:
+            case R.id.main_menu_order_by_value_ascending:
+            case R.id.main_menu_order_by_value_descending:
+                sortExpenses(item.getOrder());
+                break;
+        }
+
+        return true;
     }
 
     @Override

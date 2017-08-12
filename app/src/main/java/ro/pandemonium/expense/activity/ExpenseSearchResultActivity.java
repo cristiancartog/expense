@@ -34,8 +34,13 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     }
 
     @Override
-    int getLayoutId() {
-        return R.layout.expense_search_result;
+    int layoutId() {
+        return R.layout.expense_search_result_appbar;
+    }
+
+    @Override
+    int toolbarId() {
+        return R.id.search_result_toolbar;
     }
 
     @Override
@@ -78,21 +83,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         setResult(RESULT_OK, intent);
 
         super.onBackPressed();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.main_menu_order_by_date_ascending:
-            case R.id.main_menu_order_by_date_descending:
-            case R.id.main_menu_order_by_type_ascending:
-            case R.id.main_menu_order_by_type_descending:
-            case R.id.main_menu_order_by_value_ascending:
-            case R.id.main_menu_order_by_value_descending:
-                sortExpenses(item.getOrder());
-                break;
-        }
-        return true;
     }
 
     @Override

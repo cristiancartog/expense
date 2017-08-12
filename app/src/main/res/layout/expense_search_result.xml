@@ -1,42 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" android:onClick="onClick">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:onClick="onClick"
+    android:orientation="vertical">
 
     <ImageButton
-            android:id="@+id/expenseSearchResultFiltersButton"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/ic_filter"
-            android:background="@null"
-            android:onClick="onClick"/>
+        android:id="@+id/expenseSearchResultFiltersButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:onClick="onClick"
+        android:src="@mipmap/ic_filter" />
 
     <ListView
-            android:id="@+id/expansesSearchResultListView"
+        android:id="@+id/expansesSearchResultListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/expenseSearchResultTotalLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/expenseListActivityTotalLabel"
+            android:textSize="9pt" />
+
+        <TextView
+            android:id="@+id/expenseSearchResultTotal"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-
-        <TextView
-                android:id="@+id/expenseSearchResultTotalLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/expenseListActivityTotalLabel"
-                android:textSize="9pt"
-                android:layout_gravity="start"
-                />
-        <TextView
-                android:id="@+id/expenseSearchResultTotal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/expenseListActivityZero"
-                android:textSize="9pt"
-                android:layout_gravity="end"
-                android:gravity="end"
-                />
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:text="@string/expenseListActivityZero"
+            android:textSize="9pt" />
     </LinearLayout>
 </LinearLayout>
-

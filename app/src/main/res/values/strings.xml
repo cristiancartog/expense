@@ -20,6 +20,7 @@
     <string name="SPECIAL">Special</string>
 
     <!-- expense list activity -->
+    <string name="expenseListActivityTitle">Monthly Expenses</string>
     <string name="expenseListActivityTotalLabel">Total:</string>
     <string name="expenseListActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
     <string name="expenseListActivityZero">0.00</string>
@@ -30,6 +31,7 @@
     <string name="expenseListSwitchChart">Chart</string>
 
     <!-- yearly report activity -->
+    <string name="yearlyReportTitle">Yearly Report</string>
     <string name="yearlyReportYear">Year</string>
     <string name="yearlyReportExpenseTypePerYear">Expense \\ Year</string>
     <string name="yearlyReportCurrentYear">Current Year</string>
@@ -39,6 +41,7 @@
     <string name="yearlyReportWithoutSpecial">Without Special</string>
 
     <!-- year comparison activity -->
+    <string name="yearComparisonTitle">Comparison</string>
     <string name="yearComparisonSwitchReport">Report</string>
     <string name="yearComparisonSwitchChart">Chart</string>
     <string name="yearComparisonMonthPerYear">Month \\ Year</string>
@@ -48,17 +51,20 @@
     <string name="yearComparisonTotal">Total</string>
 
     <!-- expense search result-->
+    <string name="expenseSearchResultTitle">Expenses</string>
     <string name="expenseSearchResultActivityTotalLabel">Total:</string>
     <string name="expenseSearchResultActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
     <string name="expenseSearchResultActivityZero">0.00</string>
     <string name="expenseSearchResultActivityFilterButton">"Filter.."</string>
 
     <!-- special expenses-->
+    <string name="specialExpensesTitle">Special expenses</string>
     <string name="specialExpensesActivityAddExpenseButton">Add expense</string>
     <string name="specialExpensesActivityTotalLabel">Total:</string>
     <string name="specialExpensesActivityZero">0.00</string>
 
     <!-- add/edit expense activity -->
+    <string name="addEditExpenseTitle">Expense</string>
     <string name="addEditExpenseActivityExpenseTypeLabel">Expense Type:</string>
     <string name="addEditExpenseActivityValueLabel">Value:</string>
     <string name="addEditExpenseActivityDateLabel">Date:</string>

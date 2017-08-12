@@ -88,8 +88,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     @Override
-    int getLayoutId() {
+    int layoutId() {
         return R.layout.expense_main_drawer;
+    }
+
+    @Override
+    int toolbarId() {
+        return R.id.main_expense_toolbar;
     }
 
     @Override
@@ -98,9 +103,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
+        Toolbar toolbar = (Toolbar) findViewById(R.id.main_expense_toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
@@ -186,22 +189,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.sorting_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.main_menu_order_by_date_ascending:
-            case R.id.main_menu_order_by_date_descending:
-            case R.id.main_menu_order_by_type_ascending:
-            case R.id.main_menu_order_by_type_descending:
-            case R.id.main_menu_order_by_value_ascending:
-            case R.id.main_menu_order_by_value_descending:
-                sortExpenses(item.getOrder());
-                break;
-        }
-
         return true;
     }
 

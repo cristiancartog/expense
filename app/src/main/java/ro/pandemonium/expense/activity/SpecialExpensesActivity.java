@@ -3,6 +3,7 @@ package ro.pandemonium.expense.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -24,8 +25,13 @@ public class SpecialExpensesActivity extends AbstractExpenseListActivity
     }
 
     @Override
-    int getLayoutId() {
-        return R.layout.special_expenses_list;
+    int layoutId() {
+        return R.layout.special_expense_appbar;
+    }
+
+    @Override
+    int toolbarId() {
+        return R.id.special_expense_toolbar;
     }
 
     @Override
@@ -41,6 +47,12 @@ public class SpecialExpensesActivity extends AbstractExpenseListActivity
         totalTextView = (TextView) findViewById(R.id.specialExpensesActivityTotalLabel);
 
         repopulateExpenseList(expenses);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.sorting_menu, menu);
+        return true;
     }
 
     @Override
