@@ -1,9 +1,9 @@
 package ro.pandemonium.expense.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.ImageButton;
@@ -31,7 +31,7 @@ import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 
-public abstract class AbstractExpenseListActivity extends Activity {
+public abstract class AbstractExpenseListActivity extends AppCompatActivity {
 
     ExpenseDao expenseDao;
     ListView expenseList;

@@ -58,7 +58,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.expense_search_result_menu, menu);
+        getMenuInflater().inflate(R.menu.sorting_menu, menu);
         return true;
     }
 
@@ -81,14 +81,14 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.expense_search_result_menu_order_by_date_ascending:
-            case R.id.expense_search_result_menu_order_by_date_descending:
-            case R.id.expense_search_result_menu_order_by_type_ascending:
-            case R.id.expense_search_result_menu_order_by_type_descending:
-            case R.id.expense_search_result_menu_order_by_value_ascending:
-            case R.id.expense_search_result_menu_order_by_value_descending:
+            case R.id.main_menu_order_by_date_ascending:
+            case R.id.main_menu_order_by_date_descending:
+            case R.id.main_menu_order_by_type_ascending:
+            case R.id.main_menu_order_by_type_descending:
+            case R.id.main_menu_order_by_value_ascending:
+            case R.id.main_menu_order_by_value_descending:
                 sortExpenses(item.getOrder());
                 break;
         }

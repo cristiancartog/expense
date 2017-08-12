@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -87,7 +89,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     int getLayoutId() {
-        return R.layout.expense_main;
+        return R.layout.expense_main_drawer;
     }
 
     @Override
@@ -95,6 +97,14 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         super.onCreate(savedInstanceState);
 
         drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.main_navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -175,44 +185,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.expense_main_menu, menu);
+        getMenuInflater().inflate(R.menu.sorting_menu, menu);
         return true;
     }
 
     @Override
-    public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
-        Log.i(APPLICATION_NAME, item.getTitle().toString());
-
-        final int menuItemId = item.getItemId();
-
-        switch (menuItemId) {
-            case R.id.main_menu_chart_expense_history:
-                expenseHistoryRequested();
-                break;
-
-            case R.id.main_menu_database_import:
-                dbRestoreRequested();
-                break;
-
-            case R.id.main_menu_database_export:
-                dbDumpRequested();
-                break;
-
-            case R.id.main_menu_search_db:
-                dbSearchRequested();
-                break;
-
-            case R.id.main_menu_special_expenses:
-                startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
-                break;
-
-            case R.id.main_menu_yearly_report:
-                Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
-                yearlyReportIntent.putExtra(INTENT_YEAR, year);
-
-                startActivity(yearlyReportIntent);
-                break;
-
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.main_menu_order_by_date_ascending:
             case R.id.main_menu_order_by_date_descending:
             case R.id.main_menu_order_by_type_ascending:

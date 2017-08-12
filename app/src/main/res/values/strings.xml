@@ -84,21 +84,26 @@
     <string name="filterExpenseDialogRemoveComment">-</string>
     <string name="filterExpenseDialogEmptySelection">The filter selection is empty.</string>
 
+    <!-- navigation drawer -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
     <!-- main menu -->
-    <string name="mainMenuSearchDatabase">Search database..</string>
+    <string name="mainMenuReports">Reports</string>
+    <string name="mainMenuSearchDatabase">Search database</string>
     <string name="mainMenuSpecialExpenses">Special expenses</string>
     <string name="mainMenuYearlyReport">Yearly report</string>
     <string name="mainMenuChartExpenseHistory">History by type</string>
     <string name="mainMenuChartYearlyComparison">Yearly comparison</string>
     <string name="mainMenuOrderBy">Order by..</string>
-    <string name="mainMenuOrderByDateAscending">..date ascending</string>
-    <string name="mainMenuOrderByDateDescending">..date descending</string>
-    <string name="mainMenuOrderByValueAscending">..value ascending</string>
-    <string name="mainMenuOrderByValueDescending">..value descending</string>
-    <string name="mainMenuOrderByTypeAscending">..type ascending</string>
-    <string name="mainMenuOrderByTypeDescending">..type descending</string>
+    <string name="mainMenuOrderByDateAscending">by date ascending</string>
+    <string name="mainMenuOrderByDateDescending">by date descending</string>
+    <string name="mainMenuOrderByValueAscending">by value ascending</string>
+    <string name="mainMenuOrderByValueDescending">by value descending</string>
+    <string name="mainMenuOrderByTypeAscending">by type ascending</string>
+    <string name="mainMenuOrderByTypeDescending">by type descending</string>
     <string name="mainMenuChart">Chart..</string>
-    <string name="mainMenuDatabase">Database..</string>
+    <string name="mainMenuDatabase">Database</string>
     <string name="mainMenuDatabaseImport">Restore</string>
     <string name="mainMenuDatabaseExport">Dump</string>
 
