@@ -297,10 +297,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                     }
                 }
             } else { // update existing expense
+                expenseDao.updateExpense(expense);
                 if (!isInSameMonth(expense.getTime())) {
                     expenseListAdapter.deleteExpense(expense);
+                } else {
+                    expenseListAdapter.updateExpense(expense);
                 }
-                expenseDao.updateExpense(expense);
             }
 
             expenseListAdapter.notifyDataSetChanged();

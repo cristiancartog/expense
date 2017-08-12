@@ -58,7 +58,8 @@ public class AddEditExpenseActivity extends Activity
         valueField.addTextChangedListener(this);
 
         final Intent intent = getIntent();
-        @SuppressWarnings("unchecked") final Map<ExpenseType, Integer> mapExpenseTypeToCount = (Map<ExpenseType, Integer>) intent.getSerializableExtra(Constants.INTENT_EXPENSE_COUNT_MAP);
+        @SuppressWarnings("unchecked")
+        final Map<ExpenseType, Integer> mapExpenseTypeToCount = (Map<ExpenseType, Integer>) intent.getSerializableExtra(Constants.INTENT_EXPENSE_COUNT_MAP);
         final Expense expense = (Expense) intent.getSerializableExtra(Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT);
 
         expenseTypeSpinnerAdapter = new ExpenseTypeSpinnerAdapter();
@@ -85,6 +86,9 @@ public class AddEditExpenseActivity extends Activity
             commentField.setText(expense.getComment());
 
             expenseTime = expense.getTime();
+        } else {
+            expenseTime = new Date().getTime();
+            dateButton.setText(dateFormat.format(expenseTime));
         }
     }
 
