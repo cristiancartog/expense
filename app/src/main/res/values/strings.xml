@@ -89,9 +89,12 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <!-- drawer menu -->
-    <string name="mainMenuReports">Reports</string>
-    <string name="mainMenuSearchDatabase">Search database</string>
+    <string name="mainMenuCategories">Categories</string>
     <string name="mainMenuSpecialExpenses">Special expenses</string>
+    <string name="mainMenuSubscriptionExpenses">Subscription expenses</string>
+    <string name="mainMenuRecurrentExpenses">Recurrent expenses</string>
+    <string name="mainMenuSearchDatabase">Search database</string>
+    <string name="mainMenuReports">Reports</string>
     <string name="mainMenuYearlyReport">Yearly report</string>
     <string name="mainMenuChartExpenseHistory">History by type</string>
     <string name="mainMenuChartYearlyComparison">Yearly comparison</string>

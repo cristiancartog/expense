@@ -200,9 +200,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 dbSearchRequested();
                 break;
             case R.id.navigation_special_expenses:
-                Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-                intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
-                startActivity(intent);
+                specialExpensesRequested();
+                break;
+            case R.id.navigation_subscription_expenses:
+                subscriptionExpensesRequested();
+                break;
+            case R.id.navigation_recurrent_expenses:
+                recurrentExpensesRequested();
                 break;
             case R.id.navigation_yearly_report:
                 Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
@@ -233,6 +237,24 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                     searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
                     startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
                 });
+    }
+
+    private void specialExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
+        startActivity(intent);
+    }
+
+    private void subscriptionExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.subscriptionExpenses(), Collections.emptySet()));
+        startActivity(intent);
+    }
+
+    private void recurrentExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.recurrentExpenses(), Collections.emptySet()));
+        startActivity(intent);
     }
 
     private void expenseHistoryRequested() {
