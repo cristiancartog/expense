@@ -50,12 +50,9 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
-        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator(true));
-        mapSortingMenuItemToComparator.append(2, new ExpenseDateComparator(false));
-        mapSortingMenuItemToComparator.append(3, new ExpenseTypeComparator(true));
-        mapSortingMenuItemToComparator.append(4, new ExpenseTypeComparator(false));
-        mapSortingMenuItemToComparator.append(5, new ExpenseValueComparator(true));
-        mapSortingMenuItemToComparator.append(6, new ExpenseValueComparator(false));
+        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator());
+        mapSortingMenuItemToComparator.append(2, new ExpenseTypeComparator());
+        mapSortingMenuItemToComparator.append(3, new ExpenseValueComparator());
     }
 
     abstract int layoutId();
@@ -145,12 +142,9 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.main_menu_order_by_date_ascending:
-            case R.id.main_menu_order_by_date_descending:
-            case R.id.main_menu_order_by_type_ascending:
-            case R.id.main_menu_order_by_type_descending:
-            case R.id.main_menu_order_by_value_ascending:
-            case R.id.main_menu_order_by_value_descending:
+            case R.id.main_menu_order_by_date:
+            case R.id.main_menu_order_by_type:
+            case R.id.main_menu_order_by_value:
                 sortExpenses(item.getOrder());
                 break;
         }

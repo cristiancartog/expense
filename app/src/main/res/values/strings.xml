@@ -103,12 +103,9 @@
     <string name="mainMenuDatabaseExport">Dump</string>
 
     <!-- sorting menu -->
-    <string name="mainMenuOrderByDateAscending">by date ascending</string>
-    <string name="mainMenuOrderByDateDescending">by date descending</string>
-    <string name="mainMenuOrderByValueAscending">by value ascending</string>
-    <string name="mainMenuOrderByValueDescending">by value descending</string>
-    <string name="mainMenuOrderByTypeAscending">by type ascending</string>
-    <string name="mainMenuOrderByTypeDescending">by type descending</string>
+    <string name="mainMenuOrderByDate">Sort by date</string>
+    <string name="mainMenuOrderByValue">Sort by value</string>
+    <string name="mainMenuOrderByType">Sort by type</string>
 
     <!-- import/export db -->
     <string name="importExportDialogRestoreButton">Restore</string>
