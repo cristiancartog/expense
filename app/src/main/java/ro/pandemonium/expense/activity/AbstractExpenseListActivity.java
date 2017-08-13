@@ -83,11 +83,15 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                     expenseListAdapter.filterBy(filters);
                     filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filtered));
                     updateTotal();
+                    filtersUpdated();
                 });
     }
 
     void sortExpenses(int order) {
         expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(order));
+    }
+
+    protected void filtersUpdated() {
     }
 
     void addEditExpense(int position) {
@@ -105,6 +109,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filter));
         }
         updateTotal();
+        filtersUpdated();
     }
 
     void updateTotal() {

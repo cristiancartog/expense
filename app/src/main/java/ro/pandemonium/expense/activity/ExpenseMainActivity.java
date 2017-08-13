@@ -376,6 +376,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }).execute(new MonthWrapper(year, monthOfYear));
     }
 
+    @Override
+    protected void filtersUpdated() {
+        updatePieData();
+    }
+
     private void updatePieData() {
         updateMonthButtonLabel();
 
