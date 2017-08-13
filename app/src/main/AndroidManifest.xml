@@ -28,7 +28,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.ExpenseSearchResultActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".activity.ExpenseMainActivity"/>
         <activity
             android:name=".activity.YearlyExpenseReportActivity"
             android:screenOrientation="portrait" />

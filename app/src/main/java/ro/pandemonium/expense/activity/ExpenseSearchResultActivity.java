@@ -46,6 +46,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         expenseList = (ListView) findViewById(R.id.expansesSearchResultListView);
         expenseList.setAdapter(expenseListAdapter);
         expenseList.setOnItemClickListener(this);
