@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -45,12 +44,7 @@ public class ExpenseHistoryChartActivity extends Activity {
 
         BarChart barChart = (BarChart) findViewById(R.id.expenseBarChart);
 
-        Description description = new Description();
-        description.setText("Monthly expense type summary");
-        description.setTextColor(Color.WHITE);
-//        description.setPosition();
-
-        barChart.setDescription(description);
+        barChart.setDescription(null);
 
         final Map<Float, String> mapPointToMonthName = new HashMap<>();
 

@@ -200,7 +200,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 dbSearchRequested();
                 break;
             case R.id.navigation_special_expenses:
-                startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
+                Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+                intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
+                startActivity(intent);
                 break;
             case R.id.navigation_yearly_report:
                 Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);

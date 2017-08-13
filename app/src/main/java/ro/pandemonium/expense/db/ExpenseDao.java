@@ -116,9 +116,7 @@ public class ExpenseDao implements Serializable {
 
     private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
         final StringBuilder sb = new StringBuilder(" WHERE ");
-        sb.append(" EXPENSE_TYPE <> ");
-        sb.append(ExpenseType.SPECIAL.getDbId());
-        sb.append(" AND EXPENSE_TYPE IN (");
+        sb.append("EXPENSE_TYPE IN (");
 
         final int expenseTypeListSize = expenseTypes.size();
         for (int i = 0; i < expenseTypeListSize; i++) {
