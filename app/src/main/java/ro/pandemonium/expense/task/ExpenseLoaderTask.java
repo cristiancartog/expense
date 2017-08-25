@@ -23,11 +23,6 @@ public class ExpenseLoaderTask extends AsyncTask<MonthWrapper, Void, List<Expens
     }
 
     @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
-
-    @Override
     protected List<Expense> doInBackground(final MonthWrapper... wrappers) {
         MonthWrapper monthWrapper = wrappers[0];
         return expenseDao.fetchExpenses(monthWrapper.getYear(), monthWrapper.getMonth());

@@ -37,6 +37,7 @@ import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportParams;
 import ro.pandemonium.expense.model.YearlyReportResult;
@@ -120,8 +121,10 @@ public class YearComparisonChartActivity extends AppCompatActivity
         resources = getResources();
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        earliestYear = year(new Date(expenseDao.getEarliestEntry().getTime()));
-        latestYear = year(new Date(expenseDao.getLatestEntry().getTime()));
+        Expense earliestExpense = expenseDao.getEarliestEntry();
+        Expense latestExpense = expenseDao.getLatestEntry();
+        earliestYear = year(new Date(earliestExpense != null ? earliestExpense.getTime() : System.currentTimeMillis()));
+        latestYear = year(new Date(latestExpense != null ? latestExpense.getTime() : System.currentTimeMillis()));
 
         Legend legend = barChart.getLegend();
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);

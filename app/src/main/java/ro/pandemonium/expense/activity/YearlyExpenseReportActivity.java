@@ -123,8 +123,10 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
             tableLayout.addView(tableRow, index++);
         }
 
-        earliestEntryDate = new Date(expenseDao.getEarliestEntry().getTime());
-        latestEntryDate = new Date(expenseDao.getLatestEntry().getTime());
+        Expense earliestExpense = expenseDao.getEarliestEntry();
+        Expense latestExpense = expenseDao.getLatestEntry();
+        earliestEntryDate = new Date(earliestExpense != null ? earliestExpense.getTime() : System.currentTimeMillis());
+        latestEntryDate = new Date(latestExpense != null ? latestExpense.getTime() : System.currentTimeMillis());
         earliestEntryYear = year(earliestEntryDate);
         latestEntryYear = year(latestEntryDate);
         useYearToDate = latestEntryYear == year;
@@ -179,8 +181,8 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
     }
 
     private void updateYearButtonsEnabledState() {
-        previousYearButton.setEnabled((year - 1) != earliestEntryYear);
-        nextYearButton.setEnabled(year != latestEntryYear);
+        previousYearButton.setEnabled((year - 1) > earliestEntryYear);
+        nextYearButton.setEnabled(year < latestEntryYear);
     }
 
     private void recomputeReport() {

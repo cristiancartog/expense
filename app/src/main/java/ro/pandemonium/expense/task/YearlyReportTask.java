@@ -28,11 +28,6 @@ public class YearlyReportTask extends AsyncTask<YearlyReportParams, Void, Yearly
     }
 
     @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
-
-    @Override
     protected YearlyReportResult doInBackground(final YearlyReportParams... params) {
         YearlyReportParams yearlyReportParams = params[0];
 
