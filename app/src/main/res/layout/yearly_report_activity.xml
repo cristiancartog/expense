@@ -44,27 +44,27 @@
             <TextView
                 android:layout_column="0"
                 android:gravity="start"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportExpenseTypePerYear" />
 
             <TextView
                 android:id="@+id/yearlyReportLastYearLabel"
                 android:layout_column="1"
                 android:gravity="end"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportLastYear" />
 
             <TextView
                 android:id="@+id/yearlyReportCurrentYearLabel"
                 android:layout_column="2"
                 android:gravity="end"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportCurrentYear" />
 
             <TextView
                 android:layout_column="3"
                 android:gravity="end"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportVariation" />
         </TableRow>
 
@@ -83,22 +83,22 @@
             android:paddingBottom="5dp">
 
             <TextView
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportWithSpecial" />
 
             <TextView
                 android:id="@+id/yearlyReportLastYearWithSpecial"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
 
             <TextView
                 android:id="@+id/yearlyReportCurrentYearWithSpecial"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
 
             <TextView
                 android:id="@+id/yearlyReportWithSpecialVariation"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
         </TableRow>
 
@@ -108,22 +108,22 @@
 
             <TextView
                 android:layout_column="0"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:text="@string/yearlyReportWithoutSpecial" />
 
             <TextView
                 android:id="@+id/yearlyReportLastYearWithoutSpecial"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
 
             <TextView
                 android:id="@+id/yearlyReportCurrentYearWithoutSpecial"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
 
             <TextView
                 android:id="@+id/yearlyReportWithoutSpecialVariation"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:gravity="end" />
         </TableRow>
 

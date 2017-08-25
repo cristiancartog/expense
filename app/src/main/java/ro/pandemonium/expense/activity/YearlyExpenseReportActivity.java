@@ -1,8 +1,8 @@
 package ro.pandemonium.expense.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -32,10 +32,10 @@ import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 import static ro.pandemonium.expense.util.DateUtil.addYears;
 import static ro.pandemonium.expense.util.DateUtil.endOfYear;
-import static ro.pandemonium.expense.util.DateUtil.year;
 import static ro.pandemonium.expense.util.DateUtil.startOfYear;
+import static ro.pandemonium.expense.util.DateUtil.year;
 
-public class YearlyExpenseReportActivity extends Activity implements View.OnClickListener {
+public class YearlyExpenseReportActivity extends AppCompatActivity implements View.OnClickListener {
 
     private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
     private final NumberFormat percentFormatter = new DecimalFormat(PERCENT_FORMAT_PATTERN);
@@ -70,7 +70,7 @@ public class YearlyExpenseReportActivity extends Activity implements View.OnClic
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.yearly_report_activity);
+        setContentView(R.layout.yearly_report_appbar);
 
         currentYearText = (TextView) findViewById(R.id.yearlyReportCurrentYearText);
         currentYearLabel = (TextView) findViewById(R.id.yearlyReportCurrentYearLabel);

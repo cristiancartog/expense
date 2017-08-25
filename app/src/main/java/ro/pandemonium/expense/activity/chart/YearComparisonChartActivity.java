@@ -1,9 +1,9 @@
 package ro.pandemonium.expense.activity.chart;
 
-import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -49,7 +49,7 @@ import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.util.DateUtil.year;
 
-public class YearComparisonChartActivity extends Activity
+public class YearComparisonChartActivity extends AppCompatActivity
         implements View.OnClickListener, Switch.OnCheckedChangeListener {
 
     private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
@@ -99,7 +99,7 @@ public class YearComparisonChartActivity extends Activity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.year_comparison_chart_activity);
+        setContentView(R.layout.year_comparison_chart_appbar);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
         year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));

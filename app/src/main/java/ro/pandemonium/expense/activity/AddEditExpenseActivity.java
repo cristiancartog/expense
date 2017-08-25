@@ -1,13 +1,26 @@
 package ro.pandemonium.expense.activity;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
@@ -15,15 +28,10 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
 
 
-public class AddEditExpenseActivity extends Activity
+public class AddEditExpenseActivity extends AppCompatActivity
         implements View.OnClickListener, TextWatcher, DatePickerDialog.OnDateSetListener {
 
     public static final int ADD_EXPENSE_ACTIVITY_ID = 2;
@@ -45,7 +53,7 @@ public class AddEditExpenseActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.add_edit_expense);
+        setContentView(R.layout.add_edit_expense_appbar);
 
         valueField = (EditText) findViewById(R.id.addExpenseValue);
         dateButton = (Button) findViewById(R.id.addExpenseDate);
@@ -71,6 +79,8 @@ public class AddEditExpenseActivity extends Activity
 
     private void setExpense(final Expense expense) {
         if (expense != null) {
+            ((Toolbar) findViewById(R.id.addEditExpenseToolbar)).setTitle(R.string.addEditExpenseEditTitle);
+
             final int position = expenseTypeSpinnerAdapter.getPosition(expense.getExpenseType());
             if (position < 0) {
                 Toast.makeText(this, "Expense type not valid", Toast.LENGTH_LONG).show();
