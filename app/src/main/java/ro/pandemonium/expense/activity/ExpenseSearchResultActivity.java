@@ -74,6 +74,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
             case R.id.expenseSearchResultFiltersButton:
                 showFiltersDialog();
                 break;
+            default:
+                break;
         }
     }
 
@@ -96,6 +98,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         switch (view.getId()) {
             case R.id.expenseSearchResultFiltersButton:
                 clearFilters();
+                break;
+            default:
                 break;
         }
         return true;

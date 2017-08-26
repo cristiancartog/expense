@@ -177,6 +177,8 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
                 }
 
                 break;
+            default:
+                break;
         }
     }
 

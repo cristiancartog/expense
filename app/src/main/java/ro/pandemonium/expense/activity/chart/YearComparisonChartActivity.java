@@ -311,6 +311,8 @@ public class YearComparisonChartActivity extends AppCompatActivity
                     updateDataAsync();
                 }
                 break;
+            default:
+                break;
         }
     }
 }

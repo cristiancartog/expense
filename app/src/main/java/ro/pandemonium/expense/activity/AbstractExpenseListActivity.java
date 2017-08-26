@@ -151,6 +151,8 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 break;
+            default:
+                break;
         }
 
         return true;

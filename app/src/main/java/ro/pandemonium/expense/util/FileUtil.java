@@ -5,9 +5,11 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,15 +40,15 @@ public class FileUtil {
         }
 
         final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-        final FileWriter fileWriter = new FileWriter(exportFile);
+        try (OutputStreamWriter fileWriter = new OutputStreamWriter(new FileOutputStream(exportFile), "UTF-8")) {
+            for (Expense expense : expenses) {
+                fileWriter.write(expense.toCsv(csvDateFormat));
+                fileWriter.write("\n");
+            }
 
-        for (Expense expense : expenses) {
-            fileWriter.write(expense.toCsv(csvDateFormat));
-            fileWriter.write("\n");
+            fileWriter.flush();
+            fileWriter.close();
         }
-
-        fileWriter.flush()  ;
-        fileWriter.close();
     }
 
     public static List<Expense> importExpenses(String fileName) throws IOException {
@@ -55,7 +57,7 @@ public class FileUtil {
         try {
             final String filePath = getStorageFolder().getAbsolutePath() + File.separator + fileName;
 
-            try (final BufferedReader in = new BufferedReader(new FileReader(filePath))) {
+            try (final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) {
                 final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
                 String line;
 

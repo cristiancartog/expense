@@ -18,26 +18,26 @@ public class DateUtil {
         return monthOfYear(new Date());
     }
 
-    public static int year(final Date date) {
+    public static synchronized int year(final Date date) {
         calendar.setTime(date);
 
         return calendar.get(Calendar.YEAR);
     }
 
-    public static int monthOfYear(final Date date) {
+    public static synchronized int monthOfYear(final Date date) {
         calendar.setTime(date);
 
         return calendar.get(Calendar.MONTH);
     }
 
-    public static Date startOfYear(final int year) {
+    public static synchronized Date startOfYear(final int year) {
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.DAY_OF_YEAR, 1);
 
         return calendar.getTime();
     }
 
-    public static Date endOfYear(final int year) {
+    public static synchronized Date endOfYear(final int year) {
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, 11);
         calendar.set(Calendar.DAY_OF_MONTH, 31);
@@ -45,7 +45,7 @@ public class DateUtil {
         return calendar.getTime();
     }
 
-    public static Date addYears(final Date date, final int years) {
+    public static synchronized Date addYears(final Date date, final int years) {
         calendar.setTime(date);
         calendar.add(Calendar.YEAR, years);
 

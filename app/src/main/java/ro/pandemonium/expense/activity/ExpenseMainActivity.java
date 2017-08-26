@@ -173,6 +173,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
                 repopulateExpenseList(year, month);
                 break;
+            default:
+                break;
         }
     }
 
@@ -181,6 +183,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         switch (view.getId()) {
             case R.id.expenseListFiltersButton:
                 clearFilters();
+                break;
+            default:
                 break;
         }
         return true;
@@ -222,6 +226,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 break;
             case R.id.navigation_database_restore:
                 dbRestoreRequested();
+                break;
+            default:
                 break;
         }
         return true;
@@ -297,6 +303,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 break;
             case ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID:
                 processSearchResultActivityResult(resultCode, data);
+                break;
+            default:
                 break;
         }
     }

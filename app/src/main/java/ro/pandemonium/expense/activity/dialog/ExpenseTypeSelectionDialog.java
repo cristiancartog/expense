@@ -152,6 +152,8 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
             case R.id.expenseTypeSelectionDialogCancelButton:
                 hide();
                 break;
+            default:
+                break;
         }
     }
 
