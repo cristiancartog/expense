@@ -273,7 +273,7 @@ public class ExpenseDao implements Serializable {
         }
     }
 
-    public void closeDatabase() {
-        database.close();
-    }
+//    public void closeDatabase() {
+//        database.close();
+//    }
 }

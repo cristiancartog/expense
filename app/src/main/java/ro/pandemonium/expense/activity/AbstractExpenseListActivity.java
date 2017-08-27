@@ -85,11 +85,11 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 });
     }
 
-    void sortExpenses(int order) {
+    private void sortExpenses(int order) {
         expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(order));
     }
 
-    protected void filtersUpdated() {
+    void filtersUpdated() {
     }
 
     void addEditExpense(int position) {
@@ -118,7 +118,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             final double filteredTotal = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(false));
             final double percentage = total > 0 ? (filteredTotal / total * 100) : 0;
 
-            final String filteredFormattedTotal = getResources().getString(R.string.expenseListActivityFilteredTotalLabel,
+            final String filteredFormattedTotal = getResources().getString(R.string.abstractExpenseListActivityFilteredTotalLabel,
                     numberFormatter.format(filteredTotal), numberFormatter.format(percentage), formattedTotal);
             totalTextView.setText(filteredFormattedTotal);
         } else {

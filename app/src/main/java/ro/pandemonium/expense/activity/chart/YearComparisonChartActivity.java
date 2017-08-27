@@ -81,9 +81,9 @@ public class YearComparisonChartActivity extends AppCompatActivity
     private int latestYear;
     private ExpenseType expenseType;
 
-    private Map<String, TextView> monthToLastYearValue = new HashMap<>();
-    private Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
-    private Map<String, TextView> monthToVariationLabel = new HashMap<>();
+    private final Map<String, TextView> monthToLastYearValue = new HashMap<>();
+    private final Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
+    private final Map<String, TextView> monthToVariationLabel = new HashMap<>();
 
     private BarChart barChart;
     private TableLayout report;
@@ -212,9 +212,9 @@ public class YearComparisonChartActivity extends AppCompatActivity
         Map<String, Double> currentYearData = yearlyReportResult.getCurrentYearData();
         Map<String, Double> lastYearData = yearlyReportResult.getLastYearData();
 
-        currentYearLabel.setText(year + "");
-        currentYearReportLabel.setText(year + "");
-        lastYearReportLabel.setText((year - 1) + "");
+        currentYearLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year));
+        currentYearReportLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year));
+        lastYearReportLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year - 1));
         currentYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalCurrentYear()));
         lastYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalLastYear()));
 

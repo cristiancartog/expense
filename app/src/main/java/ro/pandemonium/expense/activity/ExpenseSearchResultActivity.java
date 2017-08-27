@@ -2,6 +2,7 @@ package ro.pandemonium.expense.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -46,7 +47,10 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         expenseList = (ListView) findViewById(R.id.expansesSearchResultListView);
         expenseList.setAdapter(expenseListAdapter);

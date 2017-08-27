@@ -24,6 +24,7 @@ import ro.pandemonium.expense.activity.chart.YearComparisonChartActivity;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.util.DateUtil;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
@@ -62,9 +63,9 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
     private boolean useYearToDate;
     private boolean useYearFromDate;
 
-    private Map<ExpenseType, TextView> currentYearSumTexts = new HashMap<>();
-    private Map<ExpenseType, TextView> lastYearSumTexts = new HashMap<>();
-    private Map<ExpenseType, TextView> variationTexts = new HashMap<>();
+    private final Map<ExpenseType, TextView> currentYearSumTexts = new HashMap<>();
+    private final Map<ExpenseType, TextView> lastYearSumTexts = new HashMap<>();
+    private final Map<ExpenseType, TextView> variationTexts = new HashMap<>();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -90,7 +91,7 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        year = getIntent().getExtras().getInt(INTENT_YEAR);
+        year = getIntent().getExtras().getInt(INTENT_YEAR, DateUtil.currentYear());
 
         TableLayout tableLayout = (TableLayout) findViewById(R.id.yearlyReportByExpenseTypeLayout);
 
@@ -196,8 +197,8 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
         }
         currentYearText.setText(yearText);
 
-        currentYearLabel.setText(year + "");
-        lastYearLabel.setText((year - 1) + "");
+        currentYearLabel.setText(getResources().getString(R.string.yearlyReposrYearPlaceholder, year));
+        lastYearLabel.setText(getResources().getString(R.string.yearlyReposrYearPlaceholder, year - 1));
 
         Date currentYearExpensesStartDate = useYearFromDate ? addYears(earliestEntryDate, 1) : startOfYear(year);
         Date currentYearExpensesEndDate = useYearToDate ? latestEntryDate : endOfYear(year);

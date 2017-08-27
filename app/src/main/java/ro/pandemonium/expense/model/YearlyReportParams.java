@@ -2,8 +2,8 @@ package ro.pandemonium.expense.model;
 
 public class YearlyReportParams {
 
-    private ExpenseType expenseType;
-    private int year;
+    private final ExpenseType expenseType;
+    private final int year;
 
     public YearlyReportParams(final ExpenseType expenseType, final int year) {
         this.expenseType = expenseType;
