@@ -91,7 +91,7 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        year = getIntent().getExtras().getInt(INTENT_YEAR, DateUtil.currentYear());
+        year = getIntent().getIntExtra(INTENT_YEAR, DateUtil.currentYear());
 
         TableLayout tableLayout = (TableLayout) findViewById(R.id.yearlyReportByExpenseTypeLayout);
 
