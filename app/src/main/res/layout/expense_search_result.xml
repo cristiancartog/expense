@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:background="@null"
         android:onClick="onClick"
+        android:contentDescription="@string/expenseSearchResultFilterButton"
         android:src="@mipmap/ic_filter" />
 
     <ListView
@@ -29,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:text="@string/expenseListActivityTotalLabel"
+            android:text="@string/abstractExpenseListActivityTotalLabel"
             android:textSize="9pt" />
 
         <TextView
@@ -38,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:gravity="end"
-            android:text="@string/expenseListActivityZero"
+            android:text="@string/abstractExpenseListActivityZero"
             android:textSize="9pt" />
     </LinearLayout>
 </LinearLayout>

@@ -3,6 +3,7 @@ package ro.pandemonium.expense.activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.SparseArray;
@@ -50,12 +51,9 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
-        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator(true));
-        mapSortingMenuItemToComparator.append(2, new ExpenseDateComparator(false));
-        mapSortingMenuItemToComparator.append(3, new ExpenseTypeComparator(true));
-        mapSortingMenuItemToComparator.append(4, new ExpenseTypeComparator(false));
-        mapSortingMenuItemToComparator.append(5, new ExpenseValueComparator(true));
-        mapSortingMenuItemToComparator.append(6, new ExpenseValueComparator(false));
+        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator());
+        mapSortingMenuItemToComparator.append(2, new ExpenseTypeComparator());
+        mapSortingMenuItemToComparator.append(3, new ExpenseValueComparator());
     }
 
     abstract int layoutId();
@@ -83,11 +81,15 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                     expenseListAdapter.filterBy(filters);
                     filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filtered));
                     updateTotal();
+                    filtersUpdated();
                 });
     }
 
-    void sortExpenses(int order) {
+    private void sortExpenses(int order) {
         expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(order));
+    }
+
+    void filtersUpdated() {
     }
 
     void addEditExpense(int position) {
@@ -105,6 +107,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filter));
         }
         updateTotal();
+        filtersUpdated();
     }
 
     void updateTotal() {
@@ -115,7 +118,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             final double filteredTotal = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(false));
             final double percentage = total > 0 ? (filteredTotal / total * 100) : 0;
 
-            final String filteredFormattedTotal = getResources().getString(R.string.expenseListActivityFilteredTotalLabel,
+            final String filteredFormattedTotal = getResources().getString(R.string.abstractExpenseListActivityFilteredTotalLabel,
                     numberFormatter.format(filteredTotal), numberFormatter.format(percentage), formattedTotal);
             totalTextView.setText(filteredFormattedTotal);
         } else {
@@ -140,13 +143,15 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.main_menu_order_by_date_ascending:
-            case R.id.main_menu_order_by_date_descending:
-            case R.id.main_menu_order_by_type_ascending:
-            case R.id.main_menu_order_by_type_descending:
-            case R.id.main_menu_order_by_value_ascending:
-            case R.id.main_menu_order_by_value_descending:
+            case R.id.main_menu_order_by_date:
+            case R.id.main_menu_order_by_type:
+            case R.id.main_menu_order_by_value:
                 sortExpenses(item.getOrder());
+                break;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                break;
+            default:
                 break;
         }
 

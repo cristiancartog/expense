@@ -3,6 +3,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
+    <item android:title="@string/mainMenuCategories">
+        <menu>
+            <item
+                android:id="@+id/navigation_special_expenses"
+                android:icon="@drawable/ic_special_expenses"
+                android:title="@string/mainMenuSpecialExpenses" />
+
+            <item
+                android:id="@+id/navigation_subscription_expenses"
+                android:icon="@drawable/ic_subscription_expenses"
+                android:title="@string/mainMenuSubscriptionExpenses" />
+
+            <item
+                android:id="@+id/navigation_recurrent_expenses"
+                android:icon="@drawable/ic_recurrent_expenses"
+                android:title="@string/mainMenuRecurrentExpenses" />
+        </menu>
+    </item>
+
     <item
         android:id="@+id/navigation_search_db"
         android:icon="@drawable/ic_search_db"
@@ -10,10 +29,7 @@
 
     <item android:title="@string/mainMenuReports">
         <menu>
-            <item
-                android:id="@+id/navigation_special_expenses"
-                android:icon="@drawable/ic_special_expenses"
-                android:title="@string/mainMenuSpecialExpenses" />
+
             <item
                 android:id="@+id/navigation_yearly_report"
                 android:icon="@drawable/ic_yearly_report"

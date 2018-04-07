@@ -1,5 +1,6 @@
 package ro.pandemonium.expense.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +68,30 @@ public enum ExpenseType {
         List<ExpenseType> expenseTypes = Arrays.asList(ExpenseType.values());
 
         Collections.sort(expenseTypes, new ExpenseTypeOrderComparator());
+
+        return expenseTypes;
+    }
+
+    public static List<ExpenseType> subscriptionExpenses() {
+        ArrayList<ExpenseType> expenseTypes = new ArrayList<>();
+
+        for (ExpenseType expenseType : ExpenseType.values()) {
+            if (expenseType.getMaxOccurrences() == 1) {
+                expenseTypes.add(expenseType);
+            }
+        }
+
+        return expenseTypes;
+    }
+
+    public static List<ExpenseType> recurrentExpenses() {
+        ArrayList<ExpenseType> expenseTypes = new ArrayList<>();
+
+        for (ExpenseType expenseType : ExpenseType.values()) {
+            if (expenseType.getMaxOccurrences() > 1 && expenseType != SPECIAL) {
+                expenseTypes.add(expenseType);
+            }
+        }
 
         return expenseTypes;
     }

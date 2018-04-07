@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class DateUtil {
 
-    private static Calendar calendar = Calendar.getInstance();
+    private static final Calendar CALENDAR = Calendar.getInstance();
 
     private DateUtil() {
     }
@@ -14,42 +14,42 @@ public class DateUtil {
         return year(new Date());
     }
 
-    public static int currentMonth() {
-        return monthOfYear(new Date());
+//    public static int currentMonth() {
+//        return monthOfYear(new Date());
+//    }
+
+    public static synchronized int year(final Date date) {
+        CALENDAR.setTime(date);
+
+        return CALENDAR.get(Calendar.YEAR);
     }
 
-    public static int year(final Date date) {
-        calendar.setTime(date);
+//    private static synchronized int monthOfYear(final Date date) {
+//        CALENDAR.setTime(date);
+//
+//        return CALENDAR.get(Calendar.MONTH);
+//    }
 
-        return calendar.get(Calendar.YEAR);
+    public static synchronized Date startOfYear(final int year) {
+        CALENDAR.set(Calendar.YEAR, year);
+        CALENDAR.set(Calendar.DAY_OF_YEAR, 1);
+
+        return CALENDAR.getTime();
     }
 
-    public static int monthOfYear(final Date date) {
-        calendar.setTime(date);
+    public static synchronized Date endOfYear(final int year) {
+        CALENDAR.set(Calendar.YEAR, year);
+        CALENDAR.set(Calendar.MONTH, 11);
+        CALENDAR.set(Calendar.DAY_OF_MONTH, 31);
 
-        return calendar.get(Calendar.MONTH);
+        return CALENDAR.getTime();
     }
 
-    public static Date startOfYear(final int year) {
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.DAY_OF_YEAR, 1);
+    public static synchronized Date addYears(final Date date, final int years) {
+        CALENDAR.setTime(date);
+        CALENDAR.add(Calendar.YEAR, years);
 
-        return calendar.getTime();
-    }
-
-    public static Date endOfYear(final int year) {
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, 11);
-        calendar.set(Calendar.DAY_OF_MONTH, 31);
-
-        return calendar.getTime();
-    }
-
-    public static Date addYears(final Date date, final int years) {
-        calendar.setTime(date);
-        calendar.add(Calendar.YEAR, years);
-
-        return calendar.getTime();
+        return CALENDAR.getTime();
     }
 
 }

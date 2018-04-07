@@ -3,7 +3,6 @@
     <string name="app_name">Expense</string>
 
     <!-- dummy strings -->
-    <string name="checkbox">Checkbox</string>
 
     <!-- expense types -->
     <string name="OTHER">Other</string>
@@ -19,26 +18,33 @@
     <string name="CAR">Car maintenance</string>
     <string name="SPECIAL">Special</string>
 
+    <!-- abstract expense list activity -->
+    <string name="abstractExpenseListActivityTotalLabel">Total:</string>
+    <string name="abstractExpenseListActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
+    <string name="abstractExpenseListActivityZero">0.00</string>
+
     <!-- expense list activity -->
     <string name="expenseListActivityTitle">Monthly Expenses</string>
-    <string name="expenseListActivityTotalLabel">Total:</string>
-    <string name="expenseListActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
-    <string name="expenseListActivityZero">0.00</string>
-    <string name="expenseListActivityAddExpenseButton">Add expense</string>
     <string name="expenseListActivityChangeMonth">Change month</string>
     <string name="expenseListActivityExportSuccessful">Export successful</string>
     <string name="expenseListSwitchList">List</string>
     <string name="expenseListSwitchChart">Chart</string>
+    <string name="expenseListPreviousMonthButton">previous month</string>
+    <string name="expenseListNextMonthButton">next month</string>
+
+    <!-- expense search result-->
+    <string name="expenseSearchResultTitle">Expenses</string>
+    <string name="expenseSearchResultFilterButton">filter button</string>
 
     <!-- yearly report activity -->
     <string name="yearlyReportTitle">Yearly Report</string>
-    <string name="yearlyReportYear">Year</string>
     <string name="yearlyReportExpenseTypePerYear">Expense \\ Year</string>
     <string name="yearlyReportCurrentYear">Current Year</string>
     <string name="yearlyReportLastYear">Last Year</string>
     <string name="yearlyReportVariation">Variation</string>
     <string name="yearlyReportWithSpecial">With Special</string>
     <string name="yearlyReportWithoutSpecial">Without Special</string>
+    <string name="yearlyReposrYearPlaceholder">%1$d</string>
 
     <!-- year comparison activity -->
     <string name="yearComparisonTitle">Comparison</string>
@@ -49,25 +55,16 @@
     <string name="yearComparisonLastYear">Last Year</string>
     <string name="yearComparisonVariation">Variation</string>
     <string name="yearComparisonTotal">Total</string>
+    <string name="yearComparisonYearPlaceholder">%1$d</string>
 
-    <!-- expense search result-->
-    <string name="expenseSearchResultTitle">Expenses</string>
-    <string name="expenseSearchResultActivityTotalLabel">Total:</string>
-    <string name="expenseSearchResultActivityFilteredTotalLabel">%1$s (%2$s%%) of %3$s</string>
-    <string name="expenseSearchResultActivityZero">0.00</string>
-    <string name="expenseSearchResultActivityFilterButton">"Filter.."</string>
-
-    <!-- special expenses-->
-    <string name="specialExpensesTitle">Special expenses</string>
-    <string name="specialExpensesActivityAddExpenseButton">Add expense</string>
-    <string name="specialExpensesActivityTotalLabel">Total:</string>
-    <string name="specialExpensesActivityZero">0.00</string>
+    <!-- -->
+    <string name="expenseHistoryTitle">Expense History</string>
 
     <!-- add/edit expense activity -->
-    <string name="addEditExpenseTitle">Expense</string>
+    <string name="addEditExpenseAddTitle">Add Expense</string>
+    <string name="addEditExpenseEditTitle">Edit Expense</string>
     <string name="addEditExpenseActivityExpenseTypeLabel">Expense:</string>
     <string name="addEditExpenseActivityValueLabel">Value:</string>
-    <string name="addEditExpenseActivityDateLabel">Date:</string>
     <string name="addEditExpenseActivityCommentLabel">Comment:</string>
     <string name="addEditExpenseActivitySaveButton">Save</string>
 
@@ -94,24 +91,23 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <!-- main menu -->
-    <string name="mainMenuReports">Reports</string>
-    <string name="mainMenuSearchDatabase">Search database</string>
+    <!-- drawer menu -->
+    <string name="mainMenuCategories">Categories</string>
     <string name="mainMenuSpecialExpenses">Special expenses</string>
+    <string name="mainMenuSubscriptionExpenses">Subscription expenses</string>
+    <string name="mainMenuRecurrentExpenses">Recurrent expenses</string>
+    <string name="mainMenuSearchDatabase">Search database</string>
+    <string name="mainMenuReports">Reports</string>
     <string name="mainMenuYearlyReport">Yearly report</string>
     <string name="mainMenuChartExpenseHistory">History by type</string>
-    <string name="mainMenuChartYearlyComparison">Yearly comparison</string>
-    <string name="mainMenuOrderBy">Order by..</string>
-    <string name="mainMenuOrderByDateAscending">by date ascending</string>
-    <string name="mainMenuOrderByDateDescending">by date descending</string>
-    <string name="mainMenuOrderByValueAscending">by value ascending</string>
-    <string name="mainMenuOrderByValueDescending">by value descending</string>
-    <string name="mainMenuOrderByTypeAscending">by type ascending</string>
-    <string name="mainMenuOrderByTypeDescending">by type descending</string>
-    <string name="mainMenuChart">Chart..</string>
     <string name="mainMenuDatabase">Database</string>
     <string name="mainMenuDatabaseImport">Restore</string>
     <string name="mainMenuDatabaseExport">Dump</string>
+
+    <!-- sorting menu -->
+    <string name="mainMenuOrderByDate">Sort by date</string>
+    <string name="mainMenuOrderByValue">Sort by value</string>
+    <string name="mainMenuOrderByType">Sort by type</string>
 
     <!-- import/export db -->
     <string name="importExportDialogRestoreButton">Restore</string>

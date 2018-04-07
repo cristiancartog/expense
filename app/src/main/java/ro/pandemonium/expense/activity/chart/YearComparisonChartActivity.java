@@ -1,9 +1,9 @@
 package ro.pandemonium.expense.activity.chart;
 
-import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -37,6 +37,7 @@ import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportParams;
 import ro.pandemonium.expense.model.YearlyReportResult;
@@ -49,7 +50,7 @@ import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.util.DateUtil.year;
 
-public class YearComparisonChartActivity extends Activity
+public class YearComparisonChartActivity extends AppCompatActivity
         implements View.OnClickListener, Switch.OnCheckedChangeListener {
 
     private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
@@ -80,9 +81,9 @@ public class YearComparisonChartActivity extends Activity
     private int latestYear;
     private ExpenseType expenseType;
 
-    private Map<String, TextView> monthToLastYearValue = new HashMap<>();
-    private Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
-    private Map<String, TextView> monthToVariationLabel = new HashMap<>();
+    private final Map<String, TextView> monthToLastYearValue = new HashMap<>();
+    private final Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
+    private final Map<String, TextView> monthToVariationLabel = new HashMap<>();
 
     private BarChart barChart;
     private TableLayout report;
@@ -99,7 +100,7 @@ public class YearComparisonChartActivity extends Activity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.year_comparison_chart_activity);
+        setContentView(R.layout.year_comparison_chart_appbar);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
         year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));
@@ -120,8 +121,10 @@ public class YearComparisonChartActivity extends Activity
         resources = getResources();
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
-        earliestYear = year(new Date(expenseDao.getEarliestEntry().getTime()));
-        latestYear = year(new Date(expenseDao.getLatestEntry().getTime()));
+        Expense earliestExpense = expenseDao.getEarliestEntry();
+        Expense latestExpense = expenseDao.getLatestEntry();
+        earliestYear = year(new Date(earliestExpense != null ? earliestExpense.getTime() : System.currentTimeMillis()));
+        latestYear = year(new Date(latestExpense != null ? latestExpense.getTime() : System.currentTimeMillis()));
 
         Legend legend = barChart.getLegend();
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
@@ -209,9 +212,9 @@ public class YearComparisonChartActivity extends Activity
         Map<String, Double> currentYearData = yearlyReportResult.getCurrentYearData();
         Map<String, Double> lastYearData = yearlyReportResult.getLastYearData();
 
-        currentYearLabel.setText(year + "");
-        currentYearReportLabel.setText(year + "");
-        lastYearReportLabel.setText((year - 1) + "");
+        currentYearLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year));
+        currentYearReportLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year));
+        lastYearReportLabel.setText(getResources().getString(R.string.yearComparisonYearPlaceholder, year - 1));
         currentYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalCurrentYear()));
         lastYearTotalLabel.setText(NUMBER_FORMAT.format(yearlyReportResult.getTotalLastYear()));
 
@@ -307,6 +310,8 @@ public class YearComparisonChartActivity extends Activity
                     year--;
                     updateDataAsync();
                 }
+                break;
+            default:
                 break;
         }
     }

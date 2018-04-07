@@ -2,9 +2,9 @@ package ro.pandemonium.expense.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
@@ -47,6 +47,11 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
         expenseList = (ListView) findViewById(R.id.expansesSearchResultListView);
         expenseList.setAdapter(expenseListAdapter);
         expenseList.setOnItemClickListener(this);
@@ -73,6 +78,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
             case R.id.expenseSearchResultFiltersButton:
                 showFiltersDialog();
                 break;
+            default:
+                break;
         }
     }
 
@@ -95,6 +102,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         switch (view.getId()) {
             case R.id.expenseSearchResultFiltersButton:
                 clearFilters();
+                break;
+            default:
                 break;
         }
         return true;

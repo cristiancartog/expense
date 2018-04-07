@@ -173,6 +173,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
                 repopulateExpenseList(year, month);
                 break;
+            default:
+                break;
         }
     }
 
@@ -181,6 +183,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         switch (view.getId()) {
             case R.id.expenseListFiltersButton:
                 clearFilters();
+                break;
+            default:
                 break;
         }
         return true;
@@ -200,7 +204,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 dbSearchRequested();
                 break;
             case R.id.navigation_special_expenses:
-                startActivity(new Intent(ExpenseMainActivity.this, SpecialExpensesActivity.class));
+                specialExpensesRequested();
+                break;
+            case R.id.navigation_subscription_expenses:
+                subscriptionExpensesRequested();
+                break;
+            case R.id.navigation_recurrent_expenses:
+                recurrentExpensesRequested();
                 break;
             case R.id.navigation_yearly_report:
                 Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
@@ -217,6 +227,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             case R.id.navigation_database_restore:
                 dbRestoreRequested();
                 break;
+            default:
+                break;
         }
         return true;
     }
@@ -231,6 +243,24 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                     searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
                     startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
                 });
+    }
+
+    private void specialExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
+        startActivity(intent);
+    }
+
+    private void subscriptionExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.subscriptionExpenses(), Collections.emptySet()));
+        startActivity(intent);
+    }
+
+    private void recurrentExpensesRequested() {
+        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.recurrentExpenses(), Collections.emptySet()));
+        startActivity(intent);
     }
 
     private void expenseHistoryRequested() {
@@ -273,6 +303,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 break;
             case ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID:
                 processSearchResultActivityResult(resultCode, data);
+                break;
+            default:
                 break;
         }
     }
@@ -350,6 +382,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
             updatePieData();
         }).execute(new MonthWrapper(year, monthOfYear));
+    }
+
+    @Override
+    protected void filtersUpdated() {
+        updatePieData();
     }
 
     private void updatePieData() {

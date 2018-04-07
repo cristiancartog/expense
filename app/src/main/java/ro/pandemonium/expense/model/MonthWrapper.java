@@ -2,8 +2,8 @@ package ro.pandemonium.expense.model;
 
 public class MonthWrapper {
 
-    private int year;
-    private int month;
+    private final int year;
+    private final int month;
 
     public MonthWrapper(final int year, final int month) {
         this.year = year;

@@ -10,6 +10,7 @@
         android:allowBackup="true"
         android:theme="@style/AppTheme"
         android:icon="@mipmap/ic_launcher"
+        android:supportsRtl="false"
         android:label="@string/app_name">
         <!-- activities -->
         <activity
@@ -19,8 +20,8 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
-
             </intent-filter>
         </activity>
         <activity
@@ -28,10 +29,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.ExpenseSearchResultActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".activity.SpecialExpensesActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".activity.ExpenseMainActivity"/>
         <activity
             android:name=".activity.YearlyExpenseReportActivity"
             android:screenOrientation="portrait" />

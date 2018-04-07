@@ -16,6 +16,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -90,14 +91,6 @@ public class ExpenseDao implements Serializable {
         return extractExpenses(cursor);
     }
 
-    public List<Expense> fetchSpecialExpenses() {
-        final String query = FETCH_EXPENSES_QUERY_BASE
-                + " WHERE EXPENSE_TYPE = " + ExpenseType.SPECIAL.getDbId()
-                + " ORDER BY DATE DESC";
-
-        return queryForExpenses(query);
-    }
-
     private String createFetchExpensesQueryString(final Filters filters) {
         return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments());
     }
@@ -116,9 +109,7 @@ public class ExpenseDao implements Serializable {
 
     private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
         final StringBuilder sb = new StringBuilder(" WHERE ");
-        sb.append(" EXPENSE_TYPE <> ");
-        sb.append(ExpenseType.SPECIAL.getDbId());
-        sb.append(" AND EXPENSE_TYPE IN (");
+        sb.append("EXPENSE_TYPE IN (");
 
         final int expenseTypeListSize = expenseTypes.size();
         for (int i = 0; i < expenseTypeListSize; i++) {
@@ -210,12 +201,14 @@ public class ExpenseDao implements Serializable {
 
     public Expense getEarliestEntry() {
         String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1";
-        return queryForExpenses(query).iterator().next();
+        Iterator<Expense> iterator = queryForExpenses(query).iterator();
+        return iterator.hasNext() ? iterator.next() : null;
     }
 
     public Expense getLatestEntry() {
         String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1";
-        return queryForExpenses(query).iterator().next();
+        Iterator<Expense> iterator = queryForExpenses(query).iterator();
+        return iterator.hasNext() ? iterator.next() : null;
     }
 
     public List<Expense> getExpensesInInterval(final Date start, final Date end) {
@@ -280,7 +273,7 @@ public class ExpenseDao implements Serializable {
         }
     }
 
-    public void closeDatabase() {
-        database.close();
-    }
+//    public void closeDatabase() {
+//        database.close();
+//    }
 }

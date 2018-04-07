@@ -56,6 +56,8 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
             case R.id.importFileDialogCancelButton:
                 hide();
                 break;
+            default:
+                break;
         }
     }
 }

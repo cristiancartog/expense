@@ -4,10 +4,10 @@ import java.util.Map;
 
 public class YearlyReportResult {
 
-    private Map<String, Double> currentYearData;
-    private Map<String, Double> lastYearData;
-    private Double totalCurrentYear;
-    private Double totalLastYear;
+    private final Map<String, Double> currentYearData;
+    private final Map<String, Double> lastYearData;
+    private final Double totalCurrentYear;
+    private final Double totalLastYear;
 
     public YearlyReportResult(final Map<String, Double> currentYearData,
                               final Map<String, Double> lastYearData) {
