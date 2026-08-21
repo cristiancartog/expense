@@ -28,6 +28,7 @@ import ro.pandemonium.expense.model.comparator.ExpenseDateComparator;
 import ro.pandemonium.expense.model.comparator.ExpenseTypeComparator;
 import ro.pandemonium.expense.model.comparator.ExpenseValueComparator;
 import ro.pandemonium.expense.util.ExpenseUtil;
+import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
@@ -65,6 +66,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(layoutId());
+        SystemBarInsets.applyBottomInset(this);
 
         Toolbar toolbar = (Toolbar) findViewById(toolbarId());
         setSupportActionBar(toolbar);

@@ -25,6 +25,7 @@ import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.DateUtil;
+import ro.pandemonium.expense.util.SystemBarInsets;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
@@ -72,6 +73,7 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.yearly_report_appbar);
+        SystemBarInsets.applyBottomInset(this);
 
         currentYearText = (TextView) findViewById(R.id.yearlyReportCurrentYearText);
         currentYearLabel = (TextView) findViewById(R.id.yearlyReportCurrentYearLabel);

@@ -26,6 +26,7 @@ import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
 
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
@@ -54,6 +55,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_edit_expense_appbar);
+        SystemBarInsets.applyBottomInset(this);
 
         valueField = (EditText) findViewById(R.id.addExpenseValue);
         dateButton = (Button) findViewById(R.id.addExpenseDate);

@@ -43,6 +43,7 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportParams;
 import ro.pandemonium.expense.model.YearlyReportResult;
 import ro.pandemonium.expense.task.YearlyReportTask;
+import ro.pandemonium.expense.util.SystemBarInsets;
 
 import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
@@ -102,6 +103,7 @@ public class YearComparisonChartActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.year_comparison_chart_appbar);
+        SystemBarInsets.applyBottomInset(this);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
         year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));

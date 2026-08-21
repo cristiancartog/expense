@@ -26,6 +26,7 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseHistoryChartActivity extends Activity {
@@ -35,6 +36,7 @@ public class ExpenseHistoryChartActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.history_chart_appbar);
+        SystemBarInsets.applyBottomInset(this);
 
         final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 

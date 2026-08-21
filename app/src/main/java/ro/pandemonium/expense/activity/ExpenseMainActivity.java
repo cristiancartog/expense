@@ -1,19 +1,18 @@
 package ro.pandemonium.expense.activity;
 
+import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
+import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
+import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.Constants.INTENT_YEAR;
+
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import com.google.android.material.navigation.NavigationView;
-import androidx.core.graphics.Insets;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,10 +27,17 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -55,15 +61,8 @@ import ro.pandemonium.expense.model.MonthWrapper;
 import ro.pandemonium.expense.task.ExpenseLoaderTask;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
+import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
-
-import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
-import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
-import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
-import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
-import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements View.OnClickListener,
@@ -114,7 +113,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.main_navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
-        applySystemBarInsets(navigationView);
+        SystemBarInsets.applySystemBarInsets(navigationView);
 
         expenseList = (ListView) findViewById(R.id.expansesListView);
         expenseList.setAdapter(expenseListAdapter);
@@ -137,24 +136,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         month = calendar.get(Calendar.MONTH) + 1;
 
         repopulateExpenseList(year, month);
-    }
-
-    private void applySystemBarInsets(final NavigationView navigationView) {
-        final int initialPaddingLeft = navigationView.getPaddingLeft();
-        final int initialPaddingTop = navigationView.getPaddingTop();
-        final int initialPaddingRight = navigationView.getPaddingRight();
-        final int initialPaddingBottom = navigationView.getPaddingBottom();
-
-        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (view, windowInsets) -> {
-            Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(
-                    initialPaddingLeft + systemBars.left,
-                    initialPaddingTop + systemBars.top,
-                    initialPaddingRight + systemBars.right,
-                    initialPaddingBottom + systemBars.bottom);
-            return windowInsets;
-        });
-        ViewCompat.requestApplyInsets(navigationView);
     }
 
     @Override
