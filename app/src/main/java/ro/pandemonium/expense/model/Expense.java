@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.model;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -68,6 +70,7 @@ public class Expense implements Serializable {
         return id.hashCode();
     }
 
+    @NonNull
     @Override
     public String toString() {
         return id + ", " + expenseType.name() + ", " + value + ", " + date + ", " + comment;

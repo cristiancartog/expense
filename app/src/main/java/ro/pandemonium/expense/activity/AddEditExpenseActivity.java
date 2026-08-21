@@ -33,7 +33,7 @@ import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
 
 
 public class AddEditExpenseActivity extends AppCompatActivity
-        implements View.OnClickListener, TextWatcher, DatePickerDialog.OnDateSetListener {
+        implements TextWatcher, DatePickerDialog.OnDateSetListener {
 
     public static final int ADD_EXPENSE_ACTIVITY_ID = 2;
     private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat(Constants.ADD_ACTIVITY_FORMAT_PATTERN);
@@ -57,15 +57,16 @@ public class AddEditExpenseActivity extends AppCompatActivity
         setContentView(R.layout.add_edit_expense_appbar);
         SystemBarInsets.applyBottomInset(this);
 
-        valueField = (EditText) findViewById(R.id.addExpenseValue);
-        dateButton = (Button) findViewById(R.id.addExpenseDate);
-        spinner = (Spinner) findViewById(R.id.addExpenseSpinner);
-        commentField = (EditText) findViewById(R.id.addExpenseComment);
-        saveExpenseButton = (Button) findViewById(R.id.saveExpenseButton);
+        valueField = findViewById(R.id.addExpenseValue);
+        dateButton = findViewById(R.id.addExpenseDate);
+        spinner = findViewById(R.id.addExpenseSpinner);
+        commentField = findViewById(R.id.addExpenseComment);
+        saveExpenseButton = findViewById(R.id.saveExpenseButton);
 
         saveExpenseButton.setEnabled(false);
-        saveExpenseButton.setOnClickListener(this);
+        saveExpenseButton.setOnClickListener(this::saveExpense);
         valueField.addTextChangedListener(this);
+        dateButton.setOnClickListener(this::addExpenseDate);
 
         final Intent intent = getIntent();
         @SuppressWarnings("unchecked")
@@ -104,34 +105,28 @@ public class AddEditExpenseActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onClick(final View view) {
-        switch (view.getId()) {
-            case R.id.saveExpenseButton:
-                final Intent intent = getIntent();
+    private void saveExpense(final View view) {
+        final Intent intent = getIntent();
 
-                final Expense expense = new Expense();
-                expense.setId(expenseId);
-                expense.setExpenseType((ExpenseType) spinner.getSelectedItem());
-                expense.setValue(Double.parseDouble(valueField.getText().toString()));
-                expense.setDate(new Date(expenseTime));
-                expense.setComment(commentField.getText().toString());
+        final Expense expense = new Expense();
+        expense.setId(expenseId);
+        expense.setExpenseType((ExpenseType) spinner.getSelectedItem());
+        expense.setValue(Double.parseDouble(valueField.getText().toString()));
+        expense.setDate(new Date(expenseTime));
+        expense.setComment(commentField.getText().toString());
 
-                intent.putExtra(Constants.INTENT_EXPENSE, expense);
+        intent.putExtra(Constants.INTENT_EXPENSE, expense);
 
-                setResult(RESULT_OK, intent);
-                finish();
-                break;
-            case R.id.addExpenseDate:
-                calendar.setTime(new Date(expenseTime));
+        setResult(RESULT_OK, intent);
+        finish();
+    }
 
-                new DatePickerDialog(this, this,
-                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-                        .show();
-                break;
-            default:
-                break;
-        }
+    private void addExpenseDate(final View view) {
+        calendar.setTime(new Date(expenseTime));
+
+        new DatePickerDialog(this, this,
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                .show();
     }
 
     @Override
@@ -157,6 +152,6 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
     @Override
     public void afterTextChanged(final Editable editable) {
-        saveExpenseButton.setEnabled(valueField.getText().length() > 0);
+        saveExpenseButton.setEnabled(!valueField.getText().isEmpty());
     }
 }

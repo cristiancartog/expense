@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     namespace 'ro.pandemonium.expense'
-    compileSdk 35
+    compileSdk 37
     defaultConfig {
         applicationId "ro.pandemonium.expense"
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdkVersion 35
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -18,8 +18,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     productFlavors {
     }
@@ -28,9 +28,9 @@ android {
 dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
-    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.14.0'
 //    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
     testImplementation 'junit:junit:4.13.2'

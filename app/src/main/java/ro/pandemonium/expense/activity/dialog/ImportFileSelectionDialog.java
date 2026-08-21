@@ -7,7 +7,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
-import java.util.Collections;
 import java.util.List;
 
 import ro.pandemonium.expense.R;
@@ -28,9 +27,9 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
         setContentView(R.layout.import_file_selection);
         setTitle("Import file");
 
-        spinner = (Spinner) findViewById(R.id.importFileDialogSpinner);
-        final Button okButton = (Button) findViewById(R.id.importFileDialogOkButton);
-        final Button cancelButton = (Button) findViewById(R.id.importFileDialogCancelButton);
+        spinner = findViewById(R.id.importFileDialogSpinner);
+        final Button okButton = findViewById(R.id.importFileDialogOkButton);
+        final Button cancelButton = findViewById(R.id.importFileDialogCancelButton);
 
         okButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
@@ -41,7 +40,7 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
         this.callback = callback;
 
         final List<String> fileNames = FileUtil.fetchAllBackupFiles(getContext());
-        Collections.sort(fileNames, (s1, s2) -> -s1.compareTo(s2));
+        fileNames.sort((s1, s2) -> -s1.compareTo(s2));
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, fileNames));
     }

@@ -21,10 +21,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
-import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -103,33 +100,33 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer);
+        drawerLayout = findViewById(R.id.main_drawer);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.main_expense_toolbar);
+        Toolbar toolbar = findViewById(R.id.main_expense_toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.main_navigation_view);
+        NavigationView navigationView = findViewById(R.id.main_navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
         SystemBarInsets.applySystemBarInsets(navigationView);
 
-        expenseList = (ListView) findViewById(R.id.expansesListView);
+        expenseList = findViewById(R.id.expansesListView);
         expenseList.setAdapter(expenseListAdapter);
         expenseList.setOnItemClickListener(this);
 
-        totalTextView = (TextView) findViewById(R.id.expenseListTotal);
-        changeMonthButton = (Button) findViewById(R.id.expenseListChangeMonthButton);
-        filtersButton = (ImageButton) findViewById(R.id.expenseListFiltersButton);
+        totalTextView = findViewById(R.id.expenseListTotal);
+        changeMonthButton = findViewById(R.id.expenseListChangeMonthButton);
+        filtersButton = findViewById(R.id.expenseListFiltersButton);
         filtersButton.setOnLongClickListener(this);
 
-        pieChart = (PieChart) findViewById(R.id.expenseListPieChart);
+        pieChart = findViewById(R.id.expenseListPieChart);
         pieChart.setDescription(null);
         pieChart.setHoleColor(Color.TRANSPARENT);
         pieChart.highlightValues(null); // undo all highlights
 
-        Switch listChartSwitch = (Switch) findViewById(R.id.expenseListSwitchChartReportButton);
+        Switch listChartSwitch = findViewById(R.id.expenseListSwitchChartReportButton);
         listChartSwitch.setOnCheckedChangeListener(this);
 
         year = calendar.get(Calendar.YEAR);
@@ -389,7 +386,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void repopulateExpenseList(final int year, final int monthOfYear) {
         new ExpenseLoaderTask(expenseDao, expenses -> {
             clearFilters();
-            Collections.sort(expenses, mapSortingMenuItemToComparator.get(1));
+            expenses.sort(mapSortingMenuItemToComparator.get(1));
             expenseListAdapter.updateExpenseList(expenses);
             updateTotal();
             updateMonthButtonLabel();

@@ -1,17 +1,22 @@
 package ro.pandemonium.expense.activity;
 
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
+import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.core.app.NavUtils;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.util.SparseArray;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NavUtils;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -24,16 +29,9 @@ import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
-import ro.pandemonium.expense.model.comparator.ExpenseDateComparator;
-import ro.pandemonium.expense.model.comparator.ExpenseTypeComparator;
-import ro.pandemonium.expense.model.comparator.ExpenseValueComparator;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
-
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
-import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 
 public abstract class AbstractExpenseListActivity extends AppCompatActivity {
 
@@ -52,9 +50,9 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
-        mapSortingMenuItemToComparator.append(1, new ExpenseDateComparator());
-        mapSortingMenuItemToComparator.append(2, new ExpenseTypeComparator());
-        mapSortingMenuItemToComparator.append(3, new ExpenseValueComparator());
+        mapSortingMenuItemToComparator.append(1, Comparator.comparing(Expense::getTime));
+        mapSortingMenuItemToComparator.append(2, Comparator.comparing(Expense::getExpenseType));
+        mapSortingMenuItemToComparator.append(3, Comparator.comparing(Expense::getValue));
     }
 
     abstract int layoutId();
@@ -68,7 +66,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         setContentView(layoutId());
         SystemBarInsets.applyBottomInset(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(toolbarId());
+        Toolbar toolbar = findViewById(toolbarId());
         setSupportActionBar(toolbar);
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();

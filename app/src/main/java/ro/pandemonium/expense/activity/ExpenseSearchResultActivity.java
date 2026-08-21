@@ -2,18 +2,15 @@ package ro.pandemonium.expense.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.TextView;
+
+import androidx.appcompat.app.ActionBar;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import ro.pandemonium.expense.Constants;
@@ -21,10 +18,7 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
 
-public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
-        implements View.OnClickListener,
-        AdapterView.OnItemClickListener,
-        View.OnLongClickListener {
+public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
     public static final int EXPENSE_SEARCH_RESULT_ACTIVITY_ID = 3;
 
@@ -52,16 +46,17 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
             supportActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        expenseList = (ListView) findViewById(R.id.expansesSearchResultListView);
+        expenseList = findViewById(R.id.expansesSearchResultListView);
         expenseList.setAdapter(expenseListAdapter);
-        expenseList.setOnItemClickListener(this);
+        expenseList.setOnItemClickListener(this::expenseListItemClicked);
 
         final Filters filters = (Filters) getIntent().getSerializableExtra(Constants.INTENT_FILTERS);
         List<Expense> expenses = expenseDao.fetchExpenses(filters);
 
-        totalTextView = (TextView) findViewById(R.id.expenseSearchResultTotal);
-        filtersButton = (ImageButton) findViewById(R.id.expenseSearchResultFiltersButton);
-        filtersButton.setOnLongClickListener(this);
+        totalTextView = findViewById(R.id.expenseSearchResultTotal);
+        filtersButton = findViewById(R.id.expenseSearchResultFiltersButton);
+        filtersButton.setOnClickListener(this::showSearchResultsFiltersDialog);
+        filtersButton.setOnLongClickListener(this::clearDialogFilters);
 
         repopulateExpenseList(expenses);
     }
@@ -72,15 +67,13 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         return true;
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.expenseSearchResultFiltersButton:
-                showFiltersDialog();
-                break;
-            default:
-                break;
-        }
+    private void showSearchResultsFiltersDialog(final View view) {
+        showFiltersDialog();
+    }
+
+    private boolean clearDialogFilters(final View view) {
+        clearFilters();
+        return true;
     }
 
     @Override
@@ -92,21 +85,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
         super.onBackPressed();
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    private void expenseListItemClicked(AdapterView<?> parent, View view, int position, long id) {
         addEditExpense(position);
-    }
-
-    @Override
-    public boolean onLongClick(View view) {
-        switch (view.getId()) {
-            case R.id.expenseSearchResultFiltersButton:
-                clearFilters();
-                break;
-            default:
-                break;
-        }
-        return true;
     }
 
     @Override
@@ -128,7 +108,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
     }
 
     private void repopulateExpenseList(final List<Expense> expenses) {
-        Collections.sort(expenses, mapSortingMenuItemToComparator.get(1));
+        expenses.sort(mapSortingMenuItemToComparator.get(1));
         expenseListAdapter.updateExpenseList(expenses);
         updateTotal();
     }

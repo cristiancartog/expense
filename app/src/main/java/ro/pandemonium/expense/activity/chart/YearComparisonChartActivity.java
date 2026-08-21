@@ -108,15 +108,15 @@ public class YearComparisonChartActivity extends AppCompatActivity
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
         year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));
 
-        barChart = (BarChart) findViewById(R.id.yearComparisonBarChart);
-        report = (TableLayout) findViewById(R.id.yearlyComparisonListReport);
-        Switch reportSwitch = (Switch) findViewById(R.id.yearComparisonSwitchChartReportButton);
-        currentYearLabel = (TextView) findViewById(R.id.yearlyComparisonCurrentYearText);
-        TextView expenseTypeLabel = (TextView) findViewById(R.id.yearComparisonChartExpenseType);
-        lastYearReportLabel = (TextView) findViewById(R.id.yearComparisonLastYearLabel);
-        currentYearReportLabel = (TextView) findViewById(R.id.yearComparisonCurrentYearLabel);
-        lastYearTotalLabel = (TextView) findViewById(R.id.yearComparisonLastYearTotal);
-        currentYearTotalLabel = (TextView) findViewById(R.id.yearComparisonCurrentYearTotal);
+        barChart = findViewById(R.id.yearComparisonBarChart);
+        report = findViewById(R.id.yearlyComparisonListReport);
+        Switch reportSwitch = findViewById(R.id.yearComparisonSwitchChartReportButton);
+        currentYearLabel = findViewById(R.id.yearlyComparisonCurrentYearText);
+        TextView expenseTypeLabel = findViewById(R.id.yearComparisonChartExpenseType);
+        lastYearReportLabel = findViewById(R.id.yearComparisonLastYearLabel);
+        currentYearReportLabel = findViewById(R.id.yearComparisonCurrentYearLabel);
+        lastYearTotalLabel = findViewById(R.id.yearComparisonLastYearTotal);
+        currentYearTotalLabel = findViewById(R.id.yearComparisonCurrentYearTotal);
 
         reportSwitch.setOnCheckedChangeListener(this);
         expenseTypeLabel.setText(expenseType.getTextResource());

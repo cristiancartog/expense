@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -16,8 +18,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
@@ -57,7 +59,7 @@ public class FileUtil {
         }
 
         final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-        try (OutputStreamWriter fileWriter = new OutputStreamWriter(new FileOutputStream(exportFile), "UTF-8")) {
+        try (OutputStreamWriter fileWriter = new OutputStreamWriter(new FileOutputStream(exportFile), UTF_8)) {
             for (Expense expense : expenses) {
                 fileWriter.write(expense.toCsv(csvDateFormat));
                 fileWriter.write("\n");
@@ -179,7 +181,7 @@ public class FileUtil {
             }
 
             final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-            try (OutputStreamWriter fileWriter = new OutputStreamWriter(outputStream, "UTF-8")) {
+            try (OutputStreamWriter fileWriter = new OutputStreamWriter(outputStream, UTF_8)) {
                 for (Expense expense : expenses) {
                     fileWriter.write(expense.toCsv(csvDateFormat));
                     fileWriter.write("\n");
@@ -221,7 +223,7 @@ public class FileUtil {
 
     private static List<Expense> readExpenses(final InputStream inputStream) throws IOException, ParseException {
         final List<Expense> expenses = new ArrayList<>();
-        try (final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+        try (final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
             final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
             String line;
 

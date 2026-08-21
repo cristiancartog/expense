@@ -11,10 +11,10 @@ import android.widget.CheckedTextView;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.model.comparator.ExpenseTypeOrderComparator;
 
 public class ExpenseTypeListAdapter extends BaseAdapter {
 
@@ -47,7 +47,7 @@ public class ExpenseTypeListAdapter extends BaseAdapter {
 
     public void setAvailableExpenseTypes(Collection<ExpenseType> expenseTypes) {
         this.expenseTypes = new ArrayList<>(expenseTypes);
-        Collections.sort(this.expenseTypes, new ExpenseTypeOrderComparator());
+        this.expenseTypes.sort(Comparator.comparing(ExpenseType::getOrder));
     }
 
     private View getViewImpl(final int index, final View view, final ViewGroup viewGroup) {

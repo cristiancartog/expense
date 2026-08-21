@@ -37,7 +37,7 @@ import static ro.pandemonium.expense.util.DateUtil.endOfYear;
 import static ro.pandemonium.expense.util.DateUtil.startOfYear;
 import static ro.pandemonium.expense.util.DateUtil.year;
 
-public class YearlyExpenseReportActivity extends AppCompatActivity implements View.OnClickListener {
+public class YearlyExpenseReportActivity extends AppCompatActivity {
 
     private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
     private final NumberFormat percentFormatter = new DecimalFormat(PERCENT_FORMAT_PATTERN);
@@ -75,27 +75,27 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
         setContentView(R.layout.yearly_report_appbar);
         SystemBarInsets.applyBottomInset(this);
 
-        currentYearText = (TextView) findViewById(R.id.yearlyReportCurrentYearText);
-        currentYearLabel = (TextView) findViewById(R.id.yearlyReportCurrentYearLabel);
-        lastYearLabel = (TextView) findViewById(R.id.yearlyReportLastYearLabel);
-        currentYearWithSpecialText = (TextView) findViewById(R.id.yearlyReportCurrentYearWithSpecial);
-        lastYearWithSpecialText = (TextView) findViewById(R.id.yearlyReportLastYearWithSpecial);
-        currentYearWithoutSpecialText = (TextView) findViewById(R.id.yearlyReportCurrentYearWithoutSpecial);
-        lastYearWithoutSpecialText = (TextView) findViewById(R.id.yearlyReportLastYearWithoutSpecial);
-        withSpecialVariationText = (TextView) findViewById(R.id.yearlyReportWithSpecialVariation);
-        withoutSpecialVariationText = (TextView) findViewById(R.id.yearlyReportWithoutSpecialVariation);
-        nextYearButton = (Button) findViewById(R.id.yearlyReportNextYear);
-        previousYearButton = (Button) findViewById(R.id.yearlyReportPreviousYear);
+        currentYearText = findViewById(R.id.yearlyReportCurrentYearText);
+        currentYearLabel = findViewById(R.id.yearlyReportCurrentYearLabel);
+        lastYearLabel = findViewById(R.id.yearlyReportLastYearLabel);
+        currentYearWithSpecialText = findViewById(R.id.yearlyReportCurrentYearWithSpecial);
+        lastYearWithSpecialText = findViewById(R.id.yearlyReportLastYearWithSpecial);
+        currentYearWithoutSpecialText = findViewById(R.id.yearlyReportCurrentYearWithoutSpecial);
+        lastYearWithoutSpecialText = findViewById(R.id.yearlyReportLastYearWithoutSpecial);
+        withSpecialVariationText = findViewById(R.id.yearlyReportWithSpecialVariation);
+        withoutSpecialVariationText = findViewById(R.id.yearlyReportWithoutSpecialVariation);
+        nextYearButton = findViewById(R.id.yearlyReportNextYear);
+        previousYearButton = findViewById(R.id.yearlyReportPreviousYear);
 
-        currentYearText.setOnClickListener(this);
-        nextYearButton.setOnClickListener(this);
-        previousYearButton.setOnClickListener(this);
+        nextYearButton.setOnClickListener(this::showNextYearYearlyReport);
+        previousYearButton.setOnClickListener(this::showPreviousYearYearlyReport);
+        currentYearText.setOnClickListener(this::showCurrentYearYearlyReport);
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         year = getIntent().getIntExtra(INTENT_YEAR, DateUtil.currentYear());
 
-        TableLayout tableLayout = (TableLayout) findViewById(R.id.yearlyReportByExpenseTypeLayout);
+        TableLayout tableLayout = findViewById(R.id.yearlyReportByExpenseTypeLayout);
 
         int index = 2;
         for (ExpenseType expenseType : ExpenseType.values()) {
@@ -147,41 +147,32 @@ public class YearlyExpenseReportActivity extends AppCompatActivity implements Vi
         return textView;
     }
 
-    @Override
-    public void onClick(final View v) {
-        switch (v.getId()) {
+    private void showNextYearYearlyReport(final View v) {
+        year++;
+        useYearToDate = false;
+        useYearFromDate = false;
+        updateYearButtonsEnabledState();
+        recomputeReport();
+    }
 
-            case R.id.yearlyReportNextYear:
-                year++;
-                useYearToDate = false;
-                useYearFromDate = false;
-                updateYearButtonsEnabledState();
-                recomputeReport();
-                break;
+    private void showPreviousYearYearlyReport(final View v) {
+        year--;
+        useYearToDate = false;
+        useYearFromDate = false;
+        updateYearButtonsEnabledState();
+        recomputeReport();
+    }
 
-            case R.id.yearlyReportPreviousYear:
-                year--;
-                useYearToDate = false;
-                useYearFromDate = false;
-                updateYearButtonsEnabledState();
-                recomputeReport();
-                break;
-
-            case R.id.yearlyReportCurrentYearText:
-                if ((year - 1) == earliestEntryYear) {
-                    useYearFromDate = !useYearFromDate;
-                    recomputeReport();
-                } else if (year == latestEntryYear) {
-                    useYearToDate = !useYearToDate;
-                    recomputeReport();
-                } else {
-                    useYearToDate = false;
-                    useYearFromDate = false;
-                }
-
-                break;
-            default:
-                break;
+    private void showCurrentYearYearlyReport(final View v) {
+        if ((year - 1) == earliestEntryYear) {
+            useYearFromDate = !useYearFromDate;
+            recomputeReport();
+        } else if (year == latestEntryYear) {
+            useYearToDate = !useYearToDate;
+            recomputeReport();
+        } else {
+            useYearToDate = false;
+            useYearFromDate = false;
         }
     }
 

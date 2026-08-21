@@ -53,19 +53,19 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
         setContentView(R.layout.expense_type_selection);
 
         adapter = new ExpenseTypeListAdapter();
-        expenseTypeList = (ListView) findViewById(R.id.expenseTypeSelectionDialogListView);
+        expenseTypeList = findViewById(R.id.expenseTypeSelectionDialogListView);
         expenseTypeList.setAdapter(adapter);
         expenseTypeList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
-        final Button selectAllButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSelectAllButton);
-        final Button selectNoneButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSelectNoneButton);
-        final Button invertSelectionButton = (Button) findViewById(R.id.expenseTypeSelectionDialogInvertSelectionButton);
-        final Button singlesSelectionButton = (Button) findViewById(R.id.expenseTypeSelectionDialogSinglesButton);
-        final Button okButton = (Button) findViewById(R.id.expenseTypeSelectionDialogOkButton);
-        final Button cancelButton = (Button) findViewById(R.id.expenseTypeSelectionDialogCancelButton);
-        final Button addCommentButton = (Button) findViewById(R.id.expenseTypeSelectionDialogAddCommentButton);
-        commentField = (EditText) findViewById(R.id.expenseTypeSelectionDialogCommentEditText);
-        commentsSection = (LinearLayout) findViewById(R.id.expenseTypeSelectionDialogComments);
+        final Button selectAllButton = findViewById(R.id.expenseTypeSelectionDialogSelectAllButton);
+        final Button selectNoneButton = findViewById(R.id.expenseTypeSelectionDialogSelectNoneButton);
+        final Button invertSelectionButton = findViewById(R.id.expenseTypeSelectionDialogInvertSelectionButton);
+        final Button singlesSelectionButton = findViewById(R.id.expenseTypeSelectionDialogSinglesButton);
+        final Button okButton = findViewById(R.id.expenseTypeSelectionDialogOkButton);
+        final Button cancelButton = findViewById(R.id.expenseTypeSelectionDialogCancelButton);
+        final Button addCommentButton = findViewById(R.id.expenseTypeSelectionDialogAddCommentButton);
+        commentField = findViewById(R.id.expenseTypeSelectionDialogCommentEditText);
+        commentsSection = findViewById(R.id.expenseTypeSelectionDialogComments);
 
         selectAllButton.setOnClickListener(this);
         selectNoneButton.setOnClickListener(this);

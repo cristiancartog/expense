@@ -2,11 +2,10 @@ package ro.pandemonium.expense.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.model.comparator.ExpenseTypeOrderComparator;
 
 public enum ExpenseType {
 
@@ -67,7 +66,7 @@ public enum ExpenseType {
     public static List<ExpenseType> orderedExpenseTypes() {
         List<ExpenseType> expenseTypes = Arrays.asList(ExpenseType.values());
 
-        Collections.sort(expenseTypes, new ExpenseTypeOrderComparator());
+        expenseTypes.sort(Comparator.comparing(ExpenseType::getOrder));
 
         return expenseTypes;
     }
