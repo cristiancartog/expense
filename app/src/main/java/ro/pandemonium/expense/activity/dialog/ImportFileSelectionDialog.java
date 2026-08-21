@@ -40,7 +40,7 @@ public class ImportFileSelectionDialog extends Dialog implements View.OnClickLis
         super.show();
         this.callback = callback;
 
-        final List<String> fileNames = FileUtil.fetchAllBackupFiles();
+        final List<String> fileNames = FileUtil.fetchAllBackupFiles(getContext());
         Collections.sort(fileNames, (s1, s2) -> -s1.compareTo(s2));
 
         spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, fileNames));

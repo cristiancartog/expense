@@ -1,44 +1,36 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '28.0.3'
+    namespace 'ro.pandemonium.expense'
+    compileSdk 35
     defaultConfig {
         applicationId "ro.pandemonium.expense"
-        minSdkVersion 19
+        minSdkVersion 21
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
     }
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     productFlavors {
     }
 }
 
-repositories {
-    maven {
-        url "https://maven.google.com"
-    }
-    maven {
-        url "https://jitpack.io"
-    }
-}
-
 dependencies {
-    compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
-    implementation 'com.android.support:appcompat-v7:24.2.1'
-    implementation 'com.android.support:support-v4:24.2.1'
-    implementation 'com.android.support:design:24.2.1'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
+    implementation 'com.google.android.material:material:1.12.0'
 //    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.2'
 }

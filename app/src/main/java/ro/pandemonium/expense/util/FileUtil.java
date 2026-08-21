@@ -1,5 +1,6 @@
 package ro.pandemonium.expense.util;
 
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
@@ -24,14 +25,14 @@ import ro.pandemonium.expense.model.Expense;
 public class FileUtil {
 
     private static final String CLASS_NAME = FileUtil.class.getSimpleName();
-    private static final String EXPENSE_DB_BACKUP_FOLDER = "/expense_db_backup";
+    private static final String EXPENSE_DB_BACKUP_FOLDER = "expense_db_backup";
     private static final String DEFAULT_FILE_NAME_PREFIX = "expenses-";
     private static final String DEFAULT_FILE_NAME_SUFFIX = ".csv";
 
-    public static void exportExpenses(final List<Expense> expenses) throws IOException {
+    public static void exportExpenses(final Context context, final List<Expense> expenses) throws IOException {
         final SimpleDateFormat fileNameDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
         final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormat.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
-        final File storageFolder = ensureStorageFolder();
+        final File storageFolder = ensureStorageFolder(context);
         final File exportFile = new File(storageFolder.getAbsolutePath() + "/" + fileName);
 
         boolean fileCreated = exportFile.createNewFile();
@@ -51,11 +52,11 @@ public class FileUtil {
         }
     }
 
-    public static List<Expense> importExpenses(String fileName) throws IOException {
+    public static List<Expense> importExpenses(final Context context, String fileName) throws IOException {
         final List<Expense> expenses = new ArrayList<>();
 
         try {
-            final String filePath = getStorageFolder().getAbsolutePath() + File.separator + fileName;
+            final String filePath = getStorageFolder(context).getAbsolutePath() + File.separator + fileName;
 
             try (final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) {
                 final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
@@ -77,19 +78,23 @@ public class FileUtil {
         return expenses;
     }
 
-    public static List<String> fetchAllBackupFiles() {
-        final String[] fileNames = getStorageFolder()
+    public static List<String> fetchAllBackupFiles(final Context context) {
+        final String[] fileNames = getStorageFolder(context)
                 .list((folder, fileName) -> fileName.endsWith(DEFAULT_FILE_NAME_SUFFIX));
 
         return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<>();
     }
 
-    private static File getStorageFolder() {
-        return new File(Environment.getExternalStorageDirectory().toString() + EXPENSE_DB_BACKUP_FOLDER);
+    private static File getStorageFolder(final Context context) {
+        File documentsFolder = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        if (documentsFolder == null) {
+            documentsFolder = context.getFilesDir();
+        }
+        return new File(documentsFolder, EXPENSE_DB_BACKUP_FOLDER);
     }
 
-    private static File ensureStorageFolder() throws IOException {
-        final File storageFolder = getStorageFolder();
+    private static File ensureStorageFolder(final Context context) throws IOException {
+        final File storageFolder = getStorageFolder(context);
 
         if (!storageFolder.exists()) {
             boolean folderCreated = storageFolder.mkdirs();

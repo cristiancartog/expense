@@ -13,6 +13,7 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,7 +68,12 @@ public class ExpenseHistoryChartActivity extends Activity {
         xl.setPosition(XAxis.XAxisPosition.BOTTOM);
         xl.setTextColor(Color.WHITE);
         xl.setDrawGridLines(false);
-        xl.setValueFormatter((value, axis) -> mapPointToMonthName.get(value));
+        xl.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(final float value, final com.github.mikephil.charting.components.AxisBase axis) {
+                return mapPointToMonthName.get(value);
+            }
+        });
 
         YAxis leftYAxis = barChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);

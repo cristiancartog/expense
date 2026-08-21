@@ -5,12 +5,12 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import com.google.android.material.navigation.NavigationView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -276,7 +276,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void dbDumpRequested() {
         try {
             final List<Expense> allExpenses = expenseDao.fetchExpenses(null, null);
-            FileUtil.exportExpenses(allExpenses);
+            FileUtil.exportExpenses(this, allExpenses);
             Toast.makeText(this, R.string.expenseListActivityExportSuccessful, Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -286,7 +286,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void dbRestoreRequested() {
         importFileSelectionDialog.show(fileName -> {
             try {
-                final List<Expense> expenses = FileUtil.importExpenses(fileName);
+                final List<Expense> expenses = FileUtil.importExpenses(this, fileName);
                 expenseDao.restoreExpenses(expenses);
                 repopulateExpenseList(year, month);
             } catch (IOException e) {
@@ -297,6 +297,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID:
                 processAddEditExpenseResult(resultCode, data);

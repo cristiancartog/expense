@@ -2,7 +2,7 @@ package ro.pandemonium.expense.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -111,6 +111,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID
                 && resultCode == RESULT_OK) {
             final Expense expense = (Expense) data.getSerializableExtra(Constants.INTENT_EXPENSE);

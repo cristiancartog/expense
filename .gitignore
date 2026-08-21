@@ -3,5 +3,7 @@
 .idea
 /local.properties
 /build
+/app/build
+/app/release
 /captures
 libs/

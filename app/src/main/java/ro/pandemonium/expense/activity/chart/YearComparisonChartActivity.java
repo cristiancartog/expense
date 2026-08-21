@@ -3,7 +3,7 @@ package ro.pandemonium.expense.activity.chart;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -23,6 +23,7 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -140,7 +141,12 @@ public class YearComparisonChartActivity extends AppCompatActivity
         xl.setPosition(XAxis.XAxisPosition.BOTTOM);
         xl.setTextColor(Color.WHITE);
         xl.setDrawGridLines(false);
-        xl.setValueFormatter((value, axis) -> MONTHS_MAP.get((int) value));
+        xl.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(final float value, final com.github.mikephil.charting.components.AxisBase axis) {
+                return MONTHS_MAP.get((int) value);
+            }
+        });
 
         YAxis leftYAxis = barChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);
