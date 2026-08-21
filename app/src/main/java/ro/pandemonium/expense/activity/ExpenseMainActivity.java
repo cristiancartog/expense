@@ -48,7 +48,6 @@ import java.util.Map;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
-import ro.pandemonium.expense.activity.dialog.ImportFileSelectionDialog;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
@@ -74,6 +73,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         CompoundButton.OnCheckedChangeListener,
         NavigationView.OnNavigationItemSelectedListener {
 
+    private static final int SELECT_BACKUP_FILE_REQUEST_CODE = 1002;
+
     private final Calendar calendar = Calendar.getInstance();
     private int year;
     private int month;
@@ -84,7 +85,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
 
     // dialogs
-    private ImportFileSelectionDialog importFileSelectionDialog;
     private Filters lastUsedGlobalFilters;
 
     public ExpenseMainActivity() {
@@ -132,8 +132,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         Switch listChartSwitch = (Switch) findViewById(R.id.expenseListSwitchChartReportButton);
         listChartSwitch.setOnCheckedChangeListener(this);
-
-        importFileSelectionDialog = new ImportFileSelectionDialog(this);
 
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH) + 1;
@@ -306,15 +304,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void dbRestoreRequested() {
-        importFileSelectionDialog.show(fileName -> {
-            try {
-                final List<Expense> expenses = FileUtil.importExpenses(this, fileName);
-                expenseDao.restoreExpenses(expenses);
-                repopulateExpenseList(year, month);
-            } catch (IOException e) {
-                Toast.makeText(ExpenseMainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
+        final Intent selectBackupIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        selectBackupIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        // File providers do not agree on a MIME type for CSV, so do not hide valid backups.
+        selectBackupIntent.setType("*/*");
+        startActivityForResult(selectBackupIntent, SELECT_BACKUP_FILE_REQUEST_CODE);
     }
 
     @Override
@@ -327,8 +321,25 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             case ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID:
                 processSearchResultActivityResult(resultCode, data);
                 break;
+            case SELECT_BACKUP_FILE_REQUEST_CODE:
+                processSelectedBackupFile(resultCode, data);
+                break;
             default:
                 break;
+        }
+    }
+
+    private void processSelectedBackupFile(final int resultCode, final Intent data) {
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
+
+        try {
+            final List<Expense> expenses = FileUtil.importExpenses(this, data.getData());
+            expenseDao.restoreExpenses(expenses);
+            repopulateExpenseList(year, month);
+        } catch (IOException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -471,6 +482,5 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     protected void onDestroy() {
         super.onDestroy();
 //        expenseDao.closeDatabase();
-        importFileSelectionDialog.dismiss();
     }
 }
