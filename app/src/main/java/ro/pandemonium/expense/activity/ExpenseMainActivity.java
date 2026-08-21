@@ -7,7 +7,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import com.google.android.material.navigation.NavigationView;
+import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
@@ -111,6 +114,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.main_navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
+        applySystemBarInsets(navigationView);
 
         expenseList = (ListView) findViewById(R.id.expansesListView);
         expenseList.setAdapter(expenseListAdapter);
@@ -135,6 +139,24 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         month = calendar.get(Calendar.MONTH) + 1;
 
         repopulateExpenseList(year, month);
+    }
+
+    private void applySystemBarInsets(final NavigationView navigationView) {
+        final int initialPaddingLeft = navigationView.getPaddingLeft();
+        final int initialPaddingTop = navigationView.getPaddingTop();
+        final int initialPaddingRight = navigationView.getPaddingRight();
+        final int initialPaddingBottom = navigationView.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (view, windowInsets) -> {
+            Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            view.setPadding(
+                    initialPaddingLeft + systemBars.left,
+                    initialPaddingTop + systemBars.top,
+                    initialPaddingRight + systemBars.right,
+                    initialPaddingBottom + systemBars.bottom);
+            return windowInsets;
+        });
+        ViewCompat.requestApplyInsets(navigationView);
     }
 
     @Override
