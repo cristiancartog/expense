@@ -3,7 +3,6 @@ package ro.pandemonium.expense.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 
@@ -59,12 +58,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         filtersButton.setOnLongClickListener(this::clearDialogFilters);
 
         repopulateExpenseList(expenses);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.sorting_menu, menu);
-        return true;
     }
 
     private void showSearchResultsFiltersDialog(final View view) {

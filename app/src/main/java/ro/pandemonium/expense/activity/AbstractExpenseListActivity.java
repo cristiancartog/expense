@@ -8,7 +8,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseArray;
-import android.view.MenuItem;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -68,9 +68,31 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(toolbarId());
         setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(view -> NavUtils.navigateUpFromSameTask(this));
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.sorting_menu, menu);
+        menu.findItem(R.id.main_menu_order_by_date)
+                .setOnMenuItemClickListener(item -> {
+                    sortExpenses(item.getOrder());
+                    return true;
+                });
+        menu.findItem(R.id.main_menu_order_by_type)
+                .setOnMenuItemClickListener(item -> {
+                    sortExpenses(item.getOrder());
+                    return true;
+                });
+        menu.findItem(R.id.main_menu_order_by_value)
+                .setOnMenuItemClickListener(item -> {
+                    sortExpenses(item.getOrder());
+                    return true;
+                });
+        return true;
     }
 
     void showFiltersDialog() {
@@ -138,24 +160,6 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(R.string.removeExpenseDialogNo, null)
                 .show();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.main_menu_order_by_date:
-            case R.id.main_menu_order_by_type:
-            case R.id.main_menu_order_by_value:
-                sortExpenses(item.getOrder());
-                break;
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
-                break;
-            default:
-                break;
-        }
-
-        return true;
     }
 
     @Override

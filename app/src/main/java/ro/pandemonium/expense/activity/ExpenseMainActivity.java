@@ -14,7 +14,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -169,12 +168,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     private boolean clearFilters(final View view) {
         super.clearFilters();
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.sorting_menu, menu);
         return true;
     }
 
