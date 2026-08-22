@@ -62,12 +62,9 @@ import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
-        implements View.OnClickListener,
-        DatePickerDialog.OnDateSetListener,
+        implements DatePickerDialog.OnDateSetListener,
         AdapterView.OnItemClickListener,
-        View.OnLongClickListener,
-        CompoundButton.OnCheckedChangeListener,
-        NavigationView.OnNavigationItemSelectedListener {
+        CompoundButton.OnCheckedChangeListener {
 
     private static final int SELECT_BACKUP_FILE_REQUEST_CODE = 1002;
 
@@ -109,7 +106,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         toggle.syncState();
 
         NavigationView navigationView = findViewById(R.id.main_navigation_view);
-        navigationView.setNavigationItemSelectedListener(this);
         SystemBarInsets.applySystemBarInsets(navigationView);
 
         expenseList = findViewById(R.id.expansesListView);
@@ -118,8 +114,10 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         totalTextView = findViewById(R.id.expenseListTotal);
         changeMonthButton = findViewById(R.id.expenseListChangeMonthButton);
+        changeMonthButton.setOnClickListener(this::changeMonth);
+
         filtersButton = findViewById(R.id.expenseListFiltersButton);
-        filtersButton.setOnLongClickListener(this);
+        filtersButton.setOnLongClickListener(this::clearFilters);
 
         pieChart = findViewById(R.id.expenseListPieChart);
         pieChart.setDescription(null);
@@ -135,56 +133,42 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         repopulateExpenseList(year, month);
     }
 
-    @Override
-    public void onClick(final View view) {
-        switch (view.getId()) {
-            case R.id.expenseListChangeMonthButton:
-                new DatePickerDialog(this, this, year, month - 1, 1).show();
-                break;
-
-            case R.id.addExpenseButton:
-                final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
-                addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
-                startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
-                break;
-
-            case R.id.expenseListFiltersButton:
-                showFiltersDialog();
-                break;
-
-            case R.id.expenseListPreviousMonth:
-                month--;
-                if (month < 1) {
-                    month = 12;
-                    year--;
-                }
-
-                repopulateExpenseList(year, month);
-                break;
-
-            case R.id.expenseListNextMonth:
-                month++;
-                if (month > 12) {
-                    month = 1;
-                    year++;
-                }
-
-                repopulateExpenseList(year, month);
-                break;
-            default:
-                break;
-        }
+    private void changeMonth(final View view) {
+        new DatePickerDialog(this, this, year, month - 1, 1).show();
     }
 
-    @Override
-    public boolean onLongClick(final View view) {
-        switch (view.getId()) {
-            case R.id.expenseListFiltersButton:
-                clearFilters();
-                break;
-            default:
-                break;
+    public void listNextMonth(final View view) {
+        month++;
+        if (month > 12) {
+            month = 1;
+            year++;
         }
+
+        repopulateExpenseList(year, month);
+    }
+
+    public void listPreviousMonth(final View view) {
+        month--;
+        if (month < 1) {
+            month = 12;
+            year--;
+        }
+
+        repopulateExpenseList(year, month);
+    }
+
+    public void addExpense(final View view) {
+        final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
+        addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
+        startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
+    }
+
+    public void filterList(final View view) {
+        showFiltersDialog();
+    }
+
+    private boolean clearFilters(final View view) {
+        super.clearFilters();
         return true;
     }
 
@@ -194,44 +178,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         return true;
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull final MenuItem item) {
+    public void dbSearchRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        switch (item.getItemId()) {
-            case R.id.navigation_search_db:
-                dbSearchRequested();
-                break;
-            case R.id.navigation_special_expenses:
-                specialExpensesRequested();
-                break;
-            case R.id.navigation_subscription_expenses:
-                subscriptionExpensesRequested();
-                break;
-            case R.id.navigation_recurrent_expenses:
-                recurrentExpensesRequested();
-                break;
-            case R.id.navigation_yearly_report:
-                Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
-                yearlyReportIntent.putExtra(INTENT_YEAR, year);
-
-                startActivity(yearlyReportIntent);
-                break;
-            case R.id.navigation_expense_history:
-                expenseHistoryRequested();
-                break;
-            case R.id.navigation_database_dump:
-                dbDumpRequested();
-                break;
-            case R.id.navigation_database_restore:
-                dbRestoreRequested();
-                break;
-            default:
-                break;
-        }
-        return true;
-    }
-
-    private void dbSearchRequested() {
         expenseTypeSelectionDialog.show(lastUsedGlobalFilters,
                 ExpenseType.orderedExpenseTypes(),
                 filters -> {
@@ -243,25 +191,37 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 });
     }
 
-    private void specialExpensesRequested() {
+    public void specialExpensesRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
         intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
         startActivity(intent);
     }
 
-    private void subscriptionExpensesRequested() {
+    public void subscriptionExpensesRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
         intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.subscriptionExpenses(), Collections.emptySet()));
         startActivity(intent);
     }
 
-    private void recurrentExpensesRequested() {
+    public void recurrentExpensesRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
         intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.recurrentExpenses(), Collections.emptySet()));
         startActivity(intent);
     }
 
-    private void expenseHistoryRequested() {
+    public void yearlyReportRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
+        Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
+        yearlyReportIntent.putExtra(INTENT_YEAR, year);
+
+        startActivity(yearlyReportIntent);
+    }
+
+    public void expenseHistoryRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         expenseTypeSelectionDialog.show(null,
                 Arrays.asList(ExpenseType.values()),
                 filters -> {
@@ -271,7 +231,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 });
     }
 
-    private void dbDumpRequested() {
+    public void dbDumpRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         try {
             final List<Expense> allExpenses = expenseDao.fetchExpenses(null, null);
             FileUtil.exportExpenses(this, allExpenses);
@@ -281,7 +242,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
     }
 
-    private void dbRestoreRequested() {
+    public void dbRestoreRequested(@NonNull final MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         final Intent selectBackupIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         selectBackupIntent.addCategory(Intent.CATEGORY_OPENABLE);
         // File providers do not agree on a MIME type for CSV, so do not hide valid backups.

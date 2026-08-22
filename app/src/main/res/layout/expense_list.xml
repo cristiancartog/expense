@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/ic_arrow_left_icon"
-            android:onClick="onClick" />
+            android:onClick="listPreviousMonth" />
 
         <Button
             android:id="@+id/expenseListChangeMonthButton"
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/ic_arrow_right_icon"
-            android:onClick="onClick" />
+            android:onClick="listNextMonth" />
     </LinearLayout>
 
     <ListView
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:background="@null"
-            android:onClick="onClick"
+            android:onClick="filterList"
             android:contentDescription="@string/expenseListPreviousMonthButton"
             android:src="@mipmap/ic_filter" />
 
@@ -99,7 +99,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:onClick="onClick"
+            android:onClick="addExpense"
             android:contentDescription="@string/expenseListNextMonthButton"
             android:src="@mipmap/ic_add_expense" />
 

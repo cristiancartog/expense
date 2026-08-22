@@ -8,24 +8,29 @@
             <item
                 android:id="@+id/navigation_special_expenses"
                 android:icon="@drawable/ic_special_expenses"
-                android:title="@string/mainMenuSpecialExpenses" />
+                android:title="@string/mainMenuSpecialExpenses"
+                android:onClick="specialExpensesRequested"
+                />
 
             <item
                 android:id="@+id/navigation_subscription_expenses"
                 android:icon="@drawable/ic_subscription_expenses"
-                android:title="@string/mainMenuSubscriptionExpenses" />
+                android:title="@string/mainMenuSubscriptionExpenses"
+                android:onClick="subscriptionExpensesRequested" />
 
             <item
                 android:id="@+id/navigation_recurrent_expenses"
                 android:icon="@drawable/ic_recurrent_expenses"
-                android:title="@string/mainMenuRecurrentExpenses" />
+                android:title="@string/mainMenuRecurrentExpenses"
+                android:onClick="recurrentExpensesRequested" />
         </menu>
     </item>
 
     <item
         android:id="@+id/navigation_search_db"
         android:icon="@drawable/ic_search_db"
-        android:title="@string/mainMenuSearchDatabase" />
+        android:title="@string/mainMenuSearchDatabase"
+        android:onClick="dbSearchRequested" />
 
     <item android:title="@string/mainMenuReports">
         <menu>
@@ -33,11 +38,13 @@
             <item
                 android:id="@+id/navigation_yearly_report"
                 android:icon="@drawable/ic_yearly_report"
-                android:title="@string/mainMenuYearlyReport" />
+                android:title="@string/mainMenuYearlyReport"
+                android:onClick="yearlyReportRequested" />
             <item
                 android:id="@+id/navigation_expense_history"
                 android:icon="@drawable/ic_history"
-                android:title="@string/mainMenuChartExpenseHistory" />
+                android:title="@string/mainMenuChartExpenseHistory"
+                android:onClick="expenseHistoryRequested" />
         </menu>
     </item>
 
@@ -46,10 +53,12 @@
             <item
                 android:id="@+id/navigation_database_dump"
                 android:icon="@drawable/ic_db_dump"
+                android:onClick="dbDumpRequested"
                 android:title="@string/mainMenuDatabaseExport" />
             <item
                 android:id="@+id/navigation_database_restore"
                 android:icon="@drawable/ic_db_restore"
+                android:onClick="dbRestoreRequested"
                 android:title="@string/mainMenuDatabaseImport" />
         </menu>
     </item>
