@@ -22,9 +22,10 @@ import java.util.Set;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.util.StringUtils;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeListAdapter;
 
-public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickListener {
+public class ExpenseTypeSelectionDialog extends Dialog {
 
     private static final LinearLayout.LayoutParams COMMENT_LAYOUT_PARAMS =
             new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
@@ -67,13 +68,13 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
         commentField = findViewById(R.id.expenseTypeSelectionDialogCommentEditText);
         commentsSection = findViewById(R.id.expenseTypeSelectionDialogComments);
 
-        selectAllButton.setOnClickListener(this);
-        selectNoneButton.setOnClickListener(this);
-        invertSelectionButton.setOnClickListener(this);
-        singlesSelectionButton.setOnClickListener(this);
-        okButton.setOnClickListener(this);
-        cancelButton.setOnClickListener(this);
-        addCommentButton.setOnClickListener(this);
+        selectAllButton.setOnClickListener(this::selectAllExpenseTypes);
+        selectNoneButton.setOnClickListener(this::selectNoExpenseTypes);
+        invertSelectionButton.setOnClickListener(this::invertSelection);
+        singlesSelectionButton.setOnClickListener(this::selectSinglesExpenseTypes);
+        addCommentButton.setOnClickListener(this::addComment);
+        okButton.setOnClickListener(this::okClicked);
+        cancelButton.setOnClickListener(this::cancelClicked);
     }
 
     public void show(final Filters filters, final Collection<ExpenseType> availableExpenseTypes, final Callback callback) {
@@ -106,55 +107,56 @@ public class ExpenseTypeSelectionDialog extends Dialog implements View.OnClickLi
         return new Filters(expenseTypes, new HashSet<>(comments));
     }
 
-    @Override
-    public void onClick(final View view) {
+    private void selectAllExpenseTypes(final View view) {
         final int adapterCount = adapter.getCount();
-        switch (view.getId()) {
-            case R.id.expenseTypeSelectionDialogSelectAllButton:
-                for (int i = 0; i < adapterCount; i++) {
-                    expenseTypeList.setItemChecked(i, true);
-                }
-                break;
-            case R.id.expenseTypeSelectionDialogSelectNoneButton:
-                selectNone();
-                break;
-            case R.id.expenseTypeSelectionDialogSinglesButton:
-                for (int i = 0; i < adapterCount; i++) {
-                    final ExpenseType expenseType = (ExpenseType) adapter.getItem(i);
-                    expenseTypeList.setItemChecked(i, expenseType.getMaxOccurrences() == 1);
-                }
-                break;
-            case R.id.expenseTypeSelectionDialogInvertSelectionButton:
-                final SparseBooleanArray checkedItemPositions = expenseTypeList.getCheckedItemPositions();
-                for (int i = 0; i < adapterCount; i++) {
-                    final boolean checked = checkedItemPositions.get(i, false);
-                    expenseTypeList.setItemChecked(i, !checked);
-                }
-                break;
-            case R.id.expenseTypeSelectionDialogAddCommentButton:
-                final String comment = commentField.getText().toString().trim();
-                if (!"".equals(comment)) {
-                    addCommentsLineItem(commentField.getText().toString());
-                }
-                commentField.setText("");
-                break;
-            case R.id.expenseTypeSelectionDialogOkButton:
-                final Filters selectedExpenseTypes = getSelectedExpenseTypes();
-                if (selectedExpenseTypes.isSelectionEmpty()) {
-                    Toast.makeText(getContext(), R.string.filterExpenseDialogEmptySelection, Toast.LENGTH_SHORT).show();
-                } else {
-                    hide();
-                    if (callback != null) {
-                        callback.expenseTypesSelected(selectedExpenseTypes);
-                    }
-                }
-                break;
-            case R.id.expenseTypeSelectionDialogCancelButton:
-                hide();
-                break;
-            default:
-                break;
+        for (int i = 0; i < adapterCount; i++) {
+            expenseTypeList.setItemChecked(i, true);
         }
+    }
+
+    private void selectNoExpenseTypes(final View view) {
+        selectNone();
+    }
+
+    private void invertSelection(final View view) {
+        final int adapterCount = adapter.getCount();
+        final SparseBooleanArray checkedItemPositions = expenseTypeList.getCheckedItemPositions();
+        for (int i = 0; i < adapterCount; i++) {
+            final boolean checked = checkedItemPositions.get(i, false);
+            expenseTypeList.setItemChecked(i, !checked);
+        }
+    }
+
+    private void selectSinglesExpenseTypes(final View view) {
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            final ExpenseType expenseType = (ExpenseType) adapter.getItem(i);
+            expenseTypeList.setItemChecked(i, expenseType.getMaxOccurrences() == 1);
+        }
+    }
+
+    private void addComment(final View view) {
+        final String comment = commentField.getText().toString().trim();
+        if (!StringUtils.isEmpty(comment)) {
+            addCommentsLineItem(comment);
+        }
+        commentField.setText("");
+    }
+
+    private void okClicked(final View view) {
+        final Filters selectedExpenseTypes = getSelectedExpenseTypes();
+        if (selectedExpenseTypes.isSelectionEmpty()) {
+            Toast.makeText(getContext(), R.string.filterExpenseDialogEmptySelection, Toast.LENGTH_SHORT).show();
+        } else {
+            hide();
+            if (callback != null) {
+                callback.expenseTypesSelected(selectedExpenseTypes);
+            }
+        }
+    }
+
+    private void cancelClicked(final View view) {
+        hide();
     }
 
     private void selectExpenseTypes(final List<ExpenseType> expenseTypes) {
