@@ -1,15 +1,11 @@
 package ro.pandemonium.expense.db;
 
+import static java.util.stream.Collectors.joining;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-
-import ro.pandemonium.expense.Constants;
-import ro.pandemonium.expense.model.Expense;
-import ro.pandemonium.expense.model.ExpenseMonthlySummary;
-import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.model.Filters;
 
 import java.io.Serializable;
 import java.text.ParseException;
@@ -23,11 +19,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import ro.pandemonium.expense.Constants;
+import ro.pandemonium.expense.model.Expense;
+import ro.pandemonium.expense.model.ExpenseMonthlySummary;
+import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.model.Filters;
+
 public class ExpenseDao implements Serializable {
 
     private static final String CLASS_NAME = ExpenseDao.class.getSimpleName();
     private static final String EXPENSES_TABLE = "EXPENSES";
-    private static final String FETCH_EXPENSES_QUERY_BASE = "SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT FROM " + EXPENSES_TABLE;
+    private static final String FETCH_EXPENSES_QUERY_BASE = """
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+    """;
 
     private final SQLiteDatabase database;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
@@ -92,7 +97,7 @@ public class ExpenseDao implements Serializable {
     }
 
     private String createFetchExpensesQueryString(final Filters filters) {
-        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.getExpenseTypes()) + buildDescriptionClause(filters.getComments());
+        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.expenseTypes()) + buildDescriptionClause(filters.comments());
     }
 
     private String buildDescriptionClause(final Set<String> comments) {
@@ -108,20 +113,12 @@ public class ExpenseDao implements Serializable {
     }
 
     private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
-        final StringBuilder sb = new StringBuilder(" WHERE ");
-        sb.append("EXPENSE_TYPE IN (");
+        String expenseTypesInArgs = expenseTypes.stream()
+                .map(ExpenseType::getDbId)
+                .map(String::valueOf)
+                .collect(joining(","));
 
-        final int expenseTypeListSize = expenseTypes.size();
-        for (int i = 0; i < expenseTypeListSize; i++) {
-            sb.append(expenseTypes.get(i).getDbId());
-            if (i < expenseTypeListSize - 1) {
-                sb.append(",");
-            }
-        }
-
-        sb.append(")");
-
-        return sb.toString();
+        return String.format("EXPENSE_TYPE IN (%s)", expenseTypesInArgs);
     }
 
     public List<Expense> fetchExpenses(final Integer year, final Integer monthOfYear) {
@@ -188,7 +185,7 @@ public class ExpenseDao implements Serializable {
                         monthlySummary.add(currentMonthlySummary);
                         currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
                     }
-                    currentMonthlySummary.addExpense(ExpenseType.forDbId(cursor.getInt(0)), cursor.getDouble(1));
+                    currentMonthlySummary.addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
 
                 } while (cursor.moveToNext());
 
@@ -249,13 +246,9 @@ public class ExpenseDao implements Serializable {
             do {
                 final Expense expense = new Expense();
                 expense.setId(cursor.getLong(0));
-                expense.setExpenseType(ExpenseType.forDbId(cursor.getInt(1)));
+                expense.setExpenseType(ExpenseType.byDbId(cursor.getInt(1)));
                 expense.setValue(cursor.getDouble(2));
-                try {
-                    expense.setDate(dateFormat.parse(cursor.getString(3)));
-                } catch (ParseException e) {
-                    Log.w(CLASS_NAME, e.getMessage());
-                }
+                expense.setDate(extractDate(cursor.getString(3)));
                 expense.setComment(cursor.getString(4));
 
                 expenses.add(expense);
@@ -265,12 +258,19 @@ public class ExpenseDao implements Serializable {
         return expenses;
     }
 
+    private Date extractDate(final String dateString) {
+        try {
+            return dateFormat.parse(dateString);
+        } catch (ParseException ex) {
+            Log.w(CLASS_NAME, ex.getMessage());
+            return null;
+        }
+    }
+
     public void restoreExpenses(final List<Expense> expenses) {
         database.execSQL("DELETE FROM " + EXPENSES_TABLE);
 
-        for (Expense expense : expenses) {
-            persistExpense(expense);
-        }
+        expenses.forEach(this::persistExpense);
     }
 
 //    public void closeDatabase() {

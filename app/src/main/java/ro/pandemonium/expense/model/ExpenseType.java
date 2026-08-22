@@ -1,6 +1,5 @@
 package ro.pandemonium.expense.model;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -50,48 +49,28 @@ public enum ExpenseType {
         return order;
     }
 
-    public static ExpenseType forDbId(final int dbId) {
-        ExpenseType result = ExpenseType.OTHER;
-
-        for (ExpenseType expenseType : ExpenseType.values()) {
-            if (expenseType.getDbId() == dbId) {
-                result = expenseType;
-                break;
-            }
-        }
-
-        return result;
+    public static ExpenseType byDbId(final int dbId) {
+        return Arrays.stream(ExpenseType.values())
+                .filter(expenseType -> expenseType.getDbId() == dbId)
+                .findFirst()
+                .orElse(ExpenseType.OTHER);
     }
 
     public static List<ExpenseType> orderedExpenseTypes() {
-        List<ExpenseType> expenseTypes = Arrays.asList(ExpenseType.values());
-
-        expenseTypes.sort(Comparator.comparing(ExpenseType::getOrder));
-
-        return expenseTypes;
+        return Arrays.stream(ExpenseType.values())
+                .sorted(Comparator.comparing(ExpenseType::getOrder))
+                .toList();
     }
 
     public static List<ExpenseType> subscriptionExpenses() {
-        ArrayList<ExpenseType> expenseTypes = new ArrayList<>();
-
-        for (ExpenseType expenseType : ExpenseType.values()) {
-            if (expenseType.getMaxOccurrences() == 1) {
-                expenseTypes.add(expenseType);
-            }
-        }
-
-        return expenseTypes;
+        return Arrays.stream(ExpenseType.values())
+                .filter(expenseType -> expenseType.getMaxOccurrences() == 1)
+                .toList();
     }
 
     public static List<ExpenseType> recurrentExpenses() {
-        ArrayList<ExpenseType> expenseTypes = new ArrayList<>();
-
-        for (ExpenseType expenseType : ExpenseType.values()) {
-            if (expenseType.getMaxOccurrences() > 1 && expenseType != SPECIAL) {
-                expenseTypes.add(expenseType);
-            }
-        }
-
-        return expenseTypes;
+        return Arrays.stream(ExpenseType.values())
+                .filter(expenseType -> expenseType.getMaxOccurrences() > 1 && expenseType != SPECIAL)
+                .toList();
     }
 }

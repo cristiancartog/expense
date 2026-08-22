@@ -214,7 +214,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 Arrays.asList(ExpenseType.values()),
                 filters -> {
                     final Intent intent = new Intent(ExpenseMainActivity.this, ExpenseHistoryChartActivity.class);
-                    intent.putExtra(INTENT_FILTERS, (Serializable) filters.getExpenseTypes());
+                    intent.putExtra(INTENT_FILTERS, (Serializable) filters.expenseTypes());
                     startActivity(intent);
                 });
     }
@@ -312,8 +312,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @SuppressWarnings("unchecked")
     private void processSearchResultActivityResult(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES);
-            expenseListAdapter.updateExpenses(changedExpenses);
+            List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES, ArrayList.class);
+            expenseListAdapter.updateExpenses(changedExpenses != null ? changedExpenses : new ArrayList<>());
             expenseListAdapter.notifyDataSetChanged();
         }
     }

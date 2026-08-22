@@ -18,13 +18,10 @@ public class YearlyReportResult {
     }
 
     private Double computeTotal(final Map<String, Double> dataMap) {
-        double total = 0;
-        for (Double value : dataMap.values()) {
-            if (value != null) {
-                total += value;
-            }
-        }
-        return total;
+        return dataMap.values()
+                .stream()
+                .mapToDouble(Double::valueOf)
+                .sum();
     }
 
     public Map<String, Double> getCurrentYearData() {

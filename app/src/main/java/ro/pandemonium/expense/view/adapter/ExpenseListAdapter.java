@@ -194,7 +194,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         this.filters = filters;
 
         expenses.removeIf(expense -> {
-            List<ExpenseType> expenseTypes = filters.getExpenseTypes();
+            List<ExpenseType> expenseTypes = filters.expenseTypes();
             return !expenseTypes.contains(expense.getExpenseType())
                     && !matchesComment(expense.getComment());
         });
@@ -203,7 +203,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     private boolean matchesComment(String comment) {
-        Set<String> comments = filters.getComments();
+        Set<String> comments = filters.comments();
 
         for (String filterComment : comments) {
             if (comment.contains(filterComment)) {

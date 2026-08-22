@@ -87,8 +87,8 @@ public class ExpenseTypeSelectionDialog extends Dialog {
         adapter.notifyDataSetChanged();
 
         if (filters != null) {
-            selectExpenseTypes(filters.getExpenseTypes());
-            setComments(filters.getComments());
+            selectExpenseTypes(filters.expenseTypes());
+            setComments(filters.comments());
         } else {
             selectNone();
         }

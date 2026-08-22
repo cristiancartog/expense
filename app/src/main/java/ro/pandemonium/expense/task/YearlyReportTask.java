@@ -31,10 +31,10 @@ public class YearlyReportTask extends AsyncTask<YearlyReportParams, Void, Yearly
     protected YearlyReportResult doInBackground(final YearlyReportParams... params) {
         YearlyReportParams yearlyReportParams = params[0];
 
-        Map<String, Double> currentYearExpenses = expenseDao.getMonthlySummaryInYear(yearlyReportParams.getExpenseType(),
-                yearlyReportParams.getYear());
-        Map<String, Double> lastYearExpenses = expenseDao.getMonthlySummaryInYear(yearlyReportParams.getExpenseType(),
-                yearlyReportParams.getYear() - 1);
+        Map<String, Double> currentYearExpenses = expenseDao.getMonthlySummaryInYear(yearlyReportParams.expenseType(),
+                yearlyReportParams.year());
+        Map<String, Double> lastYearExpenses = expenseDao.getMonthlySummaryInYear(yearlyReportParams.expenseType(),
+                yearlyReportParams.year() - 1);
 
         fillMissingValues(currentYearExpenses);
         fillMissingValues(lastYearExpenses);
