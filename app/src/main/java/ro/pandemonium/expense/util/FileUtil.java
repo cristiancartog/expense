@@ -2,6 +2,8 @@ package ro.pandemonium.expense.util;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
+
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -148,7 +150,7 @@ public class FileUtil {
             String line;
 
             while ((line = in.readLine()) != null) {
-                if (!StringUtils.isEmpty(line)) {
+                if (isNotEmpty(line)) {
                     expenses.add(Expense.fromCsv(line, csvDateFormat));
                 }
             }

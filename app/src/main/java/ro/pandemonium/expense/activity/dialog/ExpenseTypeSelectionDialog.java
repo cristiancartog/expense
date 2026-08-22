@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.activity.dialog;
 
+import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -22,7 +24,6 @@ import java.util.Set;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
-import ro.pandemonium.expense.util.StringUtils;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeListAdapter;
 
 public class ExpenseTypeSelectionDialog extends Dialog {
@@ -137,7 +138,7 @@ public class ExpenseTypeSelectionDialog extends Dialog {
 
     private void addComment(final View view) {
         final String comment = commentField.getText().toString().trim();
-        if (!StringUtils.isEmpty(comment)) {
+        if (isNotEmpty(comment)) {
             addCommentsLineItem(comment);
         }
         commentField.setText("");
