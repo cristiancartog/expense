@@ -52,8 +52,7 @@ import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.util.DateUtil.year;
 
-public class YearComparisonChartActivity extends AppCompatActivity
-        implements View.OnClickListener, Switch.OnCheckedChangeListener {
+public class YearComparisonChartActivity extends AppCompatActivity {
 
     private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
     private static final NumberFormat PERCENT_FORMATTER = new DecimalFormat(PERCENT_FORMAT_PATTERN);
@@ -118,7 +117,7 @@ public class YearComparisonChartActivity extends AppCompatActivity
         lastYearTotalLabel = findViewById(R.id.yearComparisonLastYearTotal);
         currentYearTotalLabel = findViewById(R.id.yearComparisonCurrentYearTotal);
 
-        reportSwitch.setOnCheckedChangeListener(this);
+        reportSwitch.setOnCheckedChangeListener(this::switchChart);
         expenseTypeLabel.setText(expenseType.getTextResource());
 
         resources = getResources();
@@ -296,31 +295,23 @@ public class YearComparisonChartActivity extends AppCompatActivity
                 0;
     }
 
-    @Override
-    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-        if (buttonView.getId() == R.id.yearComparisonSwitchChartReportButton) {
-            barChart.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            report.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+    private void switchChart(final CompoundButton buttonView, final boolean isChecked) {
+        barChart.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        report.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+    }
+
+    public void nextYearClicked(final View view) {
+        if (year < latestYear) {
+            year++;
+            updateDataAsync();
         }
     }
 
-    @Override
-    public void onClick(final View view) {
-        switch (view.getId()) {
-            case R.id.yearlyComparisonNextYear:
-                if (year < latestYear) {
-                    year++;
-                    updateDataAsync();
-                }
-                break;
-            case R.id.yearlyComparisonPreviousYear:
-                if (year - 1 > earliestYear) {
-                    year--;
-                    updateDataAsync();
-                }
-                break;
-            default:
-                break;
+    public void previousYearClicked(final View view) {
+        if (year - 1 > earliestYear) {
+            year--;
+            updateDataAsync();
         }
     }
+
 }

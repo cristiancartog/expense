@@ -45,7 +45,7 @@ public class ExpenseHistoryChartActivity extends Activity {
 
         List<ExpenseMonthlySummary> monthlySummary = expenseDao.getMonthlySummary(expenseTypes);
 
-        BarChart barChart = (BarChart) findViewById(R.id.expenseBarChart);
+        BarChart barChart = findViewById(R.id.expenseBarChart);
 
         barChart.setDescription(null);
 
