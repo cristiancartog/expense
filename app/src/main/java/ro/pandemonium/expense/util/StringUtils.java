@@ -5,7 +5,7 @@ class StringUtils {
     private static final String EMPTY_STRING = "";
 
     static boolean isEmpty(final String string) {
-        return string == null || string.equals(EMPTY_STRING);
+        return string == null || string.trim().equals(EMPTY_STRING);
     }
 
 }

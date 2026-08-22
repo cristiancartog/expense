@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
 
@@ -38,15 +39,15 @@ public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int index, final View view, final ViewGroup viewGroup) {
-       return getViewImpl(index, view, viewGroup, R.layout.expense_type_spinner_item);
+        return getViewImpl(index, view, viewGroup, R.layout.expense_type_spinner_item);
     }
 
     @Override
     public View getDropDownView(int index, View view, ViewGroup viewGroup) {
-       return getViewImpl(index, view, viewGroup, R.layout.expense_type_spinner_list_item);
+        return getViewImpl(index, view, viewGroup, R.layout.expense_type_spinner_list_item);
     }
 
-    public int getPosition (final ExpenseType expenseType) {
+    public int getPosition(final ExpenseType expenseType) {
         int position = -1;
 
         for (int i = 0; i < expenseTypes.size(); i++) {
@@ -59,7 +60,7 @@ public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
         return position;
     }
 
-    private View getViewImpl (final int index, final View view, final ViewGroup viewGroup, final int resourceId) {
+    private View getViewImpl(final int index, final View view, final ViewGroup viewGroup, final int resourceId) {
         TextView checkedTextView = (TextView) view;
         if (checkedTextView == null) {
             final LayoutInflater layoutInflater = LayoutInflater.from(viewGroup.getContext());
@@ -72,7 +73,7 @@ public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
         checkedTextView.setText(expenseType.getTextResource());
         checkedTextView.setTextColor(useGrayText ? Color.GRAY : Color.WHITE);
         checkedTextView.setPadding(expenseType.getMaxOccurrences() == 1 ? 30 : 10, 0, 0, 0);
-        checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD: Typeface.NORMAL);
+        checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD : Typeface.NORMAL);
 
         return checkedTextView;
     }

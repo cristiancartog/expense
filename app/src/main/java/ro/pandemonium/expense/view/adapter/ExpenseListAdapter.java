@@ -13,12 +13,10 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -70,25 +68,25 @@ public class ExpenseListAdapter extends BaseAdapter {
 
         view.setBackgroundColor(index % 2 == 0 ? view.getResources().getColor(R.color.menu_item_odd) : Color.BLACK);
 
-        final ImageButton deleteButton = (ImageButton) view.findViewById(R.id.expenseListItemDelete);
+        final ImageButton deleteButton = view.findViewById(R.id.expenseListItemDelete);
         deleteButton.setTag(index);
         mapDeleteButtonTagToExpense.put(deleteButton.getTag(), expense);
 
-        final TextView currentNr = (TextView) view.findViewById(R.id.expenseListItemNumber);
+        final TextView currentNr = view.findViewById(R.id.expenseListItemNumber);
         currentNr.setText(String.format(Locale.getDefault(), "%d.", index + 1));
 
-        final TextView expenseTypeView = (TextView) view.findViewById(R.id.expenseListItemType);
+        final TextView expenseTypeView = view.findViewById(R.id.expenseListItemType);
         final ExpenseType expenseType = expense.getExpenseType();
         expenseTypeView.setText(expenseType.getTextResource());
         expenseTypeView.setTextColor(ExpenseTypeColor.color(expenseType));
 
-        final TextView descriptionView = (TextView) view.findViewById(R.id.expenseListItemDescription);
+        final TextView descriptionView = view.findViewById(R.id.expenseListItemDescription);
         descriptionView.setText(expense.getComment());
 
-        final TextView valueView = (TextView) view.findViewById(R.id.expenseListItemValue);
+        final TextView valueView = view.findViewById(R.id.expenseListItemValue);
         valueView.setText(numberFormatter.format(expense.getValue()));
 
-        final TextView dateView = (TextView) view.findViewById(R.id.expenseListItemDate);
+        final TextView dateView = view.findViewById(R.id.expenseListItemDate);
         dateView.setText(expense.getFormattedDate(dateFormat));
 
         return view;
@@ -149,12 +147,7 @@ public class ExpenseListAdapter extends BaseAdapter {
 
         for (Expense expense : expenses) {
             final ExpenseType expenseType = expense.getExpenseType();
-            final Integer count = mapExpenseTypesToCount.get(expenseType);
-            if (count == null) {
-                mapExpenseTypesToCount.put(expenseType, 1);
-            } else {
-                mapExpenseTypesToCount.put(expenseType, count + 1);
-            }
+            mapExpenseTypesToCount.merge(expenseType, 1, Integer::sum);
         }
 
         return mapExpenseTypesToCount;
@@ -182,7 +175,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void sortExpenses(final Comparator<Expense> comparator) {
-        Collections.sort(expenses, comparator);
+        expenses.sort(comparator);
         notifyDataSetChanged();
     }
 
@@ -200,30 +193,13 @@ public class ExpenseListAdapter extends BaseAdapter {
 
         this.filters = filters;
 
-        final Iterator<Expense> expensesIterator = expenses.iterator();
-        while (expensesIterator.hasNext()) {
-            if (shouldFilter(expensesIterator.next())) {
-                expensesIterator.remove();
-            }
-        }
+        expenses.removeIf(expense -> {
+            List<ExpenseType> expenseTypes = filters.getExpenseTypes();
+            return !expenseTypes.contains(expense.getExpenseType())
+                    && !matchesComment(expense.getComment());
+        });
 
         notifyDataSetChanged();
-    }
-
-    public Set<ExpenseType> expenseTypeSet() {
-        Set<ExpenseType> expenseTypeSet = new HashSet<>();
-
-        List<Expense> expensesSource = isFiltered() ? backupExpenses : this.expenses;
-        for (Expense expense : expensesSource) {
-            expenseTypeSet.add(expense.getExpenseType());
-        }
-
-        return expenseTypeSet;
-    }
-
-    private boolean shouldFilter(Expense expense) {
-        List<ExpenseType> expenseTypes = filters.getExpenseTypes();
-        return !expenseTypes.contains(expense.getExpenseType()) && !matchesComment(expense.getComment());
     }
 
     private boolean matchesComment(String comment) {
@@ -238,6 +214,17 @@ public class ExpenseListAdapter extends BaseAdapter {
         return false;
     }
 
+    public Set<ExpenseType> expenseTypeSet() {
+        Set<ExpenseType> expenseTypeSet = new HashSet<>();
+
+        List<Expense> expensesSource = isFiltered() ? backupExpenses : this.expenses;
+        for (Expense expense : expensesSource) {
+            expenseTypeSet.add(expense.getExpenseType());
+        }
+
+        return expenseTypeSet;
+    }
+
     public void clearFilters() {
         expenses.clear();
         expenses.addAll(backupExpenses);
@@ -245,4 +232,5 @@ public class ExpenseListAdapter extends BaseAdapter {
         filters = null;
         notifyDataSetChanged();
     }
+
 }

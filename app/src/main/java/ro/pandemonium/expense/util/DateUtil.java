@@ -14,21 +14,11 @@ public class DateUtil {
         return year(new Date());
     }
 
-//    public static int currentMonth() {
-//        return monthOfYear(new Date());
-//    }
-
     public static synchronized int year(final Date date) {
         CALENDAR.setTime(date);
 
         return CALENDAR.get(Calendar.YEAR);
     }
-
-//    private static synchronized int monthOfYear(final Date date) {
-//        CALENDAR.setTime(date);
-//
-//        return CALENDAR.get(Calendar.MONTH);
-//    }
 
     public static synchronized Date startOfYear(final int year) {
         CALENDAR.set(Calendar.YEAR, year);

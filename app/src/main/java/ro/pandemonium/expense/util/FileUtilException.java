@@ -7,4 +7,5 @@ class FileUtilException extends IOException {
     FileUtilException(final String message) {
         super(message);
     }
+
 }
