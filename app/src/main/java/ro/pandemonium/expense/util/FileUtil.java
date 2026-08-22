@@ -8,15 +8,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,7 +21,6 @@ import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -45,53 +40,7 @@ public class FileUtil {
         final SimpleDateFormat fileNameDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
         final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormat.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            exportExpensesToMediaStore(context, expenses, fileName);
-            return;
-        }
-
-        final File storageFolder = ensureStorageFolder(context);
-        final File exportFile = new File(storageFolder.getAbsolutePath() + "/" + fileName);
-
-        boolean fileCreated = exportFile.createNewFile();
-        if (!fileCreated) {
-            throw new FileUtilException("File already exists, wait a second and try again.");
-        }
-
-        final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
-        try (OutputStreamWriter fileWriter = new OutputStreamWriter(new FileOutputStream(exportFile), UTF_8)) {
-            for (Expense expense : expenses) {
-                fileWriter.write(expense.toCsv(csvDateFormat));
-                fileWriter.write("\n");
-            }
-
-            fileWriter.flush();
-            fileWriter.close();
-        }
-    }
-
-    public static List<Expense> importExpenses(final Context context, String fileName) throws IOException {
-        try {
-            final InputStream inputStream;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                Uri backupUri = findBackupUri(context, fileName);
-                if (backupUri == null) {
-                    throw new FileUtilException("Backup file does not exist: " + fileName);
-                }
-                inputStream = context.getContentResolver().openInputStream(backupUri);
-            } else {
-                final File backupFile = new File(getStorageFolder(context), fileName);
-                inputStream = new FileInputStream(backupFile);
-            }
-
-            if (inputStream == null) {
-                throw new FileUtilException("Could not open backup file: " + fileName);
-            }
-            return readExpenses(inputStream);
-        } catch (ParseException e) {
-            Log.w(CLASS_NAME, e.getMessage());
-            throw new IOException(e);
-        }
+        exportExpensesToMediaStore(context, expenses, fileName);
     }
 
     public static List<Expense> importExpenses(final Context context, final Uri backupUri) throws IOException {
@@ -108,51 +57,22 @@ public class FileUtil {
     }
 
     public static List<String> fetchAllBackupFiles(final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            final List<String> fileNames = new ArrayList<>();
-            final String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
-            final String selection = MediaStore.MediaColumns.RELATIVE_PATH + " = ? AND "
-                    + MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?";
-            final String[] selectionArgs = {backupRelativePath(), "%" + DEFAULT_FILE_NAME_SUFFIX};
+        final List<String> fileNames = new ArrayList<>();
+        final String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+        final String selection = MediaStore.MediaColumns.RELATIVE_PATH + " = ? AND "
+                + MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?";
+        final String[] selectionArgs = {backupRelativePath(), "%" + DEFAULT_FILE_NAME_SUFFIX};
 
-            try (Cursor cursor = context.getContentResolver().query(
-                    backupCollection(), projection, selection, selectionArgs, null)) {
-                if (cursor != null) {
-                    final int nameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
-                    while (cursor.moveToNext()) {
-                        fileNames.add(cursor.getString(nameColumn));
-                    }
+        try (Cursor cursor = context.getContentResolver().query(
+                backupCollection(), projection, selection, selectionArgs, null)) {
+            if (cursor != null) {
+                final int nameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                while (cursor.moveToNext()) {
+                    fileNames.add(cursor.getString(nameColumn));
                 }
             }
-            return fileNames;
         }
-
-        final String[] fileNames = getStorageFolder(context)
-                .list((folder, fileName) -> fileName.endsWith(DEFAULT_FILE_NAME_SUFFIX));
-
-        return fileNames != null ? Arrays.asList(fileNames) : new ArrayList<>();
-    }
-
-    private static File getStorageFolder(final Context context) {
-        File documentsFolder = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-        if (documentsFolder == null) {
-            documentsFolder = context.getFilesDir();
-        }
-        return new File(documentsFolder, EXPENSE_DB_BACKUP_FOLDER);
-    }
-
-    private static File ensureStorageFolder(final Context context) throws IOException {
-        final File storageFolder = getStorageFolder(context);
-
-        if (!storageFolder.exists()) {
-            boolean folderCreated = storageFolder.mkdirs();
-
-            if (!folderCreated) {
-                throw new FileUtilException("Could not create folder for backup.");
-            }
-        }
-
-        return storageFolder;
+        return fileNames;
     }
 
     private static void exportExpensesToMediaStore(final Context context,
