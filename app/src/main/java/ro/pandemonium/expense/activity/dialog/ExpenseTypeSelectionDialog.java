@@ -1,5 +1,8 @@
 package ro.pandemonium.expense.activity.dialog;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static ro.pandemonium.expense.util.StringUtils.EMPTY_STRING;
 import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
 
 import android.app.Dialog;
@@ -7,7 +10,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -29,7 +31,7 @@ import ro.pandemonium.expense.view.adapter.ExpenseTypeListAdapter;
 public class ExpenseTypeSelectionDialog extends Dialog {
 
     private static final LinearLayout.LayoutParams COMMENT_LAYOUT_PARAMS =
-            new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT, 1);
 
     private ExpenseTypeListAdapter adapter;
     private ListView expenseTypeList;
@@ -141,7 +143,7 @@ public class ExpenseTypeSelectionDialog extends Dialog {
         if (isNotEmpty(comment)) {
             addCommentsLineItem(comment);
         }
-        commentField.setText("");
+        commentField.setText(EMPTY_STRING);
     }
 
     private void okClicked(final View view) {

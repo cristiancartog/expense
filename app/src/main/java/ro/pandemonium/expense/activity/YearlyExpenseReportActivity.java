@@ -73,7 +73,7 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.yearly_report_appbar);
-        SystemBarInsets.applyBottomInset(this);
+        SystemBarInsets.keepContentInsideSystemBars(this);
 
         currentYearText = findViewById(R.id.yearlyReportCurrentYearText);
         currentYearLabel = findViewById(R.id.yearlyReportCurrentYearLabel);

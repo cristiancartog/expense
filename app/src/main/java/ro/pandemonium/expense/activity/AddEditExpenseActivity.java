@@ -55,7 +55,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_edit_expense_appbar);
-        SystemBarInsets.applyBottomInset(this);
+        SystemBarInsets.keepContentInsideSystemBars(this);
 
         valueField = findViewById(R.id.addExpenseValue);
         dateButton = findViewById(R.id.addExpenseDate);

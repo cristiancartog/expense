@@ -33,7 +33,6 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.google.android.material.navigation.NavigationView;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -57,7 +56,6 @@ import ro.pandemonium.expense.model.MonthWrapper;
 import ro.pandemonium.expense.task.ExpenseLoaderTask;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
-import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
@@ -103,9 +101,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-
-        NavigationView navigationView = findViewById(R.id.main_navigation_view);
-        SystemBarInsets.applySystemBarInsets(navigationView);
 
         expenseList = findViewById(R.id.expansesListView);
         expenseList.setAdapter(expenseListAdapter);

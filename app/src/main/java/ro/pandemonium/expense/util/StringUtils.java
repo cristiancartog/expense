@@ -2,7 +2,7 @@ package ro.pandemonium.expense.util;
 
 public class StringUtils {
 
-    private static final String EMPTY_STRING = "";
+    public static final String EMPTY_STRING = "";
 
     public static boolean isNotEmpty(final String string) {
         return !isEmpty(string);

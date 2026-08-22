@@ -64,7 +64,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(layoutId());
-        SystemBarInsets.applyBottomInset(this);
+        SystemBarInsets.keepContentInsideSystemBars(this);
 
         Toolbar toolbar = findViewById(toolbarId());
         setSupportActionBar(toolbar);

@@ -36,7 +36,7 @@ public class ExpenseHistoryChartActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.history_chart_appbar);
-        SystemBarInsets.applyBottomInset(this);
+        SystemBarInsets.keepContentInsideSystemBars(this);
 
         final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 

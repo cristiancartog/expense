@@ -102,7 +102,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.year_comparison_chart_appbar);
-        SystemBarInsets.applyBottomInset(this);
+        SystemBarInsets.keepContentInsideSystemBars(this);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
         year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));
