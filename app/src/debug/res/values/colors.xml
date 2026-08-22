@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="debug_color_primary">#42700E</color>
+    <color name="debug_color_primary_dark">#29520D</color>
+</resources>
