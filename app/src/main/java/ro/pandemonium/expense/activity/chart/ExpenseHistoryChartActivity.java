@@ -41,7 +41,7 @@ public class ExpenseHistoryChartActivity extends Activity {
         final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         @SuppressWarnings("unchecked")
-        List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS);
+        List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS, ArrayList.class);
 
         List<ExpenseMonthlySummary> monthlySummary = expenseDao.getMonthlySummary(expenseTypes);
 

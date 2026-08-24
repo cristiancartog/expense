@@ -104,7 +104,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         setContentView(R.layout.year_comparison_chart_appbar);
         SystemBarInsets.keepContentInsideSystemBars(this);
 
-        expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
+        expenseType = getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE, ExpenseType.class);
         year = getIntent().getIntExtra(INTENT_YEAR, currentYear());
 
         barChart = findViewById(R.id.yearComparisonBarChart);

@@ -21,6 +21,7 @@ import androidx.appcompat.widget.Toolbar;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -69,8 +70,8 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
         final Intent intent = getIntent();
         @SuppressWarnings("unchecked")
-        final Map<ExpenseType, Integer> mapExpenseTypeToCount = (Map<ExpenseType, Integer>) intent.getSerializableExtra(Constants.INTENT_EXPENSE_COUNT_MAP);
-        final Expense expense = (Expense) intent.getSerializableExtra(Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT);
+        final Map<ExpenseType, Integer> mapExpenseTypeToCount = (Map<ExpenseType, Integer>) intent.getSerializableExtra(Constants.INTENT_EXPENSE_COUNT_MAP, HashMap.class);
+        final Expense expense = intent.getSerializableExtra(Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT, Expense.class);
 
         expenseTypeSpinnerAdapter = new ExpenseTypeSpinnerAdapter();
         expenseTypeSpinnerAdapter.setExpenseTypeMap(mapExpenseTypeToCount);

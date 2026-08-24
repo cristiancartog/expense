@@ -1,5 +1,6 @@
 package ro.pandemonium.expense.activity;
 
+import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
@@ -272,7 +273,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     private void processAddEditExpenseResult(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            final Expense expense = (Expense) data.getSerializableExtra(INTENT_EXPENSE);
+            final Expense expense = requireNonNull(data.getSerializableExtra(INTENT_EXPENSE, Expense.class));
             Log.i(APPLICATION_NAME, expense.toString());
 
             final Long expenseId = expense.getId();

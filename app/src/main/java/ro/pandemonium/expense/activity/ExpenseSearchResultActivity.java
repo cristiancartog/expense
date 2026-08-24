@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.activity;
 
+import static java.util.Objects.requireNonNull;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -49,7 +51,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         expenseList.setAdapter(expenseListAdapter);
         expenseList.setOnItemClickListener(this::expenseListItemClicked);
 
-        final Filters filters = (Filters) getIntent().getSerializableExtra(Constants.INTENT_FILTERS);
+        final Filters filters = getIntent().getSerializableExtra(Constants.INTENT_FILTERS, Filters.class);
         List<Expense> expenses = expenseDao.fetchExpenses(filters);
 
         totalTextView = findViewById(R.id.expenseSearchResultTotal);
@@ -87,7 +89,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID
                 && resultCode == RESULT_OK) {
-            final Expense expense = (Expense) data.getSerializableExtra(Constants.INTENT_EXPENSE);
+            final Expense expense = requireNonNull(data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class));
             Log.i(Constants.APPLICATION_NAME, expense.toString());
 
             expenseDao.updateExpense(expense);
