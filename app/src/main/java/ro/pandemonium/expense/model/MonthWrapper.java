@@ -1,4 +1,6 @@
 package ro.pandemonium.expense.model;
 
-public record MonthWrapper(int year, int month) {
+import java.time.Month;
+
+public record MonthWrapper(int year, Month month) {
 }

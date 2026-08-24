@@ -1,7 +1,9 @@
 package ro.pandemonium.expense.util;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-
+import static java.time.LocalDateTime.now;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP;
 import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
 
 import android.content.ContentResolver;
@@ -21,13 +23,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.model.Expense;
 
 public class FileUtil {
@@ -37,10 +37,11 @@ public class FileUtil {
     private static final String DEFAULT_FILE_NAME_PREFIX = "expenses-";
     private static final String DEFAULT_FILE_NAME_SUFFIX = ".csv";
     private static final String CSV_MIME_TYPE = "text/csv";
+    private static final DateTimeFormatter CSV_DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DB);
 
     public static void exportExpenses(final Context context, final List<Expense> expenses) throws IOException {
-        final SimpleDateFormat fileNameDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
-        final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormat.format(new Date()) + DEFAULT_FILE_NAME_SUFFIX;
+        final DateTimeFormatter fileNameDateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
+        final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormatter.format(now()) + DEFAULT_FILE_NAME_SUFFIX;
 
         exportExpensesToMediaStore(context, expenses, fileName);
     }
@@ -102,10 +103,9 @@ public class FileUtil {
                 throw new FileUtilException("Could not open backup file for writing.");
             }
 
-            final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
             try (OutputStreamWriter fileWriter = new OutputStreamWriter(outputStream, UTF_8)) {
                 for (Expense expense : expenses) {
-                    fileWriter.write(expense.toCsv(csvDateFormat));
+                    fileWriter.write(expense.toCsv(CSV_DATE_FORMATTER));
                     fileWriter.write("\n");
                 }
             }
@@ -146,12 +146,11 @@ public class FileUtil {
     private static List<Expense> readExpenses(final InputStream inputStream) throws IOException, ParseException {
         final List<Expense> expenses = new ArrayList<>();
         try (final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
-            final SimpleDateFormat csvDateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
             String line;
 
             while ((line = in.readLine()) != null) {
                 if (isNotEmpty(line)) {
-                    expenses.add(Expense.fromCsv(line, csvDateFormat));
+                    expenses.add(Expense.fromCsv(line, CSV_DATE_FORMATTER));
                 }
             }
         }

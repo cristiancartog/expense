@@ -1,10 +1,11 @@
 package ro.pandemonium.expense.activity;
 
+import static java.time.LocalDate.now;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
+
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -14,11 +15,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.text.DateFormat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
 
@@ -28,8 +30,6 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
-
-import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
 
 
 public class AddEditExpenseActivity extends AppCompatActivity
@@ -46,10 +46,9 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
     private Button saveExpenseButton;
 
-    private final Calendar calendar = Calendar.getInstance();
-    private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN_DISPLAY, Locale.getDefault());
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.getDefault());
     private Long expenseId;
-    private long expenseTime;
+    private LocalDate expenseDate;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,14 +93,13 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
             valueField.setText(NUMBER_FORMATTER.format(expense.getValue()));
             spinner.setSelection(position);
-            calendar.setTime(new Date(expense.getTime()));
-            dateButton.setText(expense.getFormattedDate(dateFormat));
+            dateButton.setText(dateFormatter.format(expense.getDate()));
             commentField.setText(expense.getComment());
 
-            expenseTime = expense.getTime();
+            expenseDate = expense.getDate();
         } else {
-            expenseTime = new Date().getTime();
-            dateButton.setText(dateFormat.format(expenseTime));
+            expenseDate = now();
+            dateButton.setText(dateFormatter.format(expenseDate));
         }
     }
 
@@ -112,7 +110,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
         expense.setId(expenseId);
         expense.setExpenseType((ExpenseType) spinner.getSelectedItem());
         expense.setValue(Double.parseDouble(valueField.getText().toString()));
-        expense.setDate(new Date(expenseTime));
+        expense.setDate(expenseDate);
         expense.setComment(commentField.getText().toString());
 
         intent.putExtra(Constants.INTENT_EXPENSE, expense);
@@ -122,22 +120,14 @@ public class AddEditExpenseActivity extends AppCompatActivity
     }
 
     private void addExpenseDate(final View view) {
-        calendar.setTime(new Date(expenseTime));
-
-        new DatePickerDialog(this, this,
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+        new DatePickerDialog(this, this, expenseDate.getYear(), expenseDate.getMonth().ordinal(), expenseDate.getDayOfMonth())
                 .show();
     }
 
     @Override
     public void onDateSet(final DatePicker view, final int year, final int monthOfYear, final int dayOfMonth) {
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, monthOfYear);
-        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-        Date date = calendar.getTime();
-        expenseTime = date.getTime();
-        dateButton.setText(dateFormat.format(date));
+        expenseDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth);
+        dateButton.setText(expenseDate.format(dateFormatter));
     }
 
     @Override

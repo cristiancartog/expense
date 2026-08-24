@@ -3,9 +3,8 @@ package ro.pandemonium.expense.model;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class Expense implements Serializable {
@@ -13,7 +12,7 @@ public class Expense implements Serializable {
     private Long id;
     private ExpenseType expenseType;
     private Double value;
-    private Date date;
+    private LocalDate date;
     private String comment;
 
     public ExpenseType getExpenseType() {
@@ -32,16 +31,16 @@ public class Expense implements Serializable {
         this.value = value;
     }
 
-    public Long getTime() {
-        return date.getTime();
+    public LocalDate getDate() {
+        return date;
     }
 
-    public String getFormattedDate(final DateFormat dateFormat) {
-        return date != null ? dateFormat.format(date) : "";
+    public String getFormattedDate(final DateTimeFormatter formatter) {
+        return date != null ? formatter.format(date) : "";
     }
 
-    public void setDate(final Date date) {
-        this.date = new Date(date.getTime());
+    public void setDate(final LocalDate date) {
+        this.date = LocalDate.from(date);
     }
 
     public String getComment() {
@@ -76,22 +75,22 @@ public class Expense implements Serializable {
         return id + ", " + expenseType.name() + ", " + value + ", " + date + ", " + comment;
     }
 
-    public String toCsv(final DateFormat dateFormat) {
+    public String toCsv(final DateTimeFormatter dateFormatter) {
         return String.format(Locale.getDefault(), "%d,%s,%s,%.2f,%s",
                 id,
                 expenseType.name(),
-                dateFormat.format(date),
+                dateFormatter.format(date),
                 value,
                 comment);
     }
 
-    public static Expense fromCsv(final String csv, final DateFormat dateFormat) throws ParseException {
+    public static Expense fromCsv(final String csv, final DateTimeFormatter formatter) {
         final String[] parts = csv.split(",");
 
         final Expense expense = new Expense();
         expense.setId(Long.valueOf(parts[0]));
         expense.setExpenseType(ExpenseType.valueOf(parts[1]));
-        expense.setDate(dateFormat.parse(parts[2]));
+        expense.setDate(LocalDate.parse(parts[2], formatter));
         expense.setValue(Double.valueOf(parts[3]));
         expense.setComment(parts.length == 5 ? parts[4] : "");
 

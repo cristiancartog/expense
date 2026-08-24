@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.view.adapter;
 
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
+
 import android.graphics.Color;
 import android.util.LongSparseArray;
 import android.view.LayoutInflater;
@@ -11,10 +13,9 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -40,7 +41,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     private Filters filters;
 
     private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
 
     @Override
     public int getCount() {
@@ -87,7 +88,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         valueView.setText(numberFormatter.format(expense.getValue()));
 
         final TextView dateView = view.findViewById(R.id.expenseListItemDate);
-        dateView.setText(expense.getFormattedDate(dateFormat));
+        dateView.setText(expense.getFormattedDate(dateFormatter));
 
         return view;
     }
@@ -112,7 +113,7 @@ public class ExpenseListAdapter extends BaseAdapter {
         if (localExpense != null) {
             localExpense.setExpenseType(expense.getExpenseType());
             localExpense.setValue(expense.getValue());
-            localExpense.setDate(new Date(expense.getTime()));
+            localExpense.setDate(expense.getDate());
             localExpense.setComment(expense.getComment());
         }
     }

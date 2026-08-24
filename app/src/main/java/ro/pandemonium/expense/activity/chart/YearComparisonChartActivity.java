@@ -1,9 +1,15 @@
 package ro.pandemonium.expense.activity.chart;
 
+import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
+import static ro.pandemonium.expense.Constants.INTENT_YEAR;
+import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
+import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
+import static ro.pandemonium.expense.util.DateUtil.currentYear;
+
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -15,6 +21,8 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -22,14 +30,13 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,13 +51,6 @@ import ro.pandemonium.expense.model.YearlyReportParams;
 import ro.pandemonium.expense.model.YearlyReportResult;
 import ro.pandemonium.expense.task.YearlyReportTask;
 import ro.pandemonium.expense.util.SystemBarInsets;
-
-import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
-import static ro.pandemonium.expense.Constants.INTENT_YEAR;
-import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
-import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
-import static ro.pandemonium.expense.util.DateUtil.year;
 
 public class YearComparisonChartActivity extends AppCompatActivity {
 
@@ -105,7 +105,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         SystemBarInsets.keepContentInsideSystemBars(this);
 
         expenseType = (ExpenseType) getIntent().getSerializableExtra(INTENT_EXPENSE_TYPE);
-        year = getIntent().getIntExtra(INTENT_YEAR, year(new Date()));
+        year = getIntent().getIntExtra(INTENT_YEAR, currentYear());
 
         barChart = findViewById(R.id.yearComparisonBarChart);
         report = findViewById(R.id.yearlyComparisonListReport);
@@ -125,8 +125,8 @@ public class YearComparisonChartActivity extends AppCompatActivity {
 
         Expense earliestExpense = expenseDao.getEarliestEntry();
         Expense latestExpense = expenseDao.getLatestEntry();
-        earliestYear = year(new Date(earliestExpense != null ? earliestExpense.getTime() : System.currentTimeMillis()));
-        latestYear = year(new Date(latestExpense != null ? latestExpense.getTime() : System.currentTimeMillis()));
+        earliestYear = earliestExpense != null ? earliestExpense.getDate().getYear() : currentYear();
+        latestYear = latestExpense != null ? latestExpense.getDate().getYear() : currentYear();
 
         Legend legend = barChart.getLegend();
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);

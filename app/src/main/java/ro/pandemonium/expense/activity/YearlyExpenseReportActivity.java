@@ -1,8 +1,17 @@
 package ro.pandemonium.expense.activity;
 
+import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
+import static ro.pandemonium.expense.Constants.INTENT_YEAR;
+import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
+import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
+import static ro.pandemonium.expense.util.DateUtil.addYears;
+import static ro.pandemonium.expense.util.DateUtil.endOfYear;
+import static ro.pandemonium.expense.util.DateUtil.startOfYear;
+import static ro.pandemonium.expense.util.DateUtil.year;
+
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -11,9 +20,11 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +37,6 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.DateUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
-
-import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
-import static ro.pandemonium.expense.Constants.INTENT_YEAR;
-import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
-import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
-import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
-import static ro.pandemonium.expense.util.DateUtil.addYears;
-import static ro.pandemonium.expense.util.DateUtil.endOfYear;
-import static ro.pandemonium.expense.util.DateUtil.startOfYear;
-import static ro.pandemonium.expense.util.DateUtil.year;
 
 public class YearlyExpenseReportActivity extends AppCompatActivity {
 
@@ -59,8 +60,8 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
     private int year;
     private int earliestEntryYear;
     private int latestEntryYear;
-    private Date earliestEntryDate;
-    private Date latestEntryDate;
+    private LocalDate earliestEntryDate;
+    private LocalDate latestEntryDate;
     private boolean useYearToDate;
     private boolean useYearFromDate;
 
@@ -128,8 +129,8 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
 
         Expense earliestExpense = expenseDao.getEarliestEntry();
         Expense latestExpense = expenseDao.getLatestEntry();
-        earliestEntryDate = new Date(earliestExpense != null ? earliestExpense.getTime() : System.currentTimeMillis());
-        latestEntryDate = new Date(latestExpense != null ? latestExpense.getTime() : System.currentTimeMillis());
+        earliestEntryDate = earliestExpense != null ? earliestExpense.getDate() : LocalDate.now();
+        latestEntryDate = latestExpense != null ? latestExpense.getDate() : LocalDate.now();
         earliestEntryYear = year(earliestEntryDate);
         latestEntryYear = year(latestEntryDate);
         useYearToDate = latestEntryYear == year;
@@ -193,10 +194,10 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
         currentYearLabel.setText(getResources().getString(R.string.yearlyReposrYearPlaceholder, year));
         lastYearLabel.setText(getResources().getString(R.string.yearlyReposrYearPlaceholder, year - 1));
 
-        Date currentYearExpensesStartDate = useYearFromDate ? addYears(earliestEntryDate, 1) : startOfYear(year);
-        Date currentYearExpensesEndDate = useYearToDate ? latestEntryDate : endOfYear(year);
-        Date lastYearExpensesStartDate = useYearFromDate ? earliestEntryDate : startOfYear(year - 1);
-        Date lastYearExpensesEndDate = useYearToDate ? addYears(latestEntryDate, -1) : endOfYear(year - 1);
+        LocalDate currentYearExpensesStartDate = useYearFromDate ? addYears(earliestEntryDate, 1) : startOfYear(year);
+        LocalDate currentYearExpensesEndDate = useYearToDate ? latestEntryDate : endOfYear(year);
+        LocalDate lastYearExpensesStartDate = useYearFromDate ? earliestEntryDate : startOfYear(year - 1);
+        LocalDate lastYearExpensesEndDate = useYearToDate ? addYears(latestEntryDate, -1) : endOfYear(year - 1);
 
         List<Expense> currentYearExpenses = expenseDao.getExpensesInInterval(currentYearExpensesStartDate, currentYearExpensesEndDate);
         List<Expense> lastYearExpenses = expenseDao.getExpensesInInterval(lastYearExpensesStartDate, lastYearExpensesEndDate);

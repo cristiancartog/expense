@@ -50,7 +50,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
-        mapSortingMenuItemToComparator.append(1, Comparator.comparing(Expense::getTime));
+        mapSortingMenuItemToComparator.append(1, Comparator.comparing(Expense::getDate));
         mapSortingMenuItemToComparator.append(2, Comparator.comparing(Expense::getExpenseType));
         mapSortingMenuItemToComparator.append(3, Comparator.comparing(Expense::getValue));
     }

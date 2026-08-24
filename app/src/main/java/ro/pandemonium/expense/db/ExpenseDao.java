@@ -1,6 +1,7 @@
 package ro.pandemonium.expense.db;
 
 import static java.util.stream.Collectors.joining;
+import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -8,10 +9,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +37,7 @@ public class ExpenseDao implements Serializable {
     """;
 
     private final SQLiteDatabase database;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_PATTERN_DB, Locale.getDefault());
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DB, Locale.getDefault());
 
     public ExpenseDao(final SQLiteDatabase database) {
         this.database = database;
@@ -80,7 +82,7 @@ public class ExpenseDao implements Serializable {
         final ContentValues cv = new ContentValues();
         cv.put("EXPENSE_TYPE", expense.getExpenseType().getDbId());
         cv.put("VALUE", expense.getValue());
-        cv.put("DATE", dateFormat.format(new Date(expense.getTime())));
+        cv.put("DATE", dateFormatter.format(expense.getDate()));
         cv.put("COMMENT", expense.getComment());
         return cv;
     }
@@ -121,18 +123,18 @@ public class ExpenseDao implements Serializable {
         return String.format("EXPENSE_TYPE IN (%s)", expenseTypesInArgs);
     }
 
-    public List<Expense> fetchExpenses(final Integer year, final Integer monthOfYear) {
-        return queryForExpenses(createFetchExpensesQueryString(year, monthOfYear));
+    public List<Expense> fetchExpenses(final Integer year, final Month month) {
+        return queryForExpenses(createFetchExpensesQueryString(year, month));
     }
 
-    private String createFetchExpensesQueryString(final Integer year, final Integer monthOfYear) {
+    private String createFetchExpensesQueryString(final Integer year, final Month month) {
         String query = FETCH_EXPENSES_QUERY_BASE;
 
-        if (monthOfYear != null) {
+        if (month != null) {
             query += " WHERE "
                     + "EXPENSE_TYPE <> " + ExpenseType.SPECIAL.getDbId()
                     + " AND CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year
-                    + " AND CAST(STRFTIME('%m', DATE) AS NUMBER) = " + monthOfYear;
+                    + " AND CAST(STRFTIME('%m', DATE) AS NUMBER) = " + month.getValue();
         }
 
         return query;
@@ -208,14 +210,14 @@ public class ExpenseDao implements Serializable {
         return iterator.hasNext() ? iterator.next() : null;
     }
 
-    public List<Expense> getExpensesInInterval(final Date start, final Date end) {
+    public List<Expense> getExpensesInInterval(final LocalDate start, final LocalDate end) {
         StringBuilder query = new StringBuilder(FETCH_EXPENSES_QUERY_BASE);
 
         if (start != null || end != null) {
             query.append(" WHERE ");
             if (start != null) {
                 query.append(" DATE >= '");
-                query.append(dateFormat.format(start));
+                query.append(dateFormatter.format(start));
                 query.append("'");
                 if (end != null) {
                     query.append(" AND ");
@@ -224,7 +226,7 @@ public class ExpenseDao implements Serializable {
 
             if (end != null) {
                 query.append(" DATE <= '");
-                query.append(dateFormat.format(end));
+                query.append(dateFormatter.format(end));
                 query.append("'");
             }
         }
@@ -258,10 +260,10 @@ public class ExpenseDao implements Serializable {
         return expenses;
     }
 
-    private Date extractDate(final String dateString) {
+    private LocalDate extractDate(final String dateString) {
         try {
-            return dateFormat.parse(dateString);
-        } catch (ParseException ex) {
+            return LocalDate.parse(dateString, dateFormatter);
+        } catch (DateTimeParseException ex) {
             Log.w(CLASS_NAME, ex.getMessage());
             return null;
         }

@@ -36,11 +36,11 @@ import com.github.mikephil.charting.data.PieEntry;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,15 +65,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     private static final int SELECT_BACKUP_FILE_REQUEST_CODE = 1002;
 
-    private final Calendar calendar = Calendar.getInstance();
     private int year;
-    private int month;
+    private Month month;
 
     private DrawerLayout drawerLayout;
     private Button changeMonthButton;
     private PieChart pieChart;
-    private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
-
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
     // dialogs
     private Filters lastUsedGlobalFilters;
 
@@ -121,20 +119,21 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         Switch listChartSwitch = findViewById(R.id.expenseListSwitchChartReportButton);
         listChartSwitch.setOnCheckedChangeListener(this);
 
-        year = calendar.get(Calendar.YEAR);
-        month = calendar.get(Calendar.MONTH) + 1;
+        final LocalDate now = LocalDate.now();
+        year = now.getYear();
+        month = now.getMonth();
 
         repopulateExpenseList(year, month);
     }
 
     private void changeMonth(final View view) {
-        new DatePickerDialog(this, this, year, month - 1, 1).show();
+        new DatePickerDialog(this, this, year, month.ordinal(), 1).show();
     }
 
     public void listNextMonth(final View view) {
-        month++;
-        if (month > 12) {
-            month = 1;
+        month = month.plus(1);
+
+        if (month == Month.JANUARY) {
             year++;
         }
 
@@ -142,9 +141,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     public void listPreviousMonth(final View view) {
-        month--;
-        if (month < 1) {
-            month = 12;
+        month = month.minus(1);
+
+        if (month == Month.DECEMBER) {
             year--;
         }
 
@@ -282,7 +281,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             if (expenseId == null) { // add new expense
                 expenseDao.persistExpense(expense);
 
-                if (isInSameMonth(expense.getTime())) {
+                if (isInSameMonth(expense.getDate())) {
                     clearFilters();
 
                     if (expense.getExpenseType() != ExpenseType.SPECIAL) {
@@ -292,7 +291,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 }
             } else { // update existing expense
                 expenseDao.updateExpense(expense);
-                if (!isInSameMonth(expense.getTime())) {
+                if (!isInSameMonth(expense.getDate())) {
                     expenseListAdapter.deleteExpense(expense);
                 } else {
                     expenseListAdapter.updateExpense(expense);
@@ -318,22 +317,21 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
     }
 
-    private boolean isInSameMonth(final long time) {
-        calendar.setTimeInMillis(time);
-        return calendar.get(Calendar.YEAR) == year && (calendar.get(Calendar.MONTH) + 1) == month;
+    private boolean isInSameMonth(final LocalDate date) {
+        return date.getYear() == year && date.getMonth() == month;
     }
 
     @Override
     public void onDateSet(final DatePicker datePicker, final int year, final int monthOfYear, final int dayOfMonth) {
-        int adjustedMonthOfYear = monthOfYear + 1;
-        if (this.year != year || this.month != adjustedMonthOfYear) {
-            this.month = adjustedMonthOfYear;
+        Month month = Month.of(monthOfYear + 1); // +1 because calendar component uses old Calendar style indexing (0-11)
+        if (this.year != year || this.month != month) {
+            this.month = month;
             this.year = year;
-            repopulateExpenseList(year, adjustedMonthOfYear);
+            repopulateExpenseList(year, month);
         }
     }
 
-    private void repopulateExpenseList(final int year, final int monthOfYear) {
+    private void repopulateExpenseList(final int year, final Month month) {
         new ExpenseLoaderTask(expenseDao, expenses -> {
             clearFilters();
             expenses.sort(mapSortingMenuItemToComparator.get(1));
@@ -343,7 +341,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
 
             updatePieData();
-        }).execute(new MonthWrapper(year, monthOfYear));
+        }).execute(new MonthWrapper(year, month));
     }
 
     @Override
@@ -388,9 +386,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void updateMonthButtonLabel() {
-        calendar.set(Calendar.MONTH, month - 1);
-        calendar.set(Calendar.YEAR, year);
-        changeMonthButton.setText(dateFormat.format(calendar.getTime()));
+        final LocalDate date = LocalDate.of(year, month, 1);
+        changeMonthButton.setText(date.format(dateFormatter));
     }
 
     @Override
