@@ -140,9 +140,11 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public List<Expense> getExpenses(final boolean includeUnfiltered) {
-        final List<Expense> expensesToReturn = new ArrayList<>();
-        expensesToReturn.addAll(includeUnfiltered ? (isFiltered() ? backupExpenses : expenses) : expenses);
-        return expensesToReturn;
+        return new ArrayList<>(includeUnfiltered
+                ? (isFiltered()
+                   ? backupExpenses
+                   : expenses)
+                : expenses);
     }
 
     public Map<ExpenseType, Integer> getExpenseTypes() {

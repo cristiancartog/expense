@@ -1,7 +1,11 @@
 package ro.pandemonium.expense.db;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
+import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -88,13 +92,17 @@ public class ExpenseDao implements Serializable {
     }
 
     public void removeExpense(final Long expenseId) {
-        database.execSQL("DELETE FROM EXPENSES WHERE _ID = " + expenseId);
+        database.execSQL("""
+            DELETE FROM EXPENSES
+            WHERE _ID = %d
+        """.formatted(expenseId));
     }
 
     public List<Expense> fetchExpenses(final Filters filters) {
         checkDatabaseAvailability();
 
-        final Cursor cursor = database.rawQuery(createFetchExpensesQueryString(filters), null);
+        String query = createFetchExpensesQueryString(filters);
+        Cursor cursor = database.rawQuery(query, null);
         return extractExpenses(cursor);
     }
 
@@ -103,15 +111,9 @@ public class ExpenseDao implements Serializable {
     }
 
     private String buildDescriptionClause(final Set<String> comments) {
-        final StringBuilder sb = new StringBuilder();
-
-        for (String comment : comments) {
-            sb.append(" OR COMMENT LIKE '%");
-            sb.append(comment);
-            sb.append("%'");
-        }
-
-        return sb.toString();
+        return comments.stream()
+                .map("COMMENT LIKE '%%%s%%'"::formatted)
+                .collect(joining("OR"));
     }
 
     private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
@@ -120,7 +122,7 @@ public class ExpenseDao implements Serializable {
                 .map(String::valueOf)
                 .collect(joining(","));
 
-        return String.format("EXPENSE_TYPE IN (%s)", expenseTypesInArgs);
+        return format("WHERE EXPENSE_TYPE IN (%s) ", expenseTypesInArgs);
     }
 
     public List<Expense> fetchExpenses(final Integer year, final Month month) {
@@ -128,35 +130,43 @@ public class ExpenseDao implements Serializable {
     }
 
     private String createFetchExpensesQueryString(final Integer year, final Month month) {
-        String query = FETCH_EXPENSES_QUERY_BASE;
-
         if (month != null) {
-            query += " WHERE "
-                    + "EXPENSE_TYPE <> " + ExpenseType.SPECIAL.getDbId()
-                    + " AND CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year
-                    + " AND CAST(STRFTIME('%m', DATE) AS NUMBER) = " + month.getValue();
+            return """
+                %s
+                WHERE
+                    EXPENSE_TYPE <> %d
+                        AND CAST(STRFTIME('%%Y', DATE) AS NUMBER) = %d
+                        AND CAST(STRFTIME('%%m', DATE) AS NUMBER) = %d
+            """.formatted(
+                    FETCH_EXPENSES_QUERY_BASE,
+                    SPECIAL.getDbId(),
+                    year,
+                    month.getValue()
+            );
         }
 
-        return query;
+        return FETCH_EXPENSES_QUERY_BASE;
     }
 
     public Map<String, Double> getMonthlySummaryInYear(final ExpenseType expenseType, final int year) {
-        String query = "SELECT SUM(VALUE), STRFTIME('%m', DATE) AS MONTH FROM EXPENSES ";
-        query += "WHERE EXPENSE_TYPE = " + expenseType.getDbId();
-        query += "  AND CAST(STRFTIME('%Y', DATE) AS NUMBER) = " + year;
-        query += " GROUP BY MONTH ";
-        query += " ORDER BY MONTH";
+        String query = """
+            SELECT SUM(VALUE), STRFTIME('%%m', DATE) AS MONTH
+            FROM EXPENSES
+            WHERE
+                EXPENSE_TYPE = %d
+                AND CAST(STRFTIME('%%Y', DATE) AS NUMBER) = %d
+            GROUP BY MONTH
+            ORDER BY MONTH
+        """.formatted(expenseType.getDbId(), year);
 
         Map<String, Double> summary = new TreeMap<>();
 
         try (final Cursor cursor = database.rawQuery(query, null)) {
-            if (cursor.moveToFirst()) {
-                do {
-                    String yearMonth = cursor.getString(1);
-                    Double value = cursor.getDouble(0);
+            while (cursor.moveToNext()) {
+                String yearMonth = cursor.getString(1);
+                Double value = cursor.getDouble(0);
 
-                    summary.put(yearMonth, value);
-                } while (cursor.moveToNext());
+                summary.put(yearMonth, value);
             }
         }
 
@@ -168,28 +178,29 @@ public class ExpenseDao implements Serializable {
 
         checkDatabaseAvailability();
 
-        String query = "SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%Y-%m', DATE) AS MONTH FROM EXPENSES ";
-        query += createExpenseTypeWhereClause(expenseTypes);
-        query += "GROUP BY EXPENSE_TYPE, MONTH ";
-        query += "ORDER BY MONTH";
+        String query = """
+            SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%%Y-%%m', DATE) AS MONTH
+            FROM EXPENSES
+            %s
+            GROUP BY EXPENSE_TYPE, MONTH
+            ORDER BY MONTH
+        """.formatted(createExpenseTypeWhereClause(expenseTypes));
 
-        ExpenseMonthlySummary currentMonthlySummary = null;
 
         try (final Cursor cursor = database.rawQuery(query, null)) {
-            if (cursor.moveToFirst()) {
-                do {
-                    String yearMonth = cursor.getString(2);
-                    if (currentMonthlySummary == null) {
-                        currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                    }
+            ExpenseMonthlySummary currentMonthlySummary = null;
+            while (cursor.moveToNext()) {
+                String yearMonth = cursor.getString(2);
 
-                    if (!currentMonthlySummary.isInSameMonth(yearMonth)) {
-                        monthlySummary.add(currentMonthlySummary);
-                        currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                    }
-                    currentMonthlySummary.addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
+                if (currentMonthlySummary == null) {
+                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
+                }
 
-                } while (cursor.moveToNext());
+                if (!currentMonthlySummary.isInSameMonth(yearMonth)) {
+                    monthlySummary.add(currentMonthlySummary);
+                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
+                }
+                currentMonthlySummary.addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
 
                 monthlySummary.add(currentMonthlySummary);
             }
@@ -199,39 +210,32 @@ public class ExpenseDao implements Serializable {
     }
 
     public Expense getEarliestEntry() {
-        String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1";
-        Iterator<Expense> iterator = queryForExpenses(query).iterator();
-        return iterator.hasNext() ? iterator.next() : null;
+        return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1");
     }
 
     public Expense getLatestEntry() {
-        String query = FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1";
+        return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1");
+    }
+
+    private Expense getSingleExpense(final String query) {
         Iterator<Expense> iterator = queryForExpenses(query).iterator();
         return iterator.hasNext() ? iterator.next() : null;
     }
 
     public List<Expense> getExpensesInInterval(final LocalDate start, final LocalDate end) {
-        StringBuilder query = new StringBuilder(FETCH_EXPENSES_QUERY_BASE);
+        var conditions = new ArrayList<String>();
 
-        if (start != null || end != null) {
-            query.append(" WHERE ");
-            if (start != null) {
-                query.append(" DATE >= '");
-                query.append(dateFormatter.format(start));
-                query.append("'");
-                if (end != null) {
-                    query.append(" AND ");
-                }
-            }
-
-            if (end != null) {
-                query.append(" DATE <= '");
-                query.append(dateFormatter.format(end));
-                query.append("'");
-            }
+        if (start != null) {
+            conditions.add("DATE >= '%s'".formatted(dateFormatter.format(start)));
+        }
+        if (end != null) {
+            conditions.add("DATE <= '%s'".formatted(dateFormatter.format(end)));
         }
 
-        return queryForExpenses(query.toString());
+        String whereClause = conditions.isEmpty() ? "" : "WHERE " + join(" AND ", conditions);
+        String query = FETCH_EXPENSES_QUERY_BASE + whereClause;
+
+        return queryForExpenses(query);
     }
 
     private List<Expense> queryForExpenses(final String query) {
@@ -264,7 +268,7 @@ public class ExpenseDao implements Serializable {
         try {
             return LocalDate.parse(dateString, dateFormatter);
         } catch (DateTimeParseException ex) {
-            Log.w(CLASS_NAME, ex.getMessage());
+            Log.w(CLASS_NAME, requireNonNull(ex.getMessage()));
             return null;
         }
     }

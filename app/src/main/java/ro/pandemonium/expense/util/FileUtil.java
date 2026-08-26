@@ -2,6 +2,7 @@ package ro.pandemonium.expense.util;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.LocalDateTime.now;
+import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP;
 import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
@@ -54,7 +55,7 @@ public class FileUtil {
             }
             return readExpenses(inputStream);
         } catch (ParseException e) {
-            Log.w(CLASS_NAME, e.getMessage());
+            Log.w(CLASS_NAME, requireNonNull(e.getMessage()));
             throw new IOException(e);
         }
     }

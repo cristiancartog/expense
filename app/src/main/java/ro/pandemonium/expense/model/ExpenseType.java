@@ -1,8 +1,13 @@
 package ro.pandemonium.expense.model;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import ro.pandemonium.expense.R;
 
@@ -20,6 +25,13 @@ public enum ExpenseType {
     GYM(60, 1, 10, R.string.GYM),
     CAR(100, Integer.MAX_VALUE, 11, R.string.CAR),
     SPECIAL(999, Integer.MAX_VALUE, 12, R.string.SPECIAL);
+
+    private static final Map<Integer, ExpenseType> MAP_DB_ID_TO_EXPENSE_TYPE = Stream.of(values())
+            .collect(toMap(
+                    ExpenseType::getDbId,
+                    Function.identity()
+            ));
+
 
     private final int maxOccurrences;
     private final int dbId;
@@ -50,10 +62,7 @@ public enum ExpenseType {
     }
 
     public static ExpenseType byDbId(final int dbId) {
-        return Arrays.stream(ExpenseType.values())
-                .filter(expenseType -> expenseType.getDbId() == dbId)
-                .findFirst()
-                .orElse(ExpenseType.OTHER);
+        return MAP_DB_ID_TO_EXPENSE_TYPE.get(dbId);
     }
 
     public static List<ExpenseType> orderedExpenseTypes() {
