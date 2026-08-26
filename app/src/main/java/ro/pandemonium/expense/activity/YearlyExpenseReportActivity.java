@@ -231,7 +231,9 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
     }
 
     private void updateVariationText(final TextView textView, double value) {
-        textView.setTextColor(getResources().getColor(value < 0 ? R.color.report_variation_negative : R.color.report_variation_positive));
+        textView.setTextColor(getColor(value < 0
+                ? R.color.report_variation_negative
+                : R.color.report_variation_positive));
         textView.setText(percentFormatter.format(value));
     }
 

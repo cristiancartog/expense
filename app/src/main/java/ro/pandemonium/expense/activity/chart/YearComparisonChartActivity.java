@@ -7,7 +7,6 @@ import static ro.pandemonium.expense.Constants.LEADING_ZERO_FORMAT;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.util.DateUtil.currentYear;
 
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -95,7 +94,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private TextView currentYearTotalLabel;
 
     private ExpenseDao expenseDao;
-    private Resources resources;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -120,7 +118,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         reportSwitch.setOnCheckedChangeListener(this::switchChart);
         expenseTypeLabel.setText(expenseType.getTextResource());
 
-        resources = getResources();
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         Expense earliestExpense = expenseDao.getEarliestEntry();
@@ -239,7 +236,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
             variationLabel.setText(currentYearMonthValue.intValue() == 0 || lastYearMonthValue.intValue() == 0
                     ? "-"
                     : PERCENT_FORMATTER.format(variation));
-            variationLabel.setTextColor(resources.getColor(variation > 0
+            variationLabel.setTextColor(getColor(variation > 0
                     ? R.color.report_variation_positive
                     : R.color.report_variation_negative));
         }
@@ -262,12 +259,12 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         }
 
         BarDataSet currentYearDataSet = new BarDataSet(currentYearValues, year + "");
-        currentYearDataSet.setColor(resources.getColor(R.color.comparison_chart_current_year_bar));
+        currentYearDataSet.setColor(getColor(R.color.comparison_chart_current_year_bar));
         currentYearDataSet.setValueTextColor(Color.WHITE);
         currentYearDataSet.setValueTextSize(9);
 
         BarDataSet lastYearDataSet = new BarDataSet(lastYearValues, (year - 1) + "");
-        lastYearDataSet.setColor(resources.getColor(R.color.comparison_chart_last_year_bar));
+        lastYearDataSet.setColor(getColor(R.color.comparison_chart_last_year_bar));
         lastYearDataSet.setValueTextColor(Color.WHITE);
         lastYearDataSet.setValueTextSize(9);
 

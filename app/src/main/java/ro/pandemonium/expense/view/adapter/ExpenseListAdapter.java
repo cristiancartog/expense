@@ -67,7 +67,9 @@ public class ExpenseListAdapter extends BaseAdapter {
             view = layoutInflater.inflate(R.layout.expense_list_item, viewGroup, false);
         }
 
-        view.setBackgroundColor(index % 2 == 0 ? view.getResources().getColor(R.color.menu_item_odd) : Color.BLACK);
+        view.setBackgroundColor(index % 2 == 0
+                ? view.getContext().getColor(R.color.menu_item_odd)
+                : Color.BLACK);
 
         final ImageButton deleteButton = view.findViewById(R.id.expenseListItemDelete);
         deleteButton.setTag(index);
