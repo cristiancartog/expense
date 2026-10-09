@@ -10,7 +10,6 @@ import android.widget.AdapterView;
 
 import androidx.appcompat.app.ActionBar;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,15 +68,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         return true;
     }
 
-    @Override
-    public void onBackPressed() {
-        Intent intent = getIntent();
-        intent.putExtra(Constants.INTENT_CHANGED_EXPENSES, (Serializable) changedExpenses);
-        setResult(RESULT_OK, intent);
-
-        super.onBackPressed();
-    }
-
     private void expenseListItemClicked(AdapterView<?> parent, View view, int position, long id) {
         addEditExpense(position);
     }
@@ -98,6 +88,10 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         updateTotal();
 
         changedExpenses.add(expense);
+
+        final Intent result = new Intent();
+        result.putExtra(Constants.INTENT_CHANGED_EXPENSES, new ArrayList<>(changedExpenses));
+        setResult(RESULT_OK, result);
     }
 
     private void repopulateExpenseList(final List<Expense> expenses) {

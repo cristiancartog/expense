@@ -1,5 +1,8 @@
 package ro.pandemonium.expense.activity;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summingDouble;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
@@ -25,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,16 +225,19 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
             Double currentYearValue = currentYearSums.get(expenseType);
             Double lastYearValue = lastYearSums.get(expenseType);
 
-            currentYearSumTexts.get(expenseType).setText(numberFormatter.format(currentYearValue));
-            lastYearSumTexts.get(expenseType).setText(numberFormatter.format(lastYearValue));
-
-            double variation = computeVariation(currentYearValue, lastYearValue);
-            TextView variationText = variationTexts.get(expenseType);
-            updateVariationText(variationText, variation);
+            updateSumText(currentYearSumTexts.get(expenseType), numberFormatter.format(currentYearValue));
+            updateSumText(lastYearSumTexts.get(expenseType), numberFormatter.format(lastYearValue));
+            updateVariationText(variationTexts.get(expenseType), computeVariation(currentYearValue, lastYearValue));
         }
     }
 
+    private void updateSumText(final TextView textView, final String value) {
+        requireNonNull(textView);
+        textView.setText(value);
+    }
+
     private void updateVariationText(final TextView textView, double value) {
+        requireNonNull(textView);
         textView.setTextColor(getColor(value < 0
                 ? R.color.report_variation_negative
                 : R.color.report_variation_positive));
@@ -252,19 +259,20 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
     }
 
     private Map<ExpenseType, Double> groupTotalsByExpenseType(final List<Expense> expenses) {
-        Map<ExpenseType, Double> sums = new HashMap<>();
+        Map<ExpenseType, Double> totals = expenses.stream()
+                .collect(
+                    groupingBy(
+                        Expense::getExpenseType,
+                        () -> new EnumMap<>(ExpenseType.class),
+                        summingDouble(Expense::getValue)
+                ));
 
-        for (ExpenseType expenseType : ExpenseType.values()) {
-            sums.put(expenseType, 0D);
+        // Ensure all enum keys are present with a default of 0.0
+        for (ExpenseType type : ExpenseType.values()) {
+            totals.putIfAbsent(type, 0.0);
         }
 
-        for (Expense expense : expenses) {
-            ExpenseType expenseType = expense.getExpenseType();
-
-            sums.put(expenseType, sums.get(expenseType) + expense.getValue());
-        }
-
-        return sums;
+        return totals;
     }
 
     private double computeVariation(final Double currentYearValue, final Double lastYearValue) {

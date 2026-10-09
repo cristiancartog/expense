@@ -60,7 +60,6 @@ import ro.pandemonium.expense.model.MonthWrapper;
 import ro.pandemonium.expense.task.ExpenseLoaderTask;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
-import ro.pandemonium.expense.view.ExpenseTypeColor;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements DatePickerDialog.OnDateSetListener,
@@ -358,7 +357,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         ArrayList<Integer> colors = new ArrayList<>();
         for (ExpenseType expenseType : ExpenseType.values()) {
-            int color = ExpenseTypeColor.color(expenseType);
+            int color = expenseType.getColor();
             if (color != Color.WHITE) {
                 colors.add(color);
             }

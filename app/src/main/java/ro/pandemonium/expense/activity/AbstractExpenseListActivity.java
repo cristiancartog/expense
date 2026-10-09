@@ -109,7 +109,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 filters -> {
                     lastUsedFilters = filters;
                     expenseListAdapter.filterBy(filters);
-                    filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filtered));
+                    filtersButton.setImageResource(R.mipmap.ic_filtered);
                     updateTotal();
                     filtersUpdated();
                 });
@@ -139,7 +139,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
             expenseListAdapter.clearFilters();
-            filtersButton.setImageDrawable(getResources().getDrawable(R.mipmap.ic_filter));
+            filtersButton.setImageResource(R.mipmap.ic_filter);
         }
         updateTotal();
         filtersUpdated();
