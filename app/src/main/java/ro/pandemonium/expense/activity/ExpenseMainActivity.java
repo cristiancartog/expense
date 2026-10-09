@@ -13,6 +13,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -24,6 +25,8 @@ import android.widget.DatePicker;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
@@ -64,7 +67,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         AdapterView.OnItemClickListener,
         CompoundButton.OnCheckedChangeListener {
 
-    private static final int SELECT_BACKUP_FILE_REQUEST_CODE = 1002;
+    private final ActivityResultLauncher<Intent> searchResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> processSearchResultActivityResult(result.getResultCode(), result.getData()));
+    private final ActivityResultLauncher<String[]> backupFileLauncher = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(), this::processSelectedBackupFile);
 
     private int year;
     private Month month;
@@ -154,7 +161,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void addExpense(final View view) {
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
         addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
-        startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
+        launchAddEditExpense(addExpenseIntent);
     }
 
     public void filterList(final View view) {
@@ -175,7 +182,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
                     final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
                     searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
-                    startActivityForResult(searchDatabaseIntent, ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID);
+                    searchResultLauncher.launch(searchDatabaseIntent);
                 });
     }
 
@@ -232,38 +239,58 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     public void dbRestoreRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        final Intent selectBackupIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        selectBackupIntent.addCategory(Intent.CATEGORY_OPENABLE);
         // File providers do not agree on a MIME type for CSV, so do not hide valid backups.
-        selectBackupIntent.setType("*/*");
-        startActivityForResult(selectBackupIntent, SELECT_BACKUP_FILE_REQUEST_CODE);
+        backupFileLauncher.launch(new String[]{"*/*"});
     }
 
     @Override
-    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID:
-                processAddEditExpenseResult(resultCode, data);
-                break;
-            case ExpenseSearchResultActivity.EXPENSE_SEARCH_RESULT_ACTIVITY_ID:
-                processSearchResultActivityResult(resultCode, data);
-                break;
-            case SELECT_BACKUP_FILE_REQUEST_CODE:
-                processSelectedBackupFile(resultCode, data);
-                break;
-            default:
-                break;
+    void processAddEditExpenseResult(final int resultCode, final Intent data) {
+        if (resultCode != RESULT_OK || data == null) {
+            return;
         }
+
+        final Expense expense = requireNonNull(data.getSerializableExtra(INTENT_EXPENSE, Expense.class));
+        Log.i(APPLICATION_NAME, expense.toString());
+
+        final Long expenseId = expense.getId();
+        boolean newExpenseAddedThisMonth = false;
+
+        if (expenseId == null) { // add new expense
+            expenseDao.persistExpense(expense);
+
+            if (isInSameMonth(expense.getDate())) {
+                clearFilters();
+
+                if (expense.getExpenseType() != ExpenseType.SPECIAL) {
+                    expenseListAdapter.addExpense(expense);
+                    newExpenseAddedThisMonth = true;
+                }
+            }
+        } else { // update existing expense
+            expenseDao.updateExpense(expense);
+            if (!isInSameMonth(expense.getDate())) {
+                expenseListAdapter.deleteExpense(expense);
+            } else {
+                expenseListAdapter.updateExpense(expense);
+            }
+        }
+
+        expenseListAdapter.notifyDataSetChanged();
+
+        if (newExpenseAddedThisMonth) {
+            expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
+        }
+
+        updateTotal();
     }
 
-    private void processSelectedBackupFile(final int resultCode, final Intent data) {
-        if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+    private void processSelectedBackupFile(final Uri backupFile) {
+        if (backupFile == null) {
             return;
         }
 
         try {
-            final List<Expense> expenses = FileUtil.importExpenses(this, data.getData());
+            final List<Expense> expenses = FileUtil.importExpenses(this, backupFile);
             expenseDao.restoreExpenses(expenses);
             repopulateExpenseList(year, month);
         } catch (IOException e) {
@@ -271,47 +298,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
     }
 
-    private void processAddEditExpenseResult(int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            final Expense expense = requireNonNull(data.getSerializableExtra(INTENT_EXPENSE, Expense.class));
-            Log.i(APPLICATION_NAME, expense.toString());
-
-            final Long expenseId = expense.getId();
-            boolean newExpenseAddedThisMonth = false;
-
-            if (expenseId == null) { // add new expense
-                expenseDao.persistExpense(expense);
-
-                if (isInSameMonth(expense.getDate())) {
-                    clearFilters();
-
-                    if (expense.getExpenseType() != ExpenseType.SPECIAL) {
-                        expenseListAdapter.addExpense(expense);
-                        newExpenseAddedThisMonth = true;
-                    }
-                }
-            } else { // update existing expense
-                expenseDao.updateExpense(expense);
-                if (!isInSameMonth(expense.getDate())) {
-                    expenseListAdapter.deleteExpense(expense);
-                } else {
-                    expenseListAdapter.updateExpense(expense);
-                }
-            }
-
-            expenseListAdapter.notifyDataSetChanged();
-
-            if (newExpenseAddedThisMonth) {
-                expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
-            }
-
-            updateTotal();
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private void processSearchResultActivityResult(int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK && data != null) {
             List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES, ArrayList.class);
             expenseListAdapter.updateExpenses(changedExpenses != null ? changedExpenses : new ArrayList<>());
             expenseListAdapter.notifyDataSetChanged();

@@ -21,8 +21,6 @@ import ro.pandemonium.expense.model.Filters;
 
 public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
-    public static final int EXPENSE_SEARCH_RESULT_ACTIVITY_ID = 3;
-
     private final List<Expense> changedExpenses = new ArrayList<>();
 
     public ExpenseSearchResultActivity() {
@@ -85,21 +83,21 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
     }
 
     @Override
-    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID
-                && resultCode == RESULT_OK) {
-            final Expense expense = requireNonNull(data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class));
-            Log.i(Constants.APPLICATION_NAME, expense.toString());
-
-            expenseDao.updateExpense(expense);
-            expenseListAdapter.updateExpense(expense);
-            expenseListAdapter.notifyDataSetChanged();
-
-            updateTotal();
-
-            changedExpenses.add(expense);
+    void processAddEditExpenseResult(final int resultCode, final Intent data) {
+        if (resultCode != RESULT_OK || data == null) {
+            return;
         }
+
+        final Expense expense = requireNonNull(data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class));
+        Log.i(Constants.APPLICATION_NAME, expense.toString());
+
+        expenseDao.updateExpense(expense);
+        expenseListAdapter.updateExpense(expense);
+        expenseListAdapter.notifyDataSetChanged();
+
+        updateTotal();
+
+        changedExpenses.add(expense);
     }
 
     private void repopulateExpenseList(final List<Expense> expenses) {

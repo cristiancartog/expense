@@ -36,7 +36,6 @@ import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
 public class AddEditExpenseActivity extends AppCompatActivity
         implements TextWatcher, DatePickerDialog.OnDateSetListener {
 
-    public static final int ADD_EXPENSE_ACTIVITY_ID = 2;
     private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat(Constants.ADD_ACTIVITY_FORMAT_PATTERN);
 
     private ExpenseTypeSpinnerAdapter expenseTypeSpinnerAdapter;

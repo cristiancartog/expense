@@ -14,6 +14,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NavUtils;
@@ -34,6 +36,10 @@ import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
 public abstract class AbstractExpenseListActivity extends AppCompatActivity {
+
+    private final ActivityResultLauncher<Intent> addEditExpenseLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> processAddEditExpenseResult(result.getResultCode(), result.getData()));
 
     ExpenseDao expenseDao;
     ListView expenseList;
@@ -58,6 +64,8 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     abstract int layoutId();
 
     abstract int toolbarId();
+
+    abstract void processAddEditExpenseResult(int resultCode, Intent data);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -120,8 +128,13 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
         addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
         addExpenseIntent.putExtra(INTENT_EXPENSE_EXPENSE_TO_EDIT, expense);
-        startActivityForResult(addExpenseIntent, AddEditExpenseActivity.ADD_EXPENSE_ACTIVITY_ID);
+        launchAddEditExpense(addExpenseIntent);
     }
+
+    final void launchAddEditExpense(final Intent intent) {
+        addEditExpenseLauncher.launch(intent);
+    }
+
 
     void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
