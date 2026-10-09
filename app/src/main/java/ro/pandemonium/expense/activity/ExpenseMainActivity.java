@@ -22,7 +22,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -37,6 +36,7 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import androidx.appcompat.widget.SwitchCompat;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -123,7 +123,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         pieChart.setHoleColor(Color.TRANSPARENT);
         pieChart.highlightValues(null); // undo all highlights
 
-        Switch listChartSwitch = findViewById(R.id.expenseListSwitchChartReportButton);
+        SwitchCompat listChartSwitch = findViewById(R.id.expenseListSwitchChartReportButton);
         listChartSwitch.setOnCheckedChangeListener(this);
 
         final LocalDate now = LocalDate.now();

@@ -1,5 +1,6 @@
 package ro.pandemonium.expense.activity.chart;
 
+import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
@@ -15,14 +16,15 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -58,6 +60,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private static final NumberFormat NUMBER_FORMAT = new DecimalFormat(LEADING_ZERO_FORMAT);
 
     private static final String[] MONTHS = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
+    private static final Double ZERO_THRESHOLD = 0.000001D;
     private static final SparseArray<String> MONTHS_MAP = new SparseArray<>();
 
     static {
@@ -107,7 +110,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
 
         barChart = findViewById(R.id.yearComparisonBarChart);
         report = findViewById(R.id.yearlyComparisonListReport);
-        Switch reportSwitch = findViewById(R.id.yearComparisonSwitchChartReportButton);
+        SwitchCompat reportSwitch = findViewById(R.id.yearComparisonSwitchChartReportButton);
         currentYearLabel = findViewById(R.id.yearlyComparisonCurrentYearText);
         TextView expenseTypeLabel = findViewById(R.id.yearComparisonChartExpenseType);
         lastYearReportLabel = findViewById(R.id.yearComparisonLastYearLabel);
@@ -141,7 +144,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         xl.setDrawGridLines(false);
         xl.setValueFormatter(new ValueFormatter() {
             @Override
-            public String getAxisLabel(final float value, final com.github.mikephil.charting.components.AxisBase axis) {
+            public String getAxisLabel(final float value, final AxisBase axis) {
                 return MONTHS_MAP.get((int) value);
             }
         });
@@ -190,14 +193,15 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     }
 
     private int parseLeadingZeroNumber(final String leadingZeroNumber) {
-        int number = 0;
         try {
-            number = NUMBER_FORMAT.parse(leadingZeroNumber).intValue();
+            Number number = NUMBER_FORMAT.parse(leadingZeroNumber);
+            requireNonNull(number);
+            return number.intValue();
         } catch (ParseException e) {
             Log.w(APPLICATION_NAME, "Could not parse " + leadingZeroNumber + " ot number. Using default.");
             e.printStackTrace();
         }
-        return number;
+        return 0;
     }
 
     private TextView valueTextView() {
@@ -225,21 +229,44 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         recreateDataSets(currentYearData, lastYearData);
 
         for (String month : MONTHS) {
-            Double currentYearMonthValue = currentYearData.get(month);
-            Double lastYearMonthValue = lastYearData.get(month);
+            Double currentYearMonthValue = currentYearData.getOrDefault(month, 0D);
+            Double lastYearMonthValue = lastYearData.getOrDefault(month, 0D);
 
-            monthToCurrentYearValue.get(month).setText(VALUE_FORMATTER.format(currentYearMonthValue));
-            monthToLastYearValue.get(month).setText(VALUE_FORMATTER.format(lastYearMonthValue));
+            setTextOnNullableTextView(monthToCurrentYearValue.get(month), VALUE_FORMATTER.format(currentYearMonthValue));
+            setTextOnNullableTextView(monthToLastYearValue.get(month), VALUE_FORMATTER.format(lastYearMonthValue));
 
             TextView variationLabel = monthToVariationLabel.get(month);
             double variation = computeVariation(currentYearMonthValue, lastYearMonthValue);
-            variationLabel.setText(currentYearMonthValue.intValue() == 0 || lastYearMonthValue.intValue() == 0
-                    ? "-"
-                    : PERCENT_FORMATTER.format(variation));
+            requireNonNull(variationLabel);
+            variationLabel.setText(formatVariation(currentYearMonthValue, lastYearMonthValue, variation));
             variationLabel.setTextColor(getColor(variation > 0
                     ? R.color.report_variation_positive
                     : R.color.report_variation_negative));
         }
+    }
+
+    private String formatVariation(final Double currentYearMonthValue, final Double lastYearMonthValue, final Double variation) {
+        if (isZero(currentYearMonthValue) || isZero(lastYearMonthValue)) {
+            return "-";
+        }
+
+        return PERCENT_FORMATTER.format(variation);
+    }
+
+    private double computeVariation(final Double currentYearMonthValue, final Double lastYearMonthValue) {
+        if (isZero(lastYearMonthValue)) {
+            return 0D;
+        }
+        return (currentYearMonthValue - lastYearMonthValue) / lastYearMonthValue;
+    }
+
+    public boolean isZero(double value) {
+        return value >= -ZERO_THRESHOLD && value <= ZERO_THRESHOLD;
+    }
+
+    private void setTextOnNullableTextView(final TextView textView, final String text) {
+        requireNonNull(textView);
+        textView.setText(text);
     }
 
     private void recreateDataSets(final Map<String, Double> currentYearData,
@@ -284,12 +311,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         barChart.groupBars(0, groupSpace, barSpace);
         barChart.notifyDataSetChanged();
         barChart.invalidate();
-    }
-
-    private double computeVariation(final Double currentYearValue, final Double lastYearValue) {
-        return lastYearValue != null ?
-                (currentYearValue - lastYearValue) / lastYearValue :
-                0;
     }
 
     private void switchChart(final CompoundButton buttonView, final boolean isChecked) {
