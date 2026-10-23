@@ -15,6 +15,8 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,14 +52,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
-import ro.pandemonium.expense.model.MonthWrapper;
-import ro.pandemonium.expense.task.ExpenseLoaderTask;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
 
@@ -71,6 +74,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             result -> processSearchResultActivityResult(result.getResultCode(), result.getData()));
     private final ActivityResultLauncher<String[]> backupFileLauncher = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(), this::processSelectedBackupFile);
+
+    private final ExecutorService expenseLoaderExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+    private int expenseLoadGeneration;
+    private Future<?> expenseLoaderFuture;
+
 
     private int year;
     private Month month;
@@ -321,16 +330,35 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void repopulateExpenseList(final int year, final Month month) {
-        new ExpenseLoaderTask(expenseDao, expenses -> {
-            clearFilters();
-            expenses.sort(mapSortingMenuItemToComparator.get(1));
-            expenseListAdapter.updateExpenseList(expenses);
-            updateTotal();
-            updateMonthButtonLabel();
-            expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
+        final int loadGeneration = ++expenseLoadGeneration;
+        if (expenseLoaderFuture != null) {
+            expenseLoaderFuture.cancel(true);
+        }
 
-            updatePieData();
-        }).execute(new MonthWrapper(year, month));
+        expenseLoaderFuture = expenseLoaderExecutor.submit(() -> {
+            final List<Expense> expenses = expenseDao.fetchExpenses(year, month);
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
+            mainThreadHandler.post(() -> {
+                if (loadGeneration != expenseLoadGeneration || isDestroyed()) {
+                    return;
+                }
+
+                repopulateExpenseList(expenses);
+            });
+        });
+    }
+
+    private void repopulateExpenseList(final List<Expense> expenses) {
+        clearFilters();
+        expenses.sort(mapSortingMenuItemToComparator.get(1));
+        expenseListAdapter.updateExpenseList(expenses);
+        updateTotal();
+        updateMonthButtonLabel();
+        expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
+        updatePieData();
     }
 
     @Override
@@ -394,6 +422,14 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     protected void onDestroy() {
+        expenseLoadGeneration++;
+        if (expenseLoaderFuture != null) {
+            expenseLoaderFuture.cancel(true);
+            expenseLoaderFuture = null;
+        }
+        mainThreadHandler.removeCallbacksAndMessages(null);
+        expenseLoaderExecutor.shutdownNow();
+
         super.onDestroy();
 //        expenseDao.closeDatabase();
     }

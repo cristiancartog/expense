@@ -10,6 +10,8 @@ import static ro.pandemonium.expense.util.DateUtil.currentYear;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -41,6 +43,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
@@ -48,9 +53,7 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.model.YearlyReportParams;
 import ro.pandemonium.expense.model.YearlyReportResult;
-import ro.pandemonium.expense.task.YearlyReportTask;
 import ro.pandemonium.expense.util.SystemBarInsets;
 
 public class YearComparisonChartActivity extends AppCompatActivity {
@@ -87,6 +90,8 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private final Map<String, TextView> monthToLastYearValue = new HashMap<>();
     private final Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
     private final Map<String, TextView> monthToVariationLabel = new HashMap<>();
+    private final ExecutorService reportExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     private BarChart barChart;
     private TableLayout report;
@@ -97,6 +102,8 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private TextView currentYearTotalLabel;
 
     private ExpenseDao expenseDao;
+    private int reportGeneration;
+    private Future<?> reportFuture;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -212,8 +219,43 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     }
 
     private void updateDataAsync() {
-        new YearlyReportTask(expenseDao, this::updateData)
-                .execute(new YearlyReportParams(expenseType, year));
+        final int requestedYear = year;
+        final ExpenseType requestedExpenseType = expenseType;
+        final int requestedGeneration = ++reportGeneration;
+
+        if (reportFuture != null) {
+            reportFuture.cancel(true);
+        }
+
+        reportFuture = reportExecutor.submit(() -> {
+            final YearlyReportResult result = createYearlyReport(requestedExpenseType, requestedYear);
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
+            mainThreadHandler.post(() -> {
+                if (requestedGeneration != reportGeneration || isDestroyed()) {
+                    return;
+                }
+                updateData(result);
+            });
+        });
+    }
+
+    private YearlyReportResult createYearlyReport(final ExpenseType reportExpenseType, final int reportYear) {
+        final Map<String, Double> currentYearExpenses = expenseDao.getMonthlySummaryInYear(reportExpenseType, reportYear);
+        final Map<String, Double> lastYearExpenses = expenseDao.getMonthlySummaryInYear(reportExpenseType, reportYear - 1);
+
+        fillMissingMonths(currentYearExpenses);
+        fillMissingMonths(lastYearExpenses);
+
+        return new YearlyReportResult(currentYearExpenses, lastYearExpenses);
+    }
+
+    private void fillMissingMonths(final Map<String, Double> monthlyExpenses) {
+        for (String month : MONTHS) {
+            monthlyExpenses.putIfAbsent(month, 0D);
+        }
     }
 
     private void updateData(final YearlyReportResult yearlyReportResult) {
@@ -330,6 +372,19 @@ public class YearComparisonChartActivity extends AppCompatActivity {
             year--;
             updateDataAsync();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        reportGeneration++;
+        if (reportFuture != null) {
+            reportFuture.cancel(true);
+            reportFuture = null;
+        }
+        mainThreadHandler.removeCallbacksAndMessages(null);
+        reportExecutor.shutdownNow();
+
+        super.onDestroy();
     }
 
 }
