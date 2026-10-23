@@ -9,37 +9,37 @@ import android.util.Log;
 
 public class ExpenseOpenHelper extends SQLiteOpenHelper {
 
-    private static final int VERSION_NUMBER = 9;
+    private static final int DB_VERSION = 1;
     private static final String DB_NAME = "expenses.db";
 
     public ExpenseOpenHelper(final Context context) {
-        super(context, DB_NAME, null, VERSION_NUMBER);
-        Log.i(APPLICATION_NAME, "create db: " + DB_NAME + " version: " + VERSION_NUMBER);
+        super(context, DB_NAME, null, DB_VERSION);
+        Log.i(APPLICATION_NAME, "create db: " + DB_NAME + " version: " + DB_VERSION);
     }
 
     @Override
-    public void onCreate(final SQLiteDatabase sqLiteDatabase) {
+    public void onCreate(final SQLiteDatabase database) {
         Log.i(APPLICATION_NAME, "onCreate()");
-        sqLiteDatabase.execSQL(generateExpenseTableSql());
+
+        database.execSQL("""
+            CREATE TABLE EXPENSES(
+                _ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                EXPENSE_TYPE INTEGER NOT NULL,
+                VALUE REAL NOT NULL,
+                DATE TEXT NOT NULL,
+                COMMENT TEXT)
+            """);
+
+        database.execSQL("""
+            CREATE INDEX IF NOT EXISTS
+                IDX_EXPENSE_DATE ON EXPENSES(DATE)
+            """
+        );
     }
 
     @Override
     public void onUpgrade(final SQLiteDatabase sqLiteDatabase, final int oldVersion, final int newVersion) {
-        Log.i(APPLICATION_NAME, "onUpdate()");
-
-//        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS EXPENSES");
-
-        onCreate(sqLiteDatabase);
+        Log.i(APPLICATION_NAME, "%s onUpgrade(sqliteDatabase, %d, %d)".formatted(sqLiteDatabase.getPath(), oldVersion, newVersion));
     }
 
-    private String generateExpenseTableSql() {
-        String query = "CREATE TABLE EXPENSES(";
-        query += " _ID INTEGER PRIMARY KEY AUTOINCREMENT,";
-        query += " EXPENSE_TYPE INTEGER NOT NULL,";
-        query += " VALUE REAL NOT NULL,";
-        query += " DATE TEXT NOT NULL,";
-        query += " COMMENT TEXT)";
-
-        return query;
-    }
 }
