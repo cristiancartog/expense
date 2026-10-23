@@ -10,8 +10,6 @@ import static ro.pandemonium.expense.util.DateUtil.currentYear;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
@@ -43,9 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.ExpenseApplication;
@@ -55,6 +50,7 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportResult;
 import ro.pandemonium.expense.util.SystemBarInsets;
+import ro.pandemonium.expense.util.TaskRunner;
 
 public class YearComparisonChartActivity extends AppCompatActivity {
 
@@ -90,8 +86,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private final Map<String, TextView> monthToLastYearValue = new HashMap<>();
     private final Map<String, TextView> monthToCurrentYearValue = new HashMap<>();
     private final Map<String, TextView> monthToVariationLabel = new HashMap<>();
-    private final ExecutorService reportExecutor = Executors.newSingleThreadExecutor();
-    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     private BarChart barChart;
     private TableLayout report;
@@ -102,12 +96,12 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private TextView currentYearTotalLabel;
 
     private ExpenseDao expenseDao;
-    private int reportGeneration;
-    private Future<?> reportFuture;
+    private TaskRunner reportLoader;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        reportLoader = new TaskRunner(this);
 
         setContentView(R.layout.year_comparison_chart_appbar);
         SystemBarInsets.keepContentInsideSystemBars(this);
@@ -221,25 +215,10 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private void updateDataAsync() {
         final int requestedYear = year;
         final ExpenseType requestedExpenseType = expenseType;
-        final int requestedGeneration = ++reportGeneration;
 
-        if (reportFuture != null) {
-            reportFuture.cancel(true);
-        }
-
-        reportFuture = reportExecutor.submit(() -> {
-            final YearlyReportResult result = createYearlyReport(requestedExpenseType, requestedYear);
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
-
-            mainThreadHandler.post(() -> {
-                if (requestedGeneration != reportGeneration || isDestroyed()) {
-                    return;
-                }
-                updateData(result);
-            });
-        });
+        reportLoader.submit(
+                () -> createYearlyReport(requestedExpenseType, requestedYear),
+                this::updateData);
     }
 
     private YearlyReportResult createYearlyReport(final ExpenseType reportExpenseType, final int reportYear) {
@@ -372,19 +351,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
             year--;
             updateDataAsync();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        reportGeneration++;
-        if (reportFuture != null) {
-            reportFuture.cancel(true);
-            reportFuture = null;
-        }
-        mainThreadHandler.removeCallbacksAndMessages(null);
-        reportExecutor.shutdownNow();
-
-        super.onDestroy();
     }
 
 }

@@ -15,8 +15,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,9 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
@@ -63,6 +58,7 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
+import ro.pandemonium.expense.util.TaskRunner;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements DatePickerDialog.OnDateSetListener,
@@ -75,12 +71,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private final ActivityResultLauncher<String[]> backupFileLauncher = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(), this::processSelectedBackupFile);
 
-    private final ExecutorService expenseLoaderExecutor = Executors.newSingleThreadExecutor();
-    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
-    private int expenseLoadGeneration;
-    private Future<?> expenseLoaderFuture;
-
-
     private int year;
     private Month month;
 
@@ -90,6 +80,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
     // dialogs
     private Filters lastUsedGlobalFilters;
+    private TaskRunner expenseLoader;
 
     public ExpenseMainActivity() {
     }
@@ -107,6 +98,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        expenseLoader = new TaskRunner(this);
 
         drawerLayout = findViewById(R.id.main_drawer);
 
@@ -330,25 +322,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void repopulateExpenseList(final int year, final Month month) {
-        final int loadGeneration = ++expenseLoadGeneration;
-        if (expenseLoaderFuture != null) {
-            expenseLoaderFuture.cancel(true);
-        }
-
-        expenseLoaderFuture = expenseLoaderExecutor.submit(() -> {
-            final List<Expense> expenses = expenseDao.fetchExpenses(year, month);
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
-
-            mainThreadHandler.post(() -> {
-                if (loadGeneration != expenseLoadGeneration || isDestroyed()) {
-                    return;
-                }
-
-                repopulateExpenseList(expenses);
-            });
-        });
+        expenseLoader.submit(
+                () -> expenseDao.fetchExpenses(year, month),
+                this::repopulateExpenseList);
     }
 
     private void repopulateExpenseList(final List<Expense> expenses) {
@@ -422,14 +398,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     protected void onDestroy() {
-        expenseLoadGeneration++;
-        if (expenseLoaderFuture != null) {
-            expenseLoaderFuture.cancel(true);
-            expenseLoaderFuture = null;
-        }
-        mainThreadHandler.removeCallbacksAndMessages(null);
-        expenseLoaderExecutor.shutdownNow();
-
         super.onDestroy();
 //        expenseDao.closeDatabase();
     }
