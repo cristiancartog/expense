@@ -27,6 +27,7 @@
     <string name="expenseListActivityTitle">Monthly Expenses</string>
     <string name="expenseListActivityChangeMonth">Change month</string>
     <string name="expenseListActivityExportSuccessful">Export successful</string>
+    <string name="expenseListActivityRestoreSuccessful">Restore successful</string>
     <string name="expenseListSwitchList">List</string>
     <string name="expenseListSwitchChart">Chart</string>
     <string name="expenseListPreviousMonthButton">previous month</string>
@@ -112,6 +113,13 @@
     <!-- import/export db -->
     <string name="importExportDialogRestoreButton">Restore</string>
     <string name="importExportDialogCancelButton">Cancel</string>
+    <string name="databaseDumpProgressTitle">Database dump</string>
+    <string name="databaseRestoreProgressTitle">Database restore</string>
+    <string name="databaseDumpPreparing">Preparing expenses…</string>
+    <string name="databaseRestoreReading">Reading backup…</string>
+    <string name="databaseDumpProgress">Dumping %1$d of %2$d expenses</string>
+    <string name="databaseRestoreProgress">Restoring %1$d of %2$d expenses</string>
+    <string name="databaseProgressPercentage">%1$d%%</string>
 
     <!-- expense menu item -->
     <string name="expenseMenuItemNr">No</string>

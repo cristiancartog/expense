@@ -11,10 +11,18 @@ import androidx.lifecycle.LifecycleOwner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class TaskRunner implements DefaultLifecycleObserver, AutoCloseable {
+
+    private static final Consumer<Object> NO_OP_CONSUMER = ignored -> { };
+
+    @FunctionalInterface
+    public interface ProgressTask<P> {
+        void run(Consumer<P> progressPublisher) throws Exception;
+    }
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -29,7 +37,22 @@ public final class TaskRunner implements DefaultLifecycleObserver, AutoCloseable
     }
 
     @MainThread
-    public <T> void submit(final Supplier<T> backgroundOperation, final Consumer<T> resultConsumer) {
+    public <T> void submit(final Supplier<T> backgroundOperation,
+                           final Consumer<T> resultConsumer) {
+        final AtomicReference<T> result = new AtomicReference<>();
+        submitWithProgress(
+                progressPublisher -> result.set(backgroundOperation.get()),
+                NO_OP_CONSUMER,
+                () -> resultConsumer.accept(result.get()),
+                NO_OP_CONSUMER
+        );
+    }
+
+    @MainThread
+    public <P> void submitWithProgress(final ProgressTask<P> backgroundOperation,
+                                       final Consumer<? super P> progressConsumer,
+                                       final Runnable completionCallback,
+                                       final Consumer<? super Exception> errorConsumer) {
         if (closed) {
             throw new IllegalStateException("Cannot submit work to a closed TaskRunner");
         }
@@ -40,16 +63,28 @@ public final class TaskRunner implements DefaultLifecycleObserver, AutoCloseable
         }
 
         currentTask = executor.submit(() -> {
-            final T result = backgroundOperation.get();
-            if (Thread.currentThread().isInterrupted()) {
+            final Consumer<P> progressPublisher = progress -> postIfCurrent(
+                    taskGeneration, () -> progressConsumer.accept(progress));
+            try {
+                backgroundOperation.run(progressPublisher);
+            } catch (Exception error) {
+                if (!Thread.currentThread().isInterrupted()) {
+                    postIfCurrent(taskGeneration, () -> errorConsumer.accept(error));
+                }
                 return;
             }
 
-            mainThreadHandler.post(() -> {
-                if (!closed && taskGeneration == generation) {
-                    resultConsumer.accept(result);
-                }
-            });
+            if (!Thread.currentThread().isInterrupted()) {
+                postIfCurrent(taskGeneration, completionCallback);
+            }
+        });
+    }
+
+    private void postIfCurrent(final int taskGeneration, final Runnable callback) {
+        mainThreadHandler.post(() -> {
+            if (!closed && taskGeneration == generation) {
+                callback.run();
+            }
         });
     }
 

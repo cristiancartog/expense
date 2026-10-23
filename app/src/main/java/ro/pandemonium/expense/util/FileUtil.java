@@ -5,7 +5,6 @@ import static java.time.LocalDateTime.now;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP;
-import static ro.pandemonium.expense.util.StringUtils.isNotEmpty;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -25,9 +24,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.IntConsumer;
 
 import ro.pandemonium.expense.model.Expense;
 
@@ -40,48 +39,13 @@ public class FileUtil {
     private static final String CSV_MIME_TYPE = "text/csv";
     private static final DateTimeFormatter CSV_DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DB);
 
-    public static void exportExpenses(final Context context, final List<Expense> expenses) throws IOException {
+    public static void exportExpenses(final Context context,
+                                      final List<Expense> expenses,
+                                      final IntConsumer progressConsumer) throws IOException {
+
         final DateTimeFormatter fileNameDateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_FILE_TIMESTAMP, Locale.getDefault());
         final String fileName = DEFAULT_FILE_NAME_PREFIX + fileNameDateFormatter.format(now()) + DEFAULT_FILE_NAME_SUFFIX;
 
-        exportExpensesToMediaStore(context, expenses, fileName);
-    }
-
-    public static List<Expense> importExpenses(final Context context, final Uri backupUri) throws IOException {
-        try {
-            final InputStream inputStream = context.getContentResolver().openInputStream(backupUri);
-            if (inputStream == null) {
-                throw new FileUtilException("Could not open the selected backup file.");
-            }
-            return readExpenses(inputStream);
-        } catch (ParseException e) {
-            Log.w(CLASS_NAME, requireNonNull(e.getMessage()));
-            throw new IOException(e);
-        }
-    }
-
-    public static List<String> fetchAllBackupFiles(final Context context) {
-        final List<String> fileNames = new ArrayList<>();
-        final String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
-        final String selection = MediaStore.MediaColumns.RELATIVE_PATH + " = ? AND "
-                + MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?";
-        final String[] selectionArgs = {backupRelativePath(), "%" + DEFAULT_FILE_NAME_SUFFIX};
-
-        try (Cursor cursor = context.getContentResolver().query(
-                backupCollection(), projection, selection, selectionArgs, null)) {
-            if (cursor != null) {
-                final int nameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
-                while (cursor.moveToNext()) {
-                    fileNames.add(cursor.getString(nameColumn));
-                }
-            }
-        }
-        return fileNames;
-    }
-
-    private static void exportExpensesToMediaStore(final Context context,
-                                                   final List<Expense> expenses,
-                                                   final String fileName) throws IOException {
         if (findBackupUri(context, fileName) != null) {
             throw new FileUtilException("File already exists, wait a second and try again.");
         }
@@ -98,16 +62,18 @@ public class FileUtil {
             throw new FileUtilException("Could not create backup file.");
         }
 
-        try {
-            final OutputStream outputStream = resolver.openOutputStream(exportUri);
+        try (final OutputStream outputStream = resolver.openOutputStream(exportUri)) {
             if (outputStream == null) {
                 throw new FileUtilException("Could not open backup file for writing.");
             }
 
             try (OutputStreamWriter fileWriter = new OutputStreamWriter(outputStream, UTF_8)) {
+                int exportedCount = 0;
                 for (Expense expense : expenses) {
                     fileWriter.write(expense.toCsv(CSV_DATE_FORMATTER));
                     fileWriter.write("\n");
+                    exportedCount++;
+                    progressConsumer.accept(exportedCount);
                 }
             }
 
@@ -122,17 +88,17 @@ public class FileUtil {
 
     private static Uri findBackupUri(final Context context, final String fileName) {
         final String[] projection = {MediaStore.MediaColumns._ID};
-        final String selection = MediaStore.MediaColumns.RELATIVE_PATH + " = ? AND "
-                + MediaStore.MediaColumns.DISPLAY_NAME + " = ?";
+        final String selection = MediaStore.MediaColumns.RELATIVE_PATH + " = ? AND " + MediaStore.MediaColumns.DISPLAY_NAME + " = ?";
         final String[] selectionArgs = {backupRelativePath(), fileName};
 
-        try (Cursor cursor = context.getContentResolver().query(
-                backupCollection(), projection, selection, selectionArgs, null)) {
+        try (Cursor cursor = context.getContentResolver()
+                                    .query(backupCollection(), projection, selection, selectionArgs, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 final long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
                 return ContentUris.withAppendedId(backupCollection(), id);
             }
         }
+
         return null;
     }
 
@@ -144,17 +110,24 @@ public class FileUtil {
         return Environment.DIRECTORY_DOCUMENTS + "/" + EXPENSE_DB_BACKUP_FOLDER + "/";
     }
 
-    private static List<Expense> readExpenses(final InputStream inputStream) throws IOException, ParseException {
-        final List<Expense> expenses = new ArrayList<>();
-        try (final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
-            String line;
-
-            while ((line = in.readLine()) != null) {
-                if (isNotEmpty(line)) {
-                    expenses.add(Expense.fromCsv(line, CSV_DATE_FORMATTER));
-                }
-            }
+    public static List<Expense> importExpenses(final Context context, final Uri backupUri) throws IOException {
+        final ContentResolver contentResolver = context.getContentResolver();
+        try (final InputStream inputStream = contentResolver.openInputStream(backupUri)) {
+            return readExpenses(inputStream);
+        } catch (ParseException e) {
+            Log.w(CLASS_NAME, requireNonNull(e.getMessage()));
+            throw new IOException(e);
         }
-        return expenses;
     }
+
+    private static List<Expense> readExpenses(final InputStream inputStream) throws IOException, ParseException {
+        try (final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
+            return in
+                    .lines()
+                    .filter(StringUtils::isNotEmpty)
+                    .map(line -> Expense.fromCsv(line, CSV_DATE_FORMATTER))
+                    .toList();
+        }
+    }
+
 }

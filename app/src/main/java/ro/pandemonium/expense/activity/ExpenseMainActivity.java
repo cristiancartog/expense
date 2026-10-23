@@ -10,6 +10,7 @@ import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 
 import android.app.DatePickerDialog;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -22,6 +23,8 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -50,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
@@ -62,14 +66,17 @@ import ro.pandemonium.expense.util.TaskRunner;
 
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements DatePickerDialog.OnDateSetListener,
-        AdapterView.OnItemClickListener,
-        CompoundButton.OnCheckedChangeListener {
+            AdapterView.OnItemClickListener,
+            CompoundButton.OnCheckedChangeListener {
 
     private final ActivityResultLauncher<Intent> searchResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
-            result -> processSearchResultActivityResult(result.getResultCode(), result.getData()));
+            result -> processSearchResultActivityResult(result.getResultCode(), result.getData())
+    );
     private final ActivityResultLauncher<String[]> backupFileLauncher = registerForActivityResult(
-            new ActivityResultContracts.OpenDocument(), this::processSelectedBackupFile);
+            new ActivityResultContracts.OpenDocument(),
+            this::processSelectedBackupFile
+    );
 
     private int year;
     private Month month;
@@ -81,6 +88,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     // dialogs
     private Filters lastUsedGlobalFilters;
     private TaskRunner expenseLoader;
+    private TaskRunner databaseTransferRunner;
+    private AlertDialog databaseTransferDialog;
+    private ProgressBar databaseTransferProgress;
+    private TextView databaseTransferStatus;
+    private TextView databaseTransferPercentage;
 
     public ExpenseMainActivity() {
     }
@@ -99,6 +111,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         expenseLoader = new TaskRunner(this);
+        databaseTransferRunner = new TaskRunner(this);
 
         drawerLayout = findViewById(R.id.main_drawer);
 
@@ -228,13 +241,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     public void dbDumpRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        try {
-            final List<Expense> allExpenses = expenseDao.fetchExpenses(null, null);
-            FileUtil.exportExpenses(this, allExpenses);
-            Toast.makeText(this, R.string.expenseListActivityExportSuccessful, Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        showDatabaseTransferDialog(R.string.databaseDumpProgressTitle, R.string.databaseDumpPreparing);
+        databaseTransferRunner.submitWithProgress(
+                this::dumpDatabase,
+                this::updateDatabaseTransferDialog,
+                () -> finishDatabaseTransfer(R.string.expenseListActivityExportSuccessful, false),
+                this::failDatabaseTransfer);
     }
 
     public void dbRestoreRequested(@NonNull final MenuItem item) {
@@ -289,12 +301,116 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             return;
         }
 
-        try {
-            final List<Expense> expenses = FileUtil.importExpenses(this, backupFile);
-            expenseDao.restoreExpenses(expenses);
+        showDatabaseTransferDialog(R.string.databaseRestoreProgressTitle, R.string.databaseRestoreReading);
+        databaseTransferRunner.submitWithProgress(
+                progressPublisher -> restoreDatabase(backupFile, progressPublisher),
+                this::updateDatabaseTransferDialog,
+                () -> finishDatabaseTransfer(R.string.expenseListActivityRestoreSuccessful, true),
+                this::failDatabaseTransfer);
+    }
+
+    private void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
+        final List<Expense> expenses = expenseDao.fetchExpenses(null, null);
+        final ProgressPublisher throttledProgress = new ProgressPublisher(expenses.size(), false, progressPublisher);
+        throttledProgress.publish(0, true);
+        FileUtil.exportExpenses(this, expenses, count -> throttledProgress.publish(count, false));
+        throttledProgress.publish(expenses.size(), true);
+    }
+
+    private void restoreDatabase(final Uri backupFile,
+                                 final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
+        final List<Expense> expenses = FileUtil.importExpenses(this, backupFile);
+        final ProgressPublisher throttledProgress = new ProgressPublisher(expenses.size(), true, progressPublisher);
+        throttledProgress.publish(0, true);
+        expenseDao.restoreExpenses(expenses, count -> throttledProgress.publish(count, false));
+        throttledProgress.publish(expenses.size(), true);
+    }
+
+    private void showDatabaseTransferDialog(final int titleResource, final int statusResource) {
+        final View content = getLayoutInflater().inflate(R.layout.database_transfer_progress, null);
+        databaseTransferStatus = content.findViewById(R.id.databaseTransferStatus);
+        databaseTransferProgress = content.findViewById(R.id.databaseTransferProgress);
+        databaseTransferPercentage = content.findViewById(R.id.databaseTransferPercentage);
+        databaseTransferStatus.setText(statusResource);
+        databaseTransferProgress.setIndeterminate(true);
+        databaseTransferPercentage.setText("");
+
+        databaseTransferDialog = new AlertDialog.Builder(this)
+                .setTitle(titleResource)
+                .setView(content)
+                .setCancelable(false)
+                .create();
+        databaseTransferDialog.show();
+    }
+
+    private void updateDatabaseTransferDialog(final DatabaseTransferProgress progress) {
+        if (databaseTransferDialog == null || !databaseTransferDialog.isShowing()) {
+            return;
+        }
+
+        final int percentage = progress.total() == 0
+                ? 100
+                : progress.completed() * 100 / progress.total();
+        databaseTransferProgress.setIndeterminate(false);
+        databaseTransferProgress.setProgress(percentage, true);
+        databaseTransferStatus.setText(getString(
+                progress.restore() ? R.string.databaseRestoreProgress : R.string.databaseDumpProgress,
+                progress.completed(), progress.total()));
+        databaseTransferPercentage.setText(getString(R.string.databaseProgressPercentage, percentage));
+    }
+
+    private void finishDatabaseTransfer(final int successMessage,
+                                        final boolean refreshExpenses) {
+        dismissDatabaseTransferDialog();
+        Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
+        if (refreshExpenses) {
             repopulateExpenseList(year, month);
-        } catch (IOException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void failDatabaseTransfer(final Exception error) {
+        dismissDatabaseTransferDialog();
+        final String message = error.getMessage() != null ? error.getMessage() : error.toString();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    private void dismissDatabaseTransferDialog() {
+        if (databaseTransferDialog != null) {
+            databaseTransferDialog.dismiss();
+            databaseTransferDialog = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        dismissDatabaseTransferDialog();
+        super.onDestroy();
+    }
+
+    private record DatabaseTransferProgress(int completed, int total, boolean restore) { }
+
+    private static final class ProgressPublisher {
+        private static final long UPDATE_INTERVAL_MILLIS = 1_000L;
+
+        private final int total;
+        private final boolean restore;
+        private final Consumer<DatabaseTransferProgress> publisher;
+        private long lastPublishedAt;
+
+        private ProgressPublisher(final int total,
+                                  final boolean restore,
+                                  final Consumer<DatabaseTransferProgress> publisher) {
+            this.total = total;
+            this.restore = restore;
+            this.publisher = publisher;
+        }
+
+        private void publish(final int completed, final boolean force) {
+            final long now = System.currentTimeMillis();
+            if (force || now - lastPublishedAt >= UPDATE_INTERVAL_MILLIS) {
+                lastPublishedAt = now;
+                publisher.accept(new DatabaseTransferProgress(completed, total, restore));
+            }
         }
     }
 

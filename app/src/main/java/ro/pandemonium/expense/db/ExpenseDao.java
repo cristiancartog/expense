@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.IntConsumer;
 
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.model.Expense;
@@ -275,10 +276,23 @@ public class ExpenseDao {
         }
     }
 
-    public void restoreExpenses(final List<Expense> expenses) {
-        database.execSQL("DELETE FROM " + EXPENSES_TABLE);
+    public void restoreExpenses(final List<Expense> expenses, final IntConsumer progressConsumer) {
+        checkDatabaseAvailability();
 
-        expenses.forEach(this::persistExpense);
+        database.beginTransaction();
+        try {
+            database.execSQL("DELETE FROM " + EXPENSES_TABLE);
+
+            int restoredCount = 0;
+            for (Expense expense : expenses) {
+                persistExpense(expense);
+                restoredCount++;
+                progressConsumer.accept(restoredCount);
+            }
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
     }
 
     @VisibleForTesting
