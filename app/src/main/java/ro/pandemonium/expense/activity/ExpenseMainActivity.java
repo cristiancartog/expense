@@ -396,9 +396,4 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        expenseDao.closeDatabase();
-    }
 }

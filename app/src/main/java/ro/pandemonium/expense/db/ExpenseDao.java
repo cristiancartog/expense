@@ -12,7 +12,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import java.io.Serializable;
+import androidx.annotation.VisibleForTesting;
+
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +32,7 @@ import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
 
-public class ExpenseDao implements Serializable {
+public class ExpenseDao {
 
     private static final String CLASS_NAME = ExpenseDao.class.getSimpleName();
     private static final String EXPENSES_TABLE = "EXPENSES";
@@ -102,8 +103,9 @@ public class ExpenseDao implements Serializable {
         checkDatabaseAvailability();
 
         String query = createFetchExpensesQueryString(filters);
-        Cursor cursor = database.rawQuery(query, null);
-        return extractExpenses(cursor);
+        try (Cursor cursor = database.rawQuery(query, null)) {
+            return extractExpenses(cursor);
+        }
     }
 
     private String createFetchExpensesQueryString(final Filters filters) {
@@ -279,7 +281,8 @@ public class ExpenseDao implements Serializable {
         expenses.forEach(this::persistExpense);
     }
 
-//    public void closeDatabase() {
-//        database.close();
-//    }
+    @VisibleForTesting
+    public void closeDatabase() {
+        database.close();
+    }
 }
