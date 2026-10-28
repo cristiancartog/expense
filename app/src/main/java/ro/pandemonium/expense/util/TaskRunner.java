@@ -51,19 +51,19 @@ public final class TaskRunner implements DefaultLifecycleObserver, AutoCloseable
                            final Consumer<T> resultConsumer,
                            final Consumer<? super Exception> errorConsumer) {
         final AtomicReference<T> result = new AtomicReference<>();
-        submitWithProgress(
+        submit(
                 progressPublisher -> result.set(backgroundOperation.get()),
                 NO_OP_CONSUMER,
-                () -> resultConsumer.accept(result.get()),
-                errorConsumer
+                errorConsumer,
+                () -> resultConsumer.accept(result.get())
         );
     }
 
     @MainThread
-    public <P> void submitWithProgress(final ProgressTask<P> backgroundOperation,
-                                       final Consumer<? super P> progressConsumer,
-                                       final Runnable completionCallback,
-                                       final Consumer<? super Exception> errorConsumer) {
+    public <P> void submit(final ProgressTask<P> backgroundOperation,
+                           final Consumer<? super P> progressConsumer,
+                           final Consumer<? super Exception> errorConsumer,
+                           final Runnable completionCallback) {
         if (closed) {
             throw new IllegalStateException("Cannot submit work to a closed TaskRunner");
         }

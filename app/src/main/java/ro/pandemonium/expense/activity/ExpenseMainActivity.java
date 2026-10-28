@@ -232,11 +232,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void dbDumpRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
         showDatabaseTransferDialog(R.string.databaseDumpProgressTitle, R.string.databaseDumpPreparing);
-        databaseTransferRunner.submitWithProgress(
+        databaseTransferRunner.submit(
                 this::dumpDatabase,
                 this::updateDatabaseTransferDialog,
-                () -> finishDatabaseTransfer(R.string.expenseListActivityExportSuccessful, false),
-                this::failDatabaseTransfer);
+                this::failDatabaseTransfer,
+                () -> finishDatabaseTransfer(R.string.expenseListActivityExportSuccessful, false)
+        );
     }
 
     public void dbRestoreRequested(@NonNull final MenuItem item) {
@@ -292,11 +293,12 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
 
         showDatabaseTransferDialog(R.string.databaseRestoreProgressTitle, R.string.databaseRestoreReading);
-        databaseTransferRunner.submitWithProgress(
+        databaseTransferRunner.submit(
                 progressPublisher -> restoreDatabase(backupFile, progressPublisher),
                 this::updateDatabaseTransferDialog,
-                () -> finishDatabaseTransfer(R.string.expenseListActivityRestoreSuccessful, true),
-                this::failDatabaseTransfer);
+                this::failDatabaseTransfer,
+                () -> finishDatabaseTransfer(R.string.expenseListActivityRestoreSuccessful, true)
+        );
     }
 
     private void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
