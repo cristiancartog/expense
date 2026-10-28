@@ -45,7 +45,8 @@
     <string name="yearlyReportVariation">Variation</string>
     <string name="yearlyReportWithSpecial">With Special</string>
     <string name="yearlyReportWithoutSpecial">Without Special</string>
-    <string name="yearlyReposrYearPlaceholder">%1$d</string>
+    <string name="yearlyReportYearPlaceholder">%1$d</string>
+    <string name="yearlyReportLoadError">Could not load yearly report: %1$s</string>
 
     <!-- year comparison activity -->
     <string name="yearComparisonTitle">Comparison</string>

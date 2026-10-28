@@ -13,11 +13,13 @@ import androidx.appcompat.app.ActionBar;
 import java.util.ArrayList;
 import java.util.List;
 
+import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
 
+@AndroidEntryPoint
 public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
     private final List<Expense> changedExpenses = new ArrayList<>();

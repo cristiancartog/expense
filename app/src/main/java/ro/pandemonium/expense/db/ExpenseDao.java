@@ -19,10 +19,10 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.IntConsumer;
@@ -212,27 +212,26 @@ public class ExpenseDao {
         return monthlySummary;
     }
 
-    public Expense getEarliestEntry() {
+    public Optional<Expense> getEarliestEntry() {
         return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1");
     }
 
-    public Expense getLatestEntry() {
+    public Optional<Expense> getLatestEntry() {
         return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1");
     }
 
-    private Expense getSingleExpense(final String query) {
-        Iterator<Expense> iterator = queryForExpenses(query).iterator();
-        return iterator.hasNext() ? iterator.next() : null;
+    private Optional<Expense> getSingleExpense(final String query) {
+        return queryForExpenses(query).stream().findFirst();
     }
 
-    public List<Expense> getExpensesInInterval(final LocalDate start, final LocalDate end) {
+    public List<Expense> findExpensesInInterval(final LocalDate startInclusive, final LocalDate endInclusive) {
         var conditions = new ArrayList<String>();
 
-        if (start != null) {
-            conditions.add("DATE >= '%s'".formatted(dateFormatter.format(start)));
+        if (startInclusive != null) {
+            conditions.add("DATE >= '%s'".formatted(dateFormatter.format(startInclusive)));
         }
-        if (end != null) {
-            conditions.add("DATE <= '%s'".formatted(dateFormatter.format(end)));
+        if (endInclusive != null) {
+            conditions.add("DATE <= '%s'".formatted(dateFormatter.format(endInclusive)));
         }
 
         String whereClause = conditions.isEmpty() ? "" : "WHERE " + join(" AND ", conditions);

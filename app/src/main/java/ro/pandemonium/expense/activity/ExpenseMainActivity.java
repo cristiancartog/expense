@@ -55,6 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
 import ro.pandemonium.expense.model.Expense;
@@ -65,6 +66,7 @@ import ro.pandemonium.expense.view.ExpenseTypeUi;
 import ro.pandemonium.expense.util.FileUtil;
 import ro.pandemonium.expense.util.TaskRunner;
 
+@AndroidEntryPoint
 public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements DatePickerDialog.OnDateSetListener,
             AdapterView.OnItemClickListener,

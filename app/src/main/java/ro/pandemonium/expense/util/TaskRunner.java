@@ -39,12 +39,23 @@ public final class TaskRunner implements DefaultLifecycleObserver, AutoCloseable
     @MainThread
     public <T> void submit(final Supplier<T> backgroundOperation,
                            final Consumer<T> resultConsumer) {
+        submit(
+                backgroundOperation,
+                resultConsumer,
+                NO_OP_CONSUMER
+        );
+    }
+
+    @MainThread
+    public <T> void submit(final Supplier<T> backgroundOperation,
+                           final Consumer<T> resultConsumer,
+                           final Consumer<? super Exception> errorConsumer) {
         final AtomicReference<T> result = new AtomicReference<>();
         submitWithProgress(
                 progressPublisher -> result.set(backgroundOperation.get()),
                 NO_OP_CONSUMER,
                 () -> resultConsumer.accept(result.get()),
-                NO_OP_CONSUMER
+                errorConsumer
         );
     }
 

@@ -42,17 +42,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.Constants;
-import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportResult;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 
+@AndroidEntryPoint
 public class YearComparisonChartActivity extends AppCompatActivity {
 
     private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
@@ -96,7 +98,8 @@ public class YearComparisonChartActivity extends AppCompatActivity {
     private TextView lastYearTotalLabel;
     private TextView currentYearTotalLabel;
 
-    private ExpenseDao expenseDao;
+    @Inject
+    ExpenseDao expenseDao;
     private TaskRunner reportLoader;
 
     @Override
@@ -123,12 +126,12 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         reportSwitch.setOnCheckedChangeListener(this::switchChart);
         expenseTypeLabel.setText(ExpenseTypeUi.getTextResource(expenseType));
 
-        expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
-
-        Expense earliestExpense = expenseDao.getEarliestEntry();
-        Expense latestExpense = expenseDao.getLatestEntry();
-        earliestYear = earliestExpense != null ? earliestExpense.getDate().getYear() : currentYear();
-        latestYear = latestExpense != null ? latestExpense.getDate().getYear() : currentYear();
+        earliestYear = expenseDao.getEarliestEntry()
+                .map(expense -> expense.getDate().getYear())
+                .orElse(currentYear());
+        latestYear = expenseDao.getLatestEntry()
+                .map(expense -> expense.getDate().getYear())
+                .orElse(currentYear());
 
         Legend legend = barChart.getLegend();
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);

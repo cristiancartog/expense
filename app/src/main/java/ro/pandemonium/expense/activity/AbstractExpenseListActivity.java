@@ -25,7 +25,8 @@ import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import ro.pandemonium.expense.ExpenseApplication;
+import javax.inject.Inject;
+
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
@@ -41,6 +42,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> processAddEditExpenseResult(result.getResultCode(), result.getData()));
 
+    @Inject
     ExpenseDao expenseDao;
     ListView expenseList;
     final ExpenseListAdapter expenseListAdapter = new ExpenseListAdapter();
@@ -78,7 +80,6 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(view -> NavUtils.navigateUpFromSameTask(this));
 
-        expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
     }
 

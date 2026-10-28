@@ -1,12 +1,12 @@
 package ro.pandemonium.expense.util;
 
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
 import static ro.pandemonium.expense.util.ExpenseSerialization.deserialize;
 import static ro.pandemonium.expense.util.ExpenseSerialization.serialize;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.Month;

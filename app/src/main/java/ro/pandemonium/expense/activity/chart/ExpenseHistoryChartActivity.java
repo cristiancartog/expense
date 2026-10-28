@@ -1,9 +1,10 @@
 package ro.pandemonium.expense.activity.chart;
 
-import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
@@ -20,8 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.Constants;
-import ro.pandemonium.expense.ExpenseApplication;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.ExpenseMonthlySummary;
@@ -29,7 +32,11 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 
-public class ExpenseHistoryChartActivity extends Activity {
+@AndroidEntryPoint
+public class ExpenseHistoryChartActivity extends AppCompatActivity {
+
+    @Inject
+    ExpenseDao expenseDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +44,6 @@ public class ExpenseHistoryChartActivity extends Activity {
 
         setContentView(R.layout.history_chart_appbar);
         SystemBarInsets.keepContentInsideSystemBars(this);
-
-        final ExpenseDao expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
         @SuppressWarnings("unchecked")
         List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS, ArrayList.class);
