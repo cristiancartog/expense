@@ -3,6 +3,8 @@ package ro.pandemonium.expense.util;
 
 import static org.junit.Assert.assertEquals;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
+import static ro.pandemonium.expense.util.ExpenseSerialization.deserialize;
+import static ro.pandemonium.expense.util.ExpenseSerialization.serialize;
 
 import org.junit.Test;
 
@@ -27,9 +29,9 @@ public class ExpenseTest {
         expense.setExpenseType(ExpenseType.OTHER);
         expense.setValue(123D);
 
-        String expenseCsv = expense.toCsv(csvDateFormat);
+        String expenseCsv = serialize(expense, csvDateFormat);
 
-        Expense sameExpense = Expense.fromCsv(expenseCsv, csvDateFormat);
+        Expense sameExpense = deserialize(expenseCsv, csvDateFormat);
 
         assertEquals(expense.getId(), sameExpense.getId());
         assertEquals(expense.getComment(), sameExpense.getComment());

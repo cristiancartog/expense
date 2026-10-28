@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 import java.util.*;
 
@@ -70,7 +71,7 @@ public class ExpenseTypeSpinnerAdapter extends BaseAdapter {
         final ExpenseType expenseType = expenseTypes.get(index);
         final Integer count = mapExpenseTypeToCount.get(expenseType);
         final boolean useGrayText = count != null && count >= expenseType.getMaxOccurrences();
-        checkedTextView.setText(expenseType.getTextResource());
+        checkedTextView.setText(ExpenseTypeUi.getTextResource(expenseType));
         checkedTextView.setTextColor(useGrayText ? Color.GRAY : Color.WHITE);
         checkedTextView.setPadding(expenseType.getMaxOccurrences() == 1 ? 30 : 10, 0, 0, 0);
         checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD : Typeface.NORMAL);

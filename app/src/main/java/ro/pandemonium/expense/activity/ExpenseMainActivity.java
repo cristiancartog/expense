@@ -61,6 +61,7 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.util.ExpenseUtil;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 import ro.pandemonium.expense.util.FileUtil;
 import ro.pandemonium.expense.util.TaskRunner;
 
@@ -452,7 +453,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         final List<PieEntry> entries = new ArrayList<>();
         final Resources resources = getResources();
         for (Map.Entry<ExpenseType, Double> entry : expenseTypeValues.entrySet()) {
-            String text = resources.getString(entry.getKey().getTextResource());
+            String text = resources.getString(ExpenseTypeUi.getTextResource(entry.getKey()));
             entries.add(new PieEntry(entry.getValue().floatValue(), text));
         }
 
@@ -463,7 +464,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         ArrayList<Integer> colors = new ArrayList<>();
         for (ExpenseType expenseType : ExpenseType.values()) {
-            int color = expenseType.getColor();
+            int color = ExpenseTypeUi.getColor(expenseType);
             if (color != Color.WHITE) {
                 colors.add(color);
             }

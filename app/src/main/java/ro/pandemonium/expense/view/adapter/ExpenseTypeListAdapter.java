@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 public class ExpenseTypeListAdapter extends BaseAdapter {
 
@@ -59,7 +60,7 @@ public class ExpenseTypeListAdapter extends BaseAdapter {
         }
 
         final ExpenseType expenseType = expenseTypes.get(index);
-        checkedTextView.setText(expenseType.getTextResource());
+        checkedTextView.setText(ExpenseTypeUi.getTextResource(expenseType));
         checkedTextView.setBackgroundColor(Color.rgb(255, 244, 244));
         checkedTextView.setTextColor(expenseType.getMaxOccurrences() == 1 ? Color.DKGRAY : Color.BLACK);
         checkedTextView.setTypeface(null, expenseType.getMaxOccurrences() == 1 ? Typeface.BOLD : Typeface.NORMAL);

@@ -5,6 +5,8 @@ import static java.time.LocalDateTime.now;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_FILE_TIMESTAMP;
+import static ro.pandemonium.expense.util.ExpenseSerialization.deserialize;
+import static ro.pandemonium.expense.util.ExpenseSerialization.serialize;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -70,7 +72,7 @@ public class FileUtil {
             try (OutputStreamWriter fileWriter = new OutputStreamWriter(outputStream, UTF_8)) {
                 int exportedCount = 0;
                 for (Expense expense : expenses) {
-                    fileWriter.write(expense.toCsv(CSV_DATE_FORMATTER));
+                    fileWriter.write(serialize(expense, CSV_DATE_FORMATTER));
                     fileWriter.write("\n");
                     exportedCount++;
                     progressConsumer.accept(exportedCount);
@@ -125,7 +127,7 @@ public class FileUtil {
             return in
                     .lines()
                     .filter(StringUtils::isNotEmpty)
-                    .map(line -> Expense.fromCsv(line, CSV_DATE_FORMATTER))
+                    .map(line -> deserialize(line, CSV_DATE_FORMATTER))
                     .toList();
         }
     }

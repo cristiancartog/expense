@@ -41,6 +41,7 @@ import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.DateUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 public class YearlyExpenseReportActivity extends AppCompatActivity {
 
@@ -113,7 +114,7 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
 
             TextView expenseTypeLabel = valueTextView();
             expenseTypeLabel.setGravity(Gravity.START);
-            expenseTypeLabel.setText(expenseType.getTextResource());
+            expenseTypeLabel.setText(ExpenseTypeUi.getTextResource(expenseType));
             tableRow.addView(expenseTypeLabel);
 
             TextView lastYear = valueTextView();

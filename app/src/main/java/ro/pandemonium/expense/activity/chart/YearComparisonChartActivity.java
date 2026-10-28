@@ -51,6 +51,7 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.YearlyReportResult;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 public class YearComparisonChartActivity extends AppCompatActivity {
 
@@ -120,7 +121,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         currentYearTotalLabel = findViewById(R.id.yearComparisonCurrentYearTotal);
 
         reportSwitch.setOnCheckedChangeListener(this::switchChart);
-        expenseTypeLabel.setText(expenseType.getTextResource());
+        expenseTypeLabel.setText(ExpenseTypeUi.getTextResource(expenseType));
 
         expenseDao = ((ExpenseApplication) getApplication()).getExpenseDao();
 
