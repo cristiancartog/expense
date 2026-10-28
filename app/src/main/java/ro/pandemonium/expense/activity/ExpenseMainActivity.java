@@ -44,7 +44,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.Month;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,8 +78,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
             this::processSelectedBackupFile
     );
 
-    private int year;
-    private Month month;
+    private YearMonth yearMonth;
 
     private DrawerLayout drawerLayout;
     private Button changeMonthButton;
@@ -140,35 +139,23 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         SwitchCompat listChartSwitch = findViewById(R.id.expenseListSwitchChartReportButton);
         listChartSwitch.setOnCheckedChangeListener(this);
 
-        final LocalDate now = LocalDate.now();
-        year = now.getYear();
-        month = now.getMonth();
+        yearMonth = YearMonth.now();
 
-        repopulateExpenseList(year, month);
+        repopulateExpenseList(yearMonth);
     }
 
     private void changeMonth(final View view) {
-        new DatePickerDialog(this, this, year, month.ordinal(), 1).show();
+        new DatePickerDialog(this, this, yearMonth.getYear(), yearMonth.getMonthValue() - 1, 1).show();
     }
 
     public void listNextMonth(final View view) {
-        month = month.plus(1);
-
-        if (month == Month.JANUARY) {
-            year++;
-        }
-
-        repopulateExpenseList(year, month);
+        yearMonth = yearMonth.plusMonths(1);
+        repopulateExpenseList(yearMonth);
     }
 
     public void listPreviousMonth(final View view) {
-        month = month.minus(1);
-
-        if (month == Month.DECEMBER) {
-            year--;
-        }
-
-        repopulateExpenseList(year, month);
+        yearMonth = yearMonth.minusMonths(1);
+        repopulateExpenseList(yearMonth);
     }
 
     public void addExpense(final View view) {
@@ -223,7 +210,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void yearlyReportRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
         Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
-        yearlyReportIntent.putExtra(INTENT_YEAR, year);
+        yearlyReportIntent.putExtra(INTENT_YEAR, yearMonth.getYear());
 
         startActivity(yearlyReportIntent);
     }
@@ -310,7 +297,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
-        final List<Expense> expenses = expenseDao.fetchExpenses(null, null);
+        final List<Expense> expenses = expenseDao.fetchExpenses((YearMonth) null);
         final ProgressPublisher throttledProgress = new ProgressPublisher(expenses.size(), false, progressPublisher);
         throttledProgress.publish(0, true);
         FileUtil.exportExpenses(this, expenses, count -> throttledProgress.publish(count, false));
@@ -364,7 +351,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         dismissDatabaseTransferDialog();
         Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
         if (refreshExpenses) {
-            repopulateExpenseList(year, month);
+            repopulateExpenseList(yearMonth);
         }
     }
 
@@ -424,22 +411,21 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private boolean isInSameMonth(final LocalDate date) {
-        return date.getYear() == year && date.getMonth() == month;
+        return YearMonth.from(date).equals(yearMonth);
     }
 
     @Override
     public void onDateSet(final DatePicker datePicker, final int year, final int monthOfYear, final int dayOfMonth) {
-        Month month = Month.of(monthOfYear + 1); // +1 because calendar component uses old Calendar style indexing (0-11)
-        if (this.year != year || this.month != month) {
-            this.month = month;
-            this.year = year;
-            repopulateExpenseList(year, month);
+        final YearMonth selectedYearMonth = YearMonth.of(year, monthOfYear + 1);
+        if (!yearMonth.equals(selectedYearMonth)) {
+            yearMonth = selectedYearMonth;
+            repopulateExpenseList(yearMonth);
         }
     }
 
-    private void repopulateExpenseList(final int year, final Month month) {
+    private void repopulateExpenseList(final YearMonth yearMonth) {
         expenseLoader.submit(
-                () -> expenseDao.fetchExpenses(year, month),
+                () -> expenseDao.fetchExpenses(yearMonth),
                 this::repopulateExpenseList);
     }
 
@@ -495,8 +481,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void updateMonthButtonLabel() {
-        final LocalDate date = LocalDate.of(year, month, 1);
-        changeMonthButton.setText(date.format(dateFormatter));
+        changeMonthButton.setText(yearMonth.format(dateFormatter));
     }
 
     @Override

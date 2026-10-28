@@ -15,7 +15,7 @@ import android.util.Log;
 import androidx.annotation.VisibleForTesting;
 
 import java.time.LocalDate;
-import java.time.Month;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -128,12 +128,12 @@ public class ExpenseDao {
         return format("WHERE EXPENSE_TYPE IN (%s) ", expenseTypesInArgs);
     }
 
-    public List<Expense> fetchExpenses(final Integer year, final Month month) {
-        return queryForExpenses(createFetchExpensesQueryString(year, month));
+    public List<Expense> fetchExpenses(final YearMonth yearMonth) {
+        return queryForExpenses(createFetchExpensesQueryString(yearMonth));
     }
 
-    private String createFetchExpensesQueryString(final Integer year, final Month month) {
-        if (month != null) {
+    private String createFetchExpensesQueryString(final YearMonth yearMonth) {
+        if (yearMonth != null) {
             return """
                 %s
                 WHERE
@@ -143,8 +143,8 @@ public class ExpenseDao {
             """.formatted(
                     FETCH_EXPENSES_QUERY_BASE,
                     SPECIAL.getDbId(),
-                    year,
-                    month.getValue()
+                    yearMonth.getYear(),
+                    yearMonth.getMonthValue()
             );
         }
 
