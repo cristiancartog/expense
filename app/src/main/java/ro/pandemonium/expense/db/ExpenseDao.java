@@ -177,11 +177,9 @@ public class ExpenseDao {
     }
 
     public List<ExpenseMonthlySummary> getMonthlySummary(final List<ExpenseType> expenseTypes) {
-        final List<ExpenseMonthlySummary> monthlySummary = new ArrayList<>();
-
         checkDatabaseAvailability();
 
-        String query = """
+        final String query = """
             SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%%Y-%%m', DATE) AS MONTH
             FROM EXPENSES
             %s
@@ -189,27 +187,16 @@ public class ExpenseDao {
             ORDER BY MONTH
         """.formatted(createExpenseTypeWhereClause(expenseTypes));
 
-
+        final Map<YearMonth, ExpenseMonthlySummary> summariesByMonth = new TreeMap<>();
         try (final Cursor cursor = database.rawQuery(query, null)) {
-            ExpenseMonthlySummary currentMonthlySummary = null;
             while (cursor.moveToNext()) {
-                String yearMonth = cursor.getString(2);
-
-                if (currentMonthlySummary == null) {
-                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                }
-
-                if (!currentMonthlySummary.isInSameMonth(yearMonth)) {
-                    monthlySummary.add(currentMonthlySummary);
-                    currentMonthlySummary = new ExpenseMonthlySummary(yearMonth);
-                }
-                currentMonthlySummary.addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
-
-                monthlySummary.add(currentMonthlySummary);
+                final YearMonth yearMonth = YearMonth.parse(cursor.getString(2));
+                summariesByMonth.computeIfAbsent(yearMonth, ExpenseMonthlySummary::new)
+                                .addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
             }
         }
 
-        return monthlySummary;
+        return new ArrayList<>(summariesByMonth.values());
     }
 
     public Optional<Expense> getEarliestEntry() {

@@ -1,26 +1,25 @@
 package ro.pandemonium.expense.model;
 
-import java.util.HashMap;
+import static java.util.Objects.requireNonNull;
+
+import java.time.YearMonth;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class ExpenseMonthlySummary {
 
-    private final String yearMonth;
-    private final Map<ExpenseType, Double> values = new HashMap<>();
+    private final YearMonth yearMonth;
+    private final Map<ExpenseType, Double> values = new EnumMap<>(ExpenseType.class);
 
-    public ExpenseMonthlySummary(String yearMonth) {
-        this.yearMonth = yearMonth;
-    }
-
-    public boolean isInSameMonth(String yearMonth) {
-        return this.yearMonth.equals(yearMonth);
+    public ExpenseMonthlySummary(final YearMonth yearMonth) {
+        this.yearMonth = requireNonNull(yearMonth);
     }
 
     public void addExpense(final ExpenseType expenseType, final Double value) {
         values.put(expenseType, value);
     }
 
-    public String getYearMonth() {
+    public YearMonth getYearMonth() {
         return yearMonth;
     }
 

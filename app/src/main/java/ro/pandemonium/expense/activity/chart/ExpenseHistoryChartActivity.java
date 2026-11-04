@@ -1,22 +1,28 @@
 package ro.pandemonium.expense.activity.chart;
 
+import static java.util.Objects.requireNonNull;
+import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,123 +30,126 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
-import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.model.ExpenseMonthlySummary;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.service.ExpenseHistoryService;
+import ro.pandemonium.expense.service.ExpenseHistoryState;
+import ro.pandemonium.expense.service.ExpenseHistoryState.MonthlyValues;
 import ro.pandemonium.expense.util.SystemBarInsets;
+import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 @AndroidEntryPoint
 public class ExpenseHistoryChartActivity extends AppCompatActivity {
 
+    private static final float GROUP_SPACE = 0.04F;
+    private static final float BAR_SPACE = 0.02F;
+
+    private final Map<Float, String> pointToMonthName = new HashMap<>();
+
     @Inject
-    ExpenseDao expenseDao;
+    ExpenseHistoryService historyService;
+    private TaskRunner historyLoader;
+    private BarChart barChart;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.history_chart_appbar);
         SystemBarInsets.keepContentInsideSystemBars(this);
 
+        barChart = findViewById(R.id.expenseBarChart);
+        configureChart();
+
+        historyLoader = new TaskRunner(this);
         @SuppressWarnings("unchecked")
-        List<ExpenseType> expenseTypes = (List<ExpenseType>) getIntent().getSerializableExtra(Constants.INTENT_FILTERS, ArrayList.class);
+        final List<ExpenseType> requestedExpenseTypes = requireNonNull(getIntent().getSerializableExtra(INTENT_FILTERS, ArrayList.class));
+        historyLoader.submit(
+                () -> historyService.load(requestedExpenseTypes),
+                this::renderHistory,
+                this::showLoadError
+        );
+    }
 
-        List<ExpenseMonthlySummary> monthlySummary = expenseDao.getMonthlySummary(expenseTypes);
-
-        BarChart barChart = findViewById(R.id.expenseBarChart);
-
+    private void configureChart() {
         barChart.setDescription(null);
-
-        final Map<Float, String> mapPointToMonthName = new HashMap<>();
-
-        // scaling can now only be done on x- and y-axis separately
         barChart.setPinchZoom(false);
         barChart.setDrawBarShadow(false);
         barChart.setDrawGridBackground(false);
 
-        Legend l = barChart.getLegend();
-        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
-        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        l.setTextColor(Color.WHITE);
-        l.setYOffset(0f);
-        l.setYEntrySpace(0f);
-        l.setTextSize(8f);
+        final Legend legend = barChart.getLegend();
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setTextColor(Color.WHITE);
+        legend.setYOffset(0f);
+        legend.setYEntrySpace(0f);
+        legend.setTextSize(8f);
 
-        XAxis xl = barChart.getXAxis();
-        xl.setGranularity(1f);
-        xl.setCenterAxisLabels(true);
-        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xl.setTextColor(Color.WHITE);
-        xl.setDrawGridLines(false);
-        xl.setValueFormatter(new ValueFormatter() {
+        final XAxis xAxis = barChart.getXAxis();
+        xAxis.setGranularity(1f);
+        xAxis.setCenterAxisLabels(true);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextColor(Color.WHITE);
+        xAxis.setDrawGridLines(false);
+        xAxis.setValueFormatter(new ValueFormatter() {
             @Override
-            public String getAxisLabel(final float value, final com.github.mikephil.charting.components.AxisBase axis) {
-                return mapPointToMonthName.get(value);
+            public String getAxisLabel(final float value, final AxisBase axis) {
+                return pointToMonthName.getOrDefault(value, "");
             }
         });
 
-        YAxis leftYAxis = barChart.getAxisLeft();
+        final YAxis leftYAxis = barChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);
         leftYAxis.setSpaceTop(10f);
         leftYAxis.setTextColor(Color.WHITE);
-        leftYAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        leftYAxis.setAxisMinimum(0f);
 
         barChart.getAxisRight().setEnabled(false);
+    }
 
-        // data
-        float groupSpace = 0.04F;
-        float barSpace = 0.02F;
-        float barWidth = (1 - groupSpace) / expenseTypes.size() - barSpace;
-        // (barWidth + barSpace) * nrOfExpenseTypes + groupSpace = 1.00 (interval per group)
+    private void renderHistory(final ExpenseHistoryState state) {
+        pointToMonthName.clear();
 
-        final List<IBarDataSet> dataSets = new ArrayList<>();
+        final Map<ExpenseType, List<BarEntry>> entriesByExpenseType = new EnumMap<>(ExpenseType.class);
+        for (ExpenseType expenseType : state.expenseTypes()) {
+            entriesByExpenseType.put(expenseType, new ArrayList<>());
+        }
+
+        int monthIndex = 0;
+        for (MonthlyValues monthlyValues : state.monthlyValues()) {
+            pointToMonthName.put((float) monthIndex, monthlyValues.yearMonth().toString());
+            for (ExpenseType expenseType : state.expenseTypes()) {
+                requireNonNull(entriesByExpenseType.get(expenseType)).add(new BarEntry(monthIndex, (float) monthlyValues.valueFor(expenseType)));
+            }
+            monthIndex++;
+        }
 
         final Resources resources = getResources();
-        final Map<ExpenseType, List<BarEntry>> yValuesMap = new HashMap<>();
-
-        for (ExpenseType expenseType : expenseTypes) {
-            yValuesMap.put(expenseType, new ArrayList<>());
+        final List<IBarDataSet> dataSets = new ArrayList<>();
+        for (ExpenseType expenseType : state.expenseTypes()) {
+            final String label = resources.getString(ExpenseTypeUi.getTextResource(expenseType));
+            final BarDataSet dataSet = new BarDataSet(entriesByExpenseType.get(expenseType), label);
+            dataSet.setColor(ExpenseTypeUi.getColor(expenseType));
+            dataSet.setValueTextColor(Color.WHITE);
+            dataSet.setValueTextSize(9);
+            dataSets.add(dataSet);
         }
 
-        int counter = 0;
-        for (ExpenseMonthlySummary summary : monthlySummary) {
-            Map<ExpenseType, Double> monthlyValues = summary.getValues();
-            for (ExpenseType expenseType : expenseTypes) {
-                List<BarEntry> yValues = yValuesMap.get(expenseType);
-
-                Double value = monthlyValues.get(expenseType);
-                yValues.add(new BarEntry(counter, value != null ? value.floatValue() : 0));
-            }
-
-            mapPointToMonthName.put((float) counter, summary.getYearMonth());
-
-            counter++;
-        }
-
-        for (ExpenseType expenseType : expenseTypes) {
-            String text = resources.getString(ExpenseTypeUi.getTextResource(expenseType));
-            BarDataSet barDataSet = new BarDataSet(yValuesMap.get(expenseType), text);
-            barDataSet.setColor(ExpenseTypeUi.getColor(expenseType));
-            barDataSet.setValueTextColor(Color.WHITE);
-            barDataSet.setValueTextSize(9);
-
-            dataSets.add(barDataSet);
-        }
-
-        BarData data = new BarData(dataSets);
-
+        final BarData data = new BarData(dataSets);
+        final float barWidth = (1 - GROUP_SPACE) / state.expenseTypes().size() - BAR_SPACE;
+        data.setBarWidth(barWidth);
         barChart.setData(data);
-
-
-        barChart.getBarData().setBarWidth(barWidth);
         barChart.getXAxis().setAxisMinimum(0);
         if (dataSets.size() > 1) {
-            barChart.groupBars(0, groupSpace, barSpace);
+            barChart.groupBars(0, GROUP_SPACE, BAR_SPACE);
         }
-
         barChart.invalidate();
+    }
+
+    private void showLoadError(final Exception error) {
+        final String detail = error.getMessage() != null ? error.getMessage() : error.toString();
+        Toast.makeText(this, getString(R.string.expenseHistoryLoadError, detail), Toast.LENGTH_LONG)
+             .show();
     }
 }

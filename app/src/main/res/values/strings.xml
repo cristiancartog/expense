@@ -62,6 +62,7 @@
 
     <!-- -->
     <string name="expenseHistoryTitle">Expense History</string>
+    <string name="expenseHistoryLoadError">Could not load expense history: %1$s</string>
 
     <!-- add/edit expense activity -->
     <string name="addEditExpenseAddTitle">Add Expense</string>
