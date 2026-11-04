@@ -14,8 +14,7 @@
             android:id="@+id/yearlyComparisonPreviousYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/ic_arrow_left_icon"
-            android:onClick="previousYearClicked" />
+            android:background="@drawable/ic_arrow_left_icon" />
 
         <TextView
             android:id="@+id/yearlyComparisonCurrentYearText"
@@ -29,8 +28,7 @@
             android:id="@+id/yearlyComparisonNextYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/ic_arrow_right_icon"
-            android:onClick="nextYearClicked" />
+            android:background="@drawable/ic_arrow_right_icon" />
 
     </LinearLayout>
 

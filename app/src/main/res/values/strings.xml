@@ -58,6 +58,7 @@
     <string name="yearComparisonVariation">Variation</string>
     <string name="yearComparisonTotal">Total</string>
     <string name="yearComparisonYearPlaceholder">%1$d</string>
+    <string name="yearComparisonLoadError">Could not load year comparison: %1$s</string>
 
     <!-- -->
     <string name="expenseHistoryTitle">Expense History</string>

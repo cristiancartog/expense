@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.OptionalDouble;
 
 import ro.pandemonium.expense.model.ExpenseType;
 
@@ -31,11 +30,4 @@ public record YearlyReportState(
         YEAR_FROM_DATE
     }
 
-    public record Comparison(double currentValue,
-                             double previousValue,
-                             OptionalDouble variation) {
-        public Comparison {
-            requireNonNull(variation);
-        }
-    }
 }

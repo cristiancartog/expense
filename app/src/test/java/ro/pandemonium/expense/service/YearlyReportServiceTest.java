@@ -184,8 +184,10 @@ public class YearlyReportServiceTest {
         return expense;
     }
 
-    private void assertComparison(final YearlyReportState.Comparison comparison,
-                                  final double current, final double previous, final double variation) {
+    private void assertComparison(final Comparison comparison,
+                                  final double current,
+                                  final double previous,
+                                  final double variation) {
         assertEquals(current, comparison.currentValue(), DELTA);
         assertEquals(previous, comparison.previousValue(), DELTA);
         assertTrue(comparison.variation().isPresent());

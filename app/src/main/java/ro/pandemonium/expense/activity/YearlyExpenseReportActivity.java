@@ -5,6 +5,8 @@ import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
 import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
+import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_FROM_DATE;
+import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_TO_DATE;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,10 +34,9 @@ import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.chart.YearComparisonChartActivity;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.service.Comparison;
 import ro.pandemonium.expense.service.YearlyReportService;
 import ro.pandemonium.expense.service.YearlyReportState;
-import ro.pandemonium.expense.service.YearlyReportState.Comparison;
-import ro.pandemonium.expense.service.YearlyReportState.PeriodMode;
 import ro.pandemonium.expense.util.DateUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
@@ -194,10 +195,10 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
     }
 
     private String yearLabel(final YearlyReportState state) {
-        if (state.periodMode() == PeriodMode.YEAR_FROM_DATE) {
+        if (state.periodMode() == YEAR_FROM_DATE) {
             return "YFD " + state.year();
         }
-        if (state.periodMode() == PeriodMode.YEAR_TO_DATE) {
+        if (state.periodMode() == YEAR_TO_DATE) {
             return state.year() + " YTD";
         }
         return Integer.toString(state.year());

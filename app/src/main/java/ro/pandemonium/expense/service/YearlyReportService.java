@@ -9,13 +9,13 @@ import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.FULL_YEAR;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_FROM_DATE;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_TO_DATE;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.variation;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalDouble;
 
 import javax.inject.Inject;
 
@@ -23,13 +23,10 @@ import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.service.YearlyReportState.Comparison;
 import ro.pandemonium.expense.service.YearlyReportState.PeriodMode;
 
 @ActivityScoped
 public final class YearlyReportService {
-
-    private static final double ZERO_THRESHOLD = 0.000001D;
 
     private final ExpenseDao expenseDao;
     private final Clock clock;
@@ -171,10 +168,11 @@ public final class YearlyReportService {
     }
 
     private Comparison comparison(final double currentValue, final double previousValue) {
-        final OptionalDouble variation = Math.abs(previousValue) <= ZERO_THRESHOLD
-                ? OptionalDouble.empty()
-                : OptionalDouble.of((currentValue - previousValue) / previousValue);
-        return new Comparison(currentValue, previousValue, variation);
+        return new Comparison(
+                currentValue,
+                previousValue,
+                variation(currentValue, previousValue)
+        );
     }
 
     private void requireInitialized() {
