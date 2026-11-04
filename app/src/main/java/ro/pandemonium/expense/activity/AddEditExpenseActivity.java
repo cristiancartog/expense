@@ -1,6 +1,5 @@
 package ro.pandemonium.expense.activity;
 
-import static java.time.LocalDate.now;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
 
 import android.app.DatePickerDialog;
@@ -25,18 +24,26 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.service.AddEditExpenseService;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
 
 
+@AndroidEntryPoint
 public class AddEditExpenseActivity extends AppCompatActivity
         implements TextWatcher, DatePickerDialog.OnDateSetListener {
 
     private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat(Constants.ADD_ACTIVITY_FORMAT_PATTERN);
+
+    @Inject
+    AddEditExpenseService addEditExpenseService;
 
     private ExpenseTypeSpinnerAdapter expenseTypeSpinnerAdapter;
     private Spinner spinner;
@@ -47,7 +54,6 @@ public class AddEditExpenseActivity extends AppCompatActivity
     private Button saveExpenseButton;
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.getDefault());
-    private Long expenseId;
     private LocalDate expenseDate;
 
     @Override
@@ -76,11 +82,14 @@ public class AddEditExpenseActivity extends AppCompatActivity
         expenseTypeSpinnerAdapter.setExpenseTypeMap(mapExpenseTypeToCount);
         spinner.setAdapter(expenseTypeSpinnerAdapter);
 
-        setExpense(expense);
+        populateForm(addEditExpenseService.initialize(expense));
     }
 
-    private void setExpense(final Expense expense) {
-        if (expense != null) {
+    private void populateForm(final Expense expense) {
+        expenseDate = expense.getDate();
+        dateButton.setText(dateFormatter.format(expenseDate));
+
+        if (expense.getId() != null) {
             ((Toolbar) findViewById(R.id.addEditExpenseToolbar)).setTitle(R.string.addEditExpenseEditTitle);
 
             final int position = expenseTypeSpinnerAdapter.getPosition(expense.getExpenseType());
@@ -89,29 +98,20 @@ public class AddEditExpenseActivity extends AppCompatActivity
                 return;
             }
 
-            expenseId = expense.getId();
-
             valueField.setText(NUMBER_FORMATTER.format(expense.getValue()));
             spinner.setSelection(position);
-            dateButton.setText(dateFormatter.format(expense.getDate()));
             commentField.setText(expense.getComment());
-
-            expenseDate = expense.getDate();
-        } else {
-            expenseDate = now();
-            dateButton.setText(dateFormatter.format(expenseDate));
         }
     }
 
     private void saveExpense(final View view) {
         final Intent intent = getIntent();
 
-        final Expense expense = new Expense();
-        expense.setId(expenseId);
-        expense.setExpenseType((ExpenseType) spinner.getSelectedItem());
-        expense.setValue(Double.parseDouble(valueField.getText().toString()));
-        expense.setDate(expenseDate);
-        expense.setComment(commentField.getText().toString());
+        final Expense expense = addEditExpenseService.createExpense(
+                (ExpenseType) spinner.getSelectedItem(),
+                valueField.getText().toString(),
+                commentField.getText().toString()
+        );
 
         intent.putExtra(Constants.INTENT_EXPENSE, expense);
 
@@ -126,7 +126,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
     @Override
     public void onDateSet(final DatePicker view, final int year, final int monthOfYear, final int dayOfMonth) {
-        expenseDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth);
+        expenseDate = addEditExpenseService.selectDate(year, monthOfYear, dayOfMonth);
         dateButton.setText(expenseDate.format(dateFormatter));
     }
 
@@ -142,6 +142,6 @@ public class AddEditExpenseActivity extends AppCompatActivity
 
     @Override
     public void afterTextChanged(final Editable editable) {
-        saveExpenseButton.setEnabled(!valueField.getText().isEmpty());
+        saveExpenseButton.setEnabled(addEditExpenseService.canSave(valueField.getText().toString()));
     }
 }
