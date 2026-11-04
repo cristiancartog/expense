@@ -1,10 +1,7 @@
 package ro.pandemonium.expense.activity;
 
-import static java.util.Objects.requireNonNull;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 
@@ -13,19 +10,20 @@ import androidx.appcompat.app.ActionBar;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.service.ExpenseSearchService;
 
 @AndroidEntryPoint
 public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
-    private final List<Expense> changedExpenses = new ArrayList<>();
-
-    public ExpenseSearchResultActivity() {
-    }
+    @Inject
+    ExpenseSearchService searchService;
 
     @Override
     int layoutId() {
@@ -50,15 +48,13 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         expenseList.setAdapter(expenseListAdapter);
         expenseList.setOnItemClickListener(this::expenseListItemClicked);
 
-        final Filters filters = getIntent().getSerializableExtra(Constants.INTENT_FILTERS, Filters.class);
-        List<Expense> expenses = expenseDao.fetchExpenses(filters);
-
         totalTextView = findViewById(R.id.expenseSearchResultTotal);
         filtersButton = findViewById(R.id.expenseSearchResultFiltersButton);
         filtersButton.setOnClickListener(this::showSearchResultsFiltersDialog);
         filtersButton.setOnLongClickListener(this::clearDialogFilters);
 
-        repopulateExpenseList(expenses);
+        final Filters filters = getIntent().getSerializableExtra(Constants.INTENT_FILTERS, Filters.class);
+        showExpenses(searchService.initialize(filters));
     }
 
     private void showSearchResultsFiltersDialog(final View view) {
@@ -80,24 +76,18 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
             return;
         }
 
-        final Expense expense = requireNonNull(data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class));
-        Log.i(Constants.APPLICATION_NAME, expense.toString());
-
-        expenseDao.updateExpense(expense);
+        final Expense expense = data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class);
+        searchService.update(expense);
         expenseListAdapter.updateExpense(expense);
         expenseListAdapter.notifyDataSetChanged();
-
         updateTotal();
 
-        changedExpenses.add(expense);
-
         final Intent result = new Intent();
-        result.putExtra(Constants.INTENT_CHANGED_EXPENSES, new ArrayList<>(changedExpenses));
+        result.putExtra(Constants.INTENT_CHANGED_EXPENSES, new ArrayList<>(searchService.changedExpenses()));
         setResult(RESULT_OK, result);
     }
 
-    private void repopulateExpenseList(final List<Expense> expenses) {
-        expenses.sort(mapSortingMenuItemToComparator.get(1));
+    private void showExpenses(final List<Expense> expenses) {
         expenseListAdapter.updateExpenseList(expenses);
         updateTotal();
     }

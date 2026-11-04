@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -38,6 +37,7 @@ import ro.pandemonium.expense.service.Comparison;
 import ro.pandemonium.expense.service.YearlyReportService;
 import ro.pandemonium.expense.service.YearlyReportState;
 import ro.pandemonium.expense.util.DateUtil;
+import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
@@ -169,7 +169,14 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
 
     private void loadReport(final Supplier<YearlyReportState> operation) {
         setLoading(true);
-        reportLoader.submit(operation, this::renderReport, this::showLoadError);
+        reportLoader.submit(
+                operation,
+                this::renderReport,
+                error -> {
+                    setLoading(false);
+                    LoadErrorUtil.show(this, R.string.yearlyReportLoadError, error);
+                }
+        );
     }
 
     private void renderReport(final YearlyReportState state) {
@@ -234,10 +241,4 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
         nextYearButton.setEnabled(!isLoading && reportState != null && reportState.nextYearEnabled());
     }
 
-    private void showLoadError(final Exception error) {
-        setLoading(false);
-        final String detail = error.getMessage() != null ? error.getMessage() : error.toString();
-        Toast.makeText(this, getString(R.string.yearlyReportLoadError, detail), Toast.LENGTH_LONG)
-             .show();
-    }
 }

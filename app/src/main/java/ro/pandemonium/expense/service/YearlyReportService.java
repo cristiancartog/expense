@@ -50,7 +50,7 @@ public final class YearlyReportService {
         this.clock = requireNonNull(clock);
     }
 
-    public synchronized YearlyReportState initialize(final int requestedYear) {
+    public YearlyReportState initialize(final int requestedYear) {
         final LocalDate today = LocalDate.now(clock);
         earliestEntryDate = expenseDao.getEarliestEntry()
                 .map(Expense::getDate)
@@ -67,21 +67,21 @@ public final class YearlyReportService {
         return load(requestedYear, initialPeriodMode);
     }
 
-    public synchronized YearlyReportState nextYear() {
+    public YearlyReportState nextYear() {
         requireInitialized();
         final int requestedYear = year < latestEntryYear ? year + 1 : year;
         final PeriodMode requestedPeriodMode = requestedYear == year ? periodMode : FULL_YEAR;
         return load(requestedYear, requestedPeriodMode);
     }
 
-    public synchronized YearlyReportState previousYear() {
+    public YearlyReportState previousYear() {
         requireInitialized();
         final int requestedYear = (year - 1) > earliestEntryYear ? year - 1 : year;
         final PeriodMode requestedPeriodMode = requestedYear == year ? periodMode : FULL_YEAR;
         return load(requestedYear, requestedPeriodMode);
     }
 
-    public synchronized YearlyReportState toggleComparisonPeriod() {
+    public YearlyReportState toggleComparisonPeriod() {
         requireInitialized();
         final PeriodMode requestedPeriodMode;
         if ((year - 1) == earliestEntryYear) {

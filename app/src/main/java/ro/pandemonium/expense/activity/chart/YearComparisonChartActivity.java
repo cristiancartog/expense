@@ -17,7 +17,6 @@ import android.widget.CompoundButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -53,6 +52,7 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.service.Comparison;
 import ro.pandemonium.expense.service.YearComparisonService;
 import ro.pandemonium.expense.service.YearComparisonState;
+import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
@@ -194,7 +194,14 @@ public class YearComparisonChartActivity extends AppCompatActivity {
 
     private void loadComparison(final Supplier<YearComparisonState> operation) {
         setLoading(true);
-        reportLoader.submit(operation, this::renderComparison, this::showLoadError);
+        reportLoader.submit(
+                operation,
+                this::renderComparison,
+                error -> {
+                    setLoading(false);
+                    LoadErrorUtil.show(this, R.string.yearComparisonLoadError, error);
+                }
+        );
     }
 
     private void renderComparison(final YearComparisonState state) {
@@ -294,10 +301,4 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         nextYearButton.setEnabled(!isLoading && comparisonState != null && comparisonState.nextYearEnabled());
     }
 
-    private void showLoadError(final Exception error) {
-        setLoading(false);
-        final String detail = error.getMessage() != null ? error.getMessage() : error.toString();
-        Toast.makeText(this, getString(R.string.yearComparisonLoadError, detail), Toast.LENGTH_LONG)
-             .show();
-    }
 }

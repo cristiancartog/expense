@@ -38,7 +38,7 @@ public final class YearComparisonService {
         this.clock = requireNonNull(clock);
     }
 
-    public synchronized YearComparisonState initialize(final ExpenseType requestedExpenseType, final int requestedYear) {
+    public YearComparisonState initialize(final ExpenseType requestedExpenseType, final int requestedYear) {
         requireNonNull(requestedExpenseType);
         final int currentYear = LocalDate.now(clock).getYear();
         final int requestedEarliestYear = expenseDao.getEarliestEntry()
@@ -64,13 +64,13 @@ public final class YearComparisonService {
         return state;
     }
 
-    public synchronized YearComparisonState nextYear() {
+    public YearComparisonState nextYear() {
         requireInitialized();
         final int requestedYear = year < latestYear ? year + 1 : year;
         return load(requestedYear);
     }
 
-    public synchronized YearComparisonState previousYear() {
+    public YearComparisonState previousYear() {
         requireInitialized();
         final int requestedYear = (year - 1) > earliestYear ? year - 1 : year;
         return load(requestedYear);

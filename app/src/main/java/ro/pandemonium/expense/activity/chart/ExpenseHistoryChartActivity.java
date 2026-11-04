@@ -6,7 +6,6 @@ import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -35,6 +34,7 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.service.ExpenseHistoryService;
 import ro.pandemonium.expense.service.ExpenseHistoryState;
 import ro.pandemonium.expense.service.ExpenseHistoryState.MonthlyValues;
+import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
@@ -68,7 +68,7 @@ public class ExpenseHistoryChartActivity extends AppCompatActivity {
         historyLoader.submit(
                 () -> historyService.load(requestedExpenseTypes),
                 this::renderHistory,
-                this::showLoadError
+                error -> LoadErrorUtil.show(this, R.string.expenseHistoryLoadError, error)
         );
     }
 
@@ -147,9 +147,4 @@ public class ExpenseHistoryChartActivity extends AppCompatActivity {
         barChart.invalidate();
     }
 
-    private void showLoadError(final Exception error) {
-        final String detail = error.getMessage() != null ? error.getMessage() : error.toString();
-        Toast.makeText(this, getString(R.string.expenseHistoryLoadError, detail), Toast.LENGTH_LONG)
-             .show();
-    }
 }
