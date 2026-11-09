@@ -1,7 +1,6 @@
 package ro.pandemonium.expense.activity;
 
 import static java.util.Objects.requireNonNull;
-import static ro.pandemonium.expense.Constants.APPLICATION_NAME;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
@@ -16,7 +15,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,9 +39,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import androidx.appcompat.widget.SwitchCompat;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -53,7 +49,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import ro.pandemonium.expense.R;
@@ -61,9 +59,11 @@ import ro.pandemonium.expense.activity.chart.ExpenseHistoryChartActivity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
-import ro.pandemonium.expense.util.ExpenseUtil;
+import ro.pandemonium.expense.service.DatabaseTransferProgress;
+import ro.pandemonium.expense.service.ExpenseMainService;
+import ro.pandemonium.expense.service.ExpenseMainState;
+import ro.pandemonium.expense.service.ExpenseMainUpdate;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
-import ro.pandemonium.expense.util.FileUtil;
 import ro.pandemonium.expense.util.TaskRunner;
 
 @AndroidEntryPoint
@@ -71,6 +71,9 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         implements DatePickerDialog.OnDateSetListener,
             AdapterView.OnItemClickListener,
             CompoundButton.OnCheckedChangeListener {
+
+    @Inject
+    ExpenseMainService mainService;
 
     private final ActivityResultLauncher<Intent> searchResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -144,7 +147,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         yearMonth = YearMonth.now();
 
-        repopulateExpenseList(yearMonth);
+        loadExpenses(mainService::initialize);
     }
 
     private void changeMonth(final View view) {
@@ -152,13 +155,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     public void listNextMonth(final View view) {
-        yearMonth = yearMonth.plusMonths(1);
-        repopulateExpenseList(yearMonth);
+        loadExpenses(mainService::nextMonth);
     }
 
     public void listPreviousMonth(final View view) {
-        yearMonth = yearMonth.minusMonths(1);
-        repopulateExpenseList(yearMonth);
+        loadExpenses(mainService::previousMonth);
     }
 
     public void addExpense(final View view) {
@@ -233,7 +234,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         drawerLayout.closeDrawer(GravityCompat.START);
         showDatabaseTransferDialog(R.string.databaseDumpProgressTitle, R.string.databaseDumpPreparing);
         databaseTransferRunner.submit(
-                this::dumpDatabase,
+                mainService::dumpDatabase,
                 this::updateDatabaseTransferDialog,
                 this::failDatabaseTransfer,
                 () -> finishDatabaseTransfer(R.string.expenseListActivityExportSuccessful, false)
@@ -253,38 +254,20 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
 
         final Expense expense = requireNonNull(data.getSerializableExtra(INTENT_EXPENSE, Expense.class));
-        Log.i(APPLICATION_NAME, expense.toString());
-
-        final Long expenseId = expense.getId();
-        boolean newExpenseAddedThisMonth = false;
-
-        if (expenseId == null) { // add new expense
-            expenseDao.persistExpense(expense);
-
-            if (isInSameMonth(expense.getDate())) {
-                clearFilters();
-
-                if (expense.getExpenseType() != ExpenseType.SPECIAL) {
-                    expenseListAdapter.addExpense(expense);
-                    newExpenseAddedThisMonth = true;
-                }
-            }
-        } else { // update existing expense
-            expenseDao.updateExpense(expense);
-            if (!isInSameMonth(expense.getDate())) {
-                expenseListAdapter.deleteExpense(expense);
-            } else {
-                expenseListAdapter.updateExpense(expense);
-            }
+        final ExpenseMainUpdate update = mainService.saveExpense(expense);
+        if (update.clearFilters()) {
+            clearFilters();
         }
+        applyUpdate(update);
 
         expenseListAdapter.notifyDataSetChanged();
 
-        if (newExpenseAddedThisMonth) {
+        if (update.operationType() == ExpenseMainUpdate.OperationType.ADD) {
             expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
         }
 
         updateTotal();
+        updatePieData();
     }
 
     private void processSelectedBackupFile(final Uri backupFile) {
@@ -294,28 +277,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         showDatabaseTransferDialog(R.string.databaseRestoreProgressTitle, R.string.databaseRestoreReading);
         databaseTransferRunner.submit(
-                progressPublisher -> restoreDatabase(backupFile, progressPublisher),
+                progressPublisher -> mainService.restoreDatabase(backupFile, progressPublisher),
                 this::updateDatabaseTransferDialog,
                 this::failDatabaseTransfer,
                 () -> finishDatabaseTransfer(R.string.expenseListActivityRestoreSuccessful, true)
         );
-    }
-
-    private void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
-        final List<Expense> expenses = expenseDao.fetchExpenses((YearMonth) null);
-        final ProgressPublisher throttledProgress = new ProgressPublisher(expenses.size(), false, progressPublisher);
-        throttledProgress.publish(0, true);
-        FileUtil.exportExpenses(this, expenses, count -> throttledProgress.publish(count, false));
-        throttledProgress.publish(expenses.size(), true);
-    }
-
-    private void restoreDatabase(final Uri backupFile,
-                                 final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
-        final List<Expense> expenses = FileUtil.importExpenses(this, backupFile);
-        final ProgressPublisher throttledProgress = new ProgressPublisher(expenses.size(), true, progressPublisher);
-        throttledProgress.publish(0, true);
-        expenseDao.restoreExpenses(expenses, count -> throttledProgress.publish(count, false));
-        throttledProgress.publish(expenses.size(), true);
     }
 
     private void showDatabaseTransferDialog(final int titleResource, final int statusResource) {
@@ -356,7 +322,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         dismissDatabaseTransferDialog();
         Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
         if (refreshExpenses) {
-            repopulateExpenseList(yearMonth);
+            loadExpenses(mainService::reload);
         }
     }
 
@@ -379,65 +345,49 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         super.onDestroy();
     }
 
-    private record DatabaseTransferProgress(int completed, int total, boolean restore) { }
-
-    private static final class ProgressPublisher {
-        private static final long UPDATE_INTERVAL_MILLIS = 1_000L;
-
-        private final int total;
-        private final boolean restore;
-        private final Consumer<DatabaseTransferProgress> publisher;
-        private long lastPublishedAt;
-
-        private ProgressPublisher(final int total,
-                                  final boolean restore,
-                                  final Consumer<DatabaseTransferProgress> publisher) {
-            this.total = total;
-            this.restore = restore;
-            this.publisher = publisher;
-        }
-
-        private void publish(final int completed, final boolean force) {
-            final long now = System.currentTimeMillis();
-            if (force || now - lastPublishedAt >= UPDATE_INTERVAL_MILLIS) {
-                lastPublishedAt = now;
-                publisher.accept(new DatabaseTransferProgress(completed, total, restore));
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    private void processSearchResultActivityResult(int resultCode, Intent data) {
+    private void processSearchResultActivityResult(final int resultCode, final Intent data) {
         if (resultCode == RESULT_OK && data != null) {
-            List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES, ArrayList.class);
-            expenseListAdapter.updateExpenses(changedExpenses != null ? changedExpenses : new ArrayList<>());
+            final List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES, ArrayList.class);
+            final List<ExpenseMainUpdate> updates = mainService.reconcileChanges(
+                    expenseListAdapter.getExpenses(true),
+                    changedExpenses != null ? changedExpenses : List.of()
+            );
+            if (updates.stream().anyMatch(ExpenseMainUpdate::clearFilters)) {
+                clearFilters();
+            }
+            updates.forEach(this::applyUpdate);
             expenseListAdapter.notifyDataSetChanged();
+            updateTotal();
+            updatePieData();
         }
     }
 
-    private boolean isInSameMonth(final LocalDate date) {
-        return YearMonth.from(date).equals(yearMonth);
+    private void applyUpdate(final ExpenseMainUpdate update) {
+        switch (update.operationType()) {
+            case ADD -> expenseListAdapter.addExpense(update.expense());
+            case UPDATE -> expenseListAdapter.updateExpense(update.expense());
+            case REMOVE -> expenseListAdapter.deleteExpense(update.expense());
+            case NONE -> { }
+        }
     }
 
     @Override
     public void onDateSet(final DatePicker datePicker, final int year, final int monthOfYear, final int dayOfMonth) {
         final YearMonth selectedYearMonth = YearMonth.of(year, monthOfYear + 1);
         if (!yearMonth.equals(selectedYearMonth)) {
-            yearMonth = selectedYearMonth;
-            repopulateExpenseList(yearMonth);
+            loadExpenses(() -> mainService.selectMonth(selectedYearMonth));
         }
     }
 
-    private void repopulateExpenseList(final YearMonth yearMonth) {
-        expenseLoader.submit(
-                () -> expenseDao.fetchExpenses(yearMonth),
-                this::repopulateExpenseList);
+    private void loadExpenses(final Supplier<ExpenseMainState> operation) {
+        expenseLoader.submit(operation, this::showExpenses);
     }
 
-    private void repopulateExpenseList(final List<Expense> expenses) {
+    private void showExpenses(final ExpenseMainState state) {
+        yearMonth = state.yearMonth();
         clearFilters();
-        expenses.sort(mapSortingMenuItemToComparator.get(1));
-        expenseListAdapter.updateExpenseList(expenses);
+        expenseListAdapter.updateExpenseList(state.expenses());
         updateTotal();
         updateMonthButtonLabel();
         expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
@@ -452,7 +402,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void updatePieData() {
         updateMonthButtonLabel();
 
-        Map<ExpenseType, Double> expenseTypeValues = ExpenseUtil.computeExpenseSumByCategory(expenseListAdapter.getExpenses(false));
+        Map<ExpenseType, Double> expenseTypeValues = mainService.totalsByExpenseType(expenseListAdapter.getExpenses(false));
 
         final List<PieEntry> entries = new ArrayList<>();
         final Resources resources = getResources();

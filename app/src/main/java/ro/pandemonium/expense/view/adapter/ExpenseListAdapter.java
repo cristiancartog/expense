@@ -100,16 +100,6 @@ public class ExpenseListAdapter extends BaseAdapter {
         mapExpenseIdToExpense.put(expense.getId(), expense);
     }
 
-    /**
-     * Updates the data for the current expenses with what is provided.
-     * @param expenses - expenses with new data
-     */
-    public void updateExpenses(final List<Expense> expenses) {
-        for (Expense expense : expenses) {
-            updateExpense(expense);
-        }
-    }
-
     public void updateExpense(final Expense expense) {
         final Expense localExpense = mapExpenseIdToExpense.get(expense.getId());
         if (localExpense != null) {
