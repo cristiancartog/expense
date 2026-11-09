@@ -55,8 +55,7 @@ var someVaryVeryVeryVeryLongVariableName = SomeUtilityWithAVeryVeryLongHame
 var someVaryVeryVeryVeryLongVariableName = SomeUtilityWithAVeryVeryLongHame.callingSomeUtilityMethodWithAnotherLongName(someOtherVariableWithAVeryLongName.someOtherMethodWithAVeryLongNameReturningSomething())
 ```
 
-3.  calls to methods with multiple parameters: if the called method signature accepts parameters of more complex types (not simple primitives and their wrappers), then put all parameters on separate lines, like so (note the ending paranthesis)
-
+3.  calls to methods with multiple parameters: if the called method signature accepts parameters of more complex types (not simple primitives and their wrappers) and the resulting line is long (beyond the standard 120 characters), then put all parameters on separate lines, like so (note the ending parenthesis)
 ```
 # instead of this
 submitWithProgress(progressPublisher -> result.set(backgroundOperation.get()),  NO_OP_CONSUMER,
@@ -69,4 +68,63 @@ submitWithProgress(
         () -> resultConsumer.accept(result.get()),  
         errorConsumer  
 );
+```
+
+4. in service methods add a blank line after checking the method contracts and required initial state
+```
+# instead of this
+void someMethod(final ParamType param) {
+    requireNonNull(param);
+    requireInitialized();
+    logicCall1();
+    logicCall2();
+    logicCall3();
+}
+
+# do this
+void someMethod(final ParamType param) {
+    requireNonNull(param);
+    requireInitialized();
+ 
+    logicCall1();
+    logicCall2();
+    logicCall3();
+}
+```
+
+5. try to order the methods in a class by their call order (when possible)
+```
+# having thid call chain in a method
+public void someComplexService() {
+    method1();
+    method2();
+    method3();
+}
+
+# instead of this
+public void method3 () {
+    method1();
+}
+
+public void method4 () {
+    method2();
+}
+private void method2 () {
+}
+private void method1 () {
+}
+
+# do this
+private void method1 () {
+}
+
+private void method2 () {
+  method2();
+}
+private void method3 () {
+  method1();
+}
+private void method4 () {
+  method()2;
+}
 ```
