@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntConsumer;
 
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.db.ExpenseEntity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.FileUtil;
@@ -64,29 +66,29 @@ public class ExpenseMainServiceTest {
     public void initializeLoadsTheCurrentMonthAndSortsTheDaoResult() {
         final Expense laterExpense = expense(1L, FOOD, "2026-11-20", 20D);
         final Expense earlierExpense = expense(2L, PETROL, "2026-11-10", 10D);
-        final List<Expense> daoResult = new ArrayList<>(List.of(laterExpense, earlierExpense));
-        when(expenseDao.fetchExpenses(CURRENT_MONTH)).thenReturn(daoResult);
+        final List<ExpenseEntity> daoResult = new ArrayList<>(List.of(entity(laterExpense), entity(earlierExpense)));
+        when(expenseDao.fetchExpensesInMonth(SPECIAL.getDbId(), CURRENT_MONTH.toString())).thenReturn(daoResult);
 
         final ExpenseMainState state = service.initialize();
 
         assertEquals(CURRENT_MONTH, state.yearMonth());
         assertEquals(List.of(earlierExpense, laterExpense), state.expenses());
-        assertEquals(List.of(earlierExpense, laterExpense), daoResult);
+        assertEquals(List.of(laterExpense.getId(), earlierExpense.getId()), daoResult.stream().map(entity -> entity.id).toList());
         assertThrows(UnsupportedOperationException.class, state.expenses()::clear);
     }
 
     @Test
     public void monthNavigationLoadsTheRequestedMonths() {
-        when(expenseDao.fetchExpenses(any(YearMonth.class))).thenReturn(new ArrayList<>());
+        when(expenseDao.fetchExpensesInMonth(eq(SPECIAL.getDbId()), any(String.class))).thenReturn(new ArrayList<>());
         service.initialize();
 
         assertEquals(YearMonth.of(2026, 12), service.nextMonth().yearMonth());
         assertEquals(YearMonth.of(2026, 11), service.previousMonth().yearMonth());
         assertEquals(YearMonth.of(2025, 3), service.selectMonth(YearMonth.of(2025, 3)).yearMonth());
 
-        verify(expenseDao).fetchExpenses(YearMonth.of(2026, 12));
-        verify(expenseDao, times(2)).fetchExpenses(YearMonth.of(2026, 11));
-        verify(expenseDao).fetchExpenses(YearMonth.of(2025, 3));
+        verify(expenseDao).fetchExpensesInMonth(SPECIAL.getDbId(), "2026-12");
+        verify(expenseDao, times(2)).fetchExpensesInMonth(SPECIAL.getDbId(), "2026-11");
+        verify(expenseDao).fetchExpensesInMonth(SPECIAL.getDbId(), "2025-03");
     }
 
     @Test
@@ -106,17 +108,14 @@ public class ExpenseMainServiceTest {
     public void savingANewRegularExpenseInTheCurrentMonthAddsItAndClearsFilters() {
         initializeEmptyMonth();
         final Expense expense = expense(null, FOOD, "2026-11-04", 10D);
-        doAnswer(invocation -> {
-            expense.setId(42L);
-            return null;
-        }).when(expenseDao).persistExpense(expense);
+        when(expenseDao.insert(any(ExpenseEntity.class))).thenReturn(42L);
 
         final ExpenseMainUpdate update = service.saveExpense(expense);
 
         assertEquals(ADD, update.operationType());
         assertTrue(update.clearFilters());
         assertEquals(expense, update.expense());
-        verify(expenseDao).persistExpense(expense);
+        verify(expenseDao).insert(any(ExpenseEntity.class));
     }
 
     @Test
@@ -147,6 +146,7 @@ public class ExpenseMainServiceTest {
         final Expense currentMonthExpense = expense(1L, FOOD, "2026-11-04", 10D);
         final Expense anotherMonthExpense = expense(2L, FOOD, "2026-12-04", 20D);
         final Expense specialExpense = expense(3L, SPECIAL, "2026-11-04", 30D);
+        when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
 
         final ExpenseMainUpdate currentMonthUpdate = service.saveExpense(currentMonthExpense);
         final ExpenseMainUpdate anotherMonthUpdate = service.saveExpense(anotherMonthExpense);
@@ -155,16 +155,14 @@ public class ExpenseMainServiceTest {
         assertEquals(UPDATE, currentMonthUpdate.operationType());
         assertEquals(REMOVE, anotherMonthUpdate.operationType());
         assertEquals(REMOVE, specialUpdate.operationType());
-        verify(expenseDao).updateExpense(currentMonthExpense);
-        verify(expenseDao).updateExpense(anotherMonthExpense);
-        verify(expenseDao).updateExpense(specialExpense);
+        verify(expenseDao, times(3)).update(any(ExpenseEntity.class));
     }
 
     @Test
     public void failedPersistenceDoesNotReturnAUiUpdate() {
         initializeEmptyMonth();
         final Expense expense = expense(1L, FOOD, "2026-11-04", 10D);
-        doThrow(new IllegalStateException("update failed")).when(expenseDao).updateExpense(expense);
+        doThrow(new IllegalStateException("update failed")).when(expenseDao).update(any(ExpenseEntity.class));
 
         assertThrows(IllegalStateException.class, () -> service.saveExpense(expense));
     }
@@ -225,7 +223,7 @@ public class ExpenseMainServiceTest {
                 expense(1L, FOOD, "2026-11-04", 10D),
                 expense(2L, PETROL, "2026-11-05", 20D)
         );
-        when(expenseDao.fetchExpenses((YearMonth) null)).thenReturn(expenses);
+        when(expenseDao.fetchAllExpenses()).thenReturn(expenses.stream().map(this::entity).toList());
         final List<DatabaseTransferProgress> progress = new ArrayList<>();
 
         try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
@@ -265,7 +263,7 @@ public class ExpenseMainServiceTest {
             final IntConsumer progress = invocation.getArgument(1);
             progress.accept(1);
             return null;
-        }).when(expenseDao).restoreExpenses(any(), any());
+        }).when(expenseDao).replaceAll(anyList(), any());
         final List<DatabaseTransferProgress> progress = new ArrayList<>();
 
         try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
@@ -282,7 +280,7 @@ public class ExpenseMainServiceTest {
             ));
         }
 
-        verify(expenseDao).restoreExpenses(eq(expenses), any());
+        verify(expenseDao).replaceAll(anyList(), any());
         assertEquals(List.of(
                 new DatabaseTransferProgress(0, 1, true),
                 new DatabaseTransferProgress(1, 1, true),
@@ -303,11 +301,12 @@ public class ExpenseMainServiceTest {
             assertThrows(IOException.class, () -> service.restoreDatabase(backupFile, ignored -> { }));
         }
 
-        verify(expenseDao, never()).restoreExpenses(any(), any());
+        verify(expenseDao, never()).replaceAll(anyList(), any());
     }
 
     private void initializeEmptyMonth() {
-        when(expenseDao.fetchExpenses(CURRENT_MONTH)).thenReturn(new ArrayList<>());
+        when(expenseDao.fetchExpensesInMonth(SPECIAL.getDbId(), CURRENT_MONTH.toString())).thenReturn(new ArrayList<>());
+        when(expenseDao.insert(any(ExpenseEntity.class))).thenReturn(42L);
         service.initialize();
     }
 
@@ -322,5 +321,9 @@ public class ExpenseMainServiceTest {
         expense.setValue(value);
         expense.setComment("");
         return expense;
+    }
+
+    private ExpenseEntity entity(final Expense expense) {
+        return ExpenseEntityMapper.toEntity(expense, true);
     }
 }

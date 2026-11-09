@@ -25,9 +25,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.db.ExpenseEntity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 
@@ -167,9 +167,9 @@ public class YearlyReportServiceTest {
     private MockExpenseStore storeWithBounds(final String earliest, final String latest) {
         final MockExpenseStore store = new MockExpenseStore();
         when(store.expenseDao.getEarliestEntry())
-                .thenReturn(Optional.of(expense(-1, OTHER, 0, earliest)));
+                .thenReturn(entity(expense(-1, OTHER, 0, earliest)));
         when(store.expenseDao.getLatestEntry())
-                .thenReturn(Optional.of(expense(-2, OTHER, 0, latest)));
+                .thenReturn(entity(expense(-2, OTHER, 0, latest)));
         return store;
     }
 
@@ -182,6 +182,10 @@ public class YearlyReportServiceTest {
         expense.setDate(LocalDate.parse(date));
         expense.setComment("");
         return expense;
+    }
+
+    private static ExpenseEntity entity(final Expense expense) {
+        return ExpenseEntityMapper.toEntity(expense, true);
     }
 
     private void assertComparison(final Comparison comparison,
@@ -204,8 +208,6 @@ public class YearlyReportServiceTest {
         private boolean failQueries;
 
         private MockExpenseStore() {
-            when(expenseDao.getEarliestEntry()).thenReturn(Optional.empty());
-            when(expenseDao.getLatestEntry()).thenReturn(Optional.empty());
             doAnswer(invocation -> {
                 if (failQueries) {
                     throw new IllegalStateException("query failed");
@@ -215,6 +217,7 @@ public class YearlyReportServiceTest {
                 return expenses.stream()
                         .filter(expense -> !expense.getDate().isBefore(startInclusive))
                         .filter(expense -> !expense.getDate().isAfter(endInclusive))
+                        .map(YearlyReportServiceTest::entity)
                         .toList();
             }).when(expenseDao).findExpensesInInterval(any(LocalDate.class), any(LocalDate.class));
         }

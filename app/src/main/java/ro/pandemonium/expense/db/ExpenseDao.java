@@ -1,288 +1,151 @@
 package ro.pandemonium.expense.db;
 
-import static java.lang.String.format;
-import static java.lang.String.join;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.joining;
-import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DB;
-import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
-import androidx.annotation.VisibleForTesting;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.Query;
+import androidx.room.Transaction;
+import androidx.room.Update;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.IntConsumer;
 
-import ro.pandemonium.expense.Constants;
-import ro.pandemonium.expense.model.Expense;
-import ro.pandemonium.expense.model.ExpenseMonthlySummary;
-import ro.pandemonium.expense.model.ExpenseType;
-import ro.pandemonium.expense.model.Filters;
+@Dao
+public abstract class ExpenseDao {
 
-public class ExpenseDao {
+    @Insert
+    public abstract long insert(ExpenseEntity expense);
 
-    private static final String CLASS_NAME = ExpenseDao.class.getSimpleName();
-    private static final String EXPENSES_TABLE = "EXPENSES";
-    private static final String FETCH_EXPENSES_QUERY_BASE = """
+    @Update
+    public abstract int update(ExpenseEntity expense);
+
+    @Query("""
+        DELETE
+        FROM EXPENSES
+        WHERE _ID = :expenseId
+        """)
+    public abstract int delete(long expenseId);
+
+    @Query("""
+        DELETE
+        FROM EXPENSES
+        """)
+    protected abstract void deleteAll();
+
+    @Transaction
+    public List<ExpenseEntity> fetchExpenses(final List<Integer> expenseTypeIds, final Set<String> comments) {
+        requireNonNull(expenseTypeIds);
+        requireNonNull(comments);
+
+        final Map<Long, ExpenseEntity> expensesById = new LinkedHashMap<>();
+        if (!expenseTypeIds.isEmpty()) {
+            fetchByExpenseTypes(expenseTypeIds).forEach(expense -> expensesById.put(expense.id, expense));
+        }
+
+        for (String comment : comments) {
+            final String commentPattern = "%" + escapeLikeValue(comment) + "%";
+            fetchByComment(commentPattern).forEach(expense -> expensesById.put(expense.id, expense));
+        }
+
+        return expensesById.values().stream()
+                           .sorted(Comparator.comparing((ExpenseEntity expense) -> expense.date)
+                                             .reversed())
+                           .toList();
+    }
+
+    @Query("""
         SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
         FROM EXPENSES
-    """;
+        WHERE EXPENSE_TYPE IN (:expenseTypeIds)
+        """)
+    protected abstract List<ExpenseEntity> fetchByExpenseTypes(List<Integer> expenseTypeIds);
 
-    private final SQLiteDatabase database;
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DB, Locale.getDefault());
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        WHERE COMMENT LIKE :commentPattern ESCAPE '\'
+        """)
+    protected abstract List<ExpenseEntity> fetchByComment(String commentPattern);
 
-    public ExpenseDao(final SQLiteDatabase database) {
-        this.database = database;
+    private String escapeLikeValue(final String value) {
+        return value.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
     }
 
-    private void checkDatabaseAvailability() {
-        if (database == null) {
-            final String msg = "No database handle!";
-            Log.e(Constants.APPLICATION_NAME, msg);
-            throw new ExpenseDaoException(msg);
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        WHERE EXPENSE_TYPE <> :excludedExpenseType
+            AND STRFTIME('%Y-%m', DATE) = :yearMonth
+        """)
+    public abstract List<ExpenseEntity> fetchExpensesInMonth(int excludedExpenseType, String yearMonth);
+
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        """)
+    public abstract List<ExpenseEntity> fetchAllExpenses();
+
+    @Query("""
+        SELECT SUM(VALUE) AS TOTAL, STRFTIME('%m', DATE) AS MONTH
+        FROM EXPENSES
+        WHERE EXPENSE_TYPE = :expenseType AND STRFTIME('%Y', DATE) = :year
+        GROUP BY MONTH
+        ORDER BY MONTH
+        """)
+    public abstract List<YearSummaryRow> getMonthlySummaryInYear(int expenseType, String year);
+
+    @Query("""
+        SELECT EXPENSE_TYPE, SUM(VALUE) AS TOTAL, STRFTIME('%Y-%m', DATE) AS MONTH
+        FROM EXPENSES
+        WHERE EXPENSE_TYPE IN (:expenseTypes)
+        GROUP BY EXPENSE_TYPE, MONTH
+        ORDER BY MONTH
+        """)
+    public abstract List<MonthlySummaryRow> getMonthlySummary(List<Integer> expenseTypes);
+
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        ORDER BY DATE ASC
+        LIMIT 1
+        """)
+    public abstract ExpenseEntity getEarliestEntry();
+
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        ORDER BY DATE DESC
+        LIMIT 1
+        """)
+    public abstract ExpenseEntity getLatestEntry();
+
+    @Query("""
+        SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
+        FROM EXPENSES
+        WHERE (:startInclusive IS NULL OR DATE >= :startInclusive)
+            AND (:endInclusive IS NULL OR DATE <= :endInclusive)
+        """)
+    public abstract List<ExpenseEntity> findExpensesInInterval(LocalDate startInclusive, LocalDate endInclusive);
+
+    @Transaction
+    public void replaceAll(final List<ExpenseEntity> expenses, final IntConsumer progressConsumer) {
+        requireNonNull(expenses);
+        requireNonNull(progressConsumer);
+
+        deleteAll();
+
+        int restoredCount = 0;
+        for (ExpenseEntity expense : expenses) {
+            expense.id = insert(expense);
+            progressConsumer.accept(++restoredCount);
         }
-//        if (!database.isOpen()) {
-//
-//        }
-    }
-
-    public void persistExpense(final Expense expense) {
-        checkDatabaseAvailability();
-
-        final ContentValues cv = createContentValuesFromExpense(expense);
-
-        final long id = database.insert(EXPENSES_TABLE, null, cv);
-        if (id > 0) {
-            expense.setId(id);
-        } else {
-            throw new ExpenseDaoException("expense not inserted");
-        }
-    }
-
-    public void updateExpense(final Expense expense) {
-        checkDatabaseAvailability();
-
-        final ContentValues cv = createContentValuesFromExpense(expense);
-
-        final int updatedCount = database.update(EXPENSES_TABLE, cv, "_ID = " + expense.getId(), null);
-        if (updatedCount != 1) {
-            throw new ExpenseDaoException("Expense with id " + expense.getId() + " was not updated");
-        }
-    }
-
-    private ContentValues createContentValuesFromExpense(final Expense expense) {
-        final ContentValues cv = new ContentValues();
-        cv.put("EXPENSE_TYPE", expense.getExpenseType().getDbId());
-        cv.put("VALUE", expense.getValue());
-        cv.put("DATE", dateFormatter.format(expense.getDate()));
-        cv.put("COMMENT", expense.getComment());
-        return cv;
-    }
-
-    public void removeExpense(final Long expenseId) {
-        database.execSQL("""
-            DELETE FROM EXPENSES
-            WHERE _ID = %d
-        """.formatted(expenseId));
-    }
-
-    public List<Expense> fetchExpenses(final Filters filters) {
-        checkDatabaseAvailability();
-
-        String query = createFetchExpensesQueryString(filters);
-        try (Cursor cursor = database.rawQuery(query, null)) {
-            return extractExpenses(cursor);
-        }
-    }
-
-    private String createFetchExpensesQueryString(final Filters filters) {
-        return FETCH_EXPENSES_QUERY_BASE + createExpenseTypeWhereClause(filters.expenseTypes()) + buildDescriptionClause(filters.comments());
-    }
-
-    private String buildDescriptionClause(final Set<String> comments) {
-        return comments.stream()
-                .map("COMMENT LIKE '%%%s%%'"::formatted)
-                .collect(joining("OR"));
-    }
-
-    private String createExpenseTypeWhereClause(final List<ExpenseType> expenseTypes) {
-        String expenseTypesInArgs = expenseTypes.stream()
-                .map(ExpenseType::getDbId)
-                .map(String::valueOf)
-                .collect(joining(","));
-
-        return format("WHERE EXPENSE_TYPE IN (%s) ", expenseTypesInArgs);
-    }
-
-    public List<Expense> fetchExpenses(final YearMonth yearMonth) {
-        return queryForExpenses(createFetchExpensesQueryString(yearMonth));
-    }
-
-    private String createFetchExpensesQueryString(final YearMonth yearMonth) {
-        if (yearMonth != null) {
-            return """
-                %s
-                WHERE
-                    EXPENSE_TYPE <> %d
-                        AND CAST(STRFTIME('%%Y', DATE) AS NUMBER) = %d
-                        AND CAST(STRFTIME('%%m', DATE) AS NUMBER) = %d
-            """.formatted(
-                    FETCH_EXPENSES_QUERY_BASE,
-                    SPECIAL.getDbId(),
-                    yearMonth.getYear(),
-                    yearMonth.getMonthValue()
-            );
-        }
-
-        return FETCH_EXPENSES_QUERY_BASE;
-    }
-
-    public Map<String, Double> getMonthlySummaryInYear(final ExpenseType expenseType, final int year) {
-        String query = """
-            SELECT SUM(VALUE), STRFTIME('%%m', DATE) AS MONTH
-            FROM EXPENSES
-            WHERE
-                EXPENSE_TYPE = %d
-                AND CAST(STRFTIME('%%Y', DATE) AS NUMBER) = %d
-            GROUP BY MONTH
-            ORDER BY MONTH
-        """.formatted(expenseType.getDbId(), year);
-
-        Map<String, Double> summary = new TreeMap<>();
-
-        try (final Cursor cursor = database.rawQuery(query, null)) {
-            while (cursor.moveToNext()) {
-                String yearMonth = cursor.getString(1);
-                Double value = cursor.getDouble(0);
-
-                summary.put(yearMonth, value);
-            }
-        }
-
-        return summary;
-    }
-
-    public List<ExpenseMonthlySummary> getMonthlySummary(final List<ExpenseType> expenseTypes) {
-        checkDatabaseAvailability();
-
-        final String query = """
-            SELECT EXPENSE_TYPE, SUM(VALUE), STRFTIME('%%Y-%%m', DATE) AS MONTH
-            FROM EXPENSES
-            %s
-            GROUP BY EXPENSE_TYPE, MONTH
-            ORDER BY MONTH
-        """.formatted(createExpenseTypeWhereClause(expenseTypes));
-
-        final Map<YearMonth, ExpenseMonthlySummary> summariesByMonth = new TreeMap<>();
-        try (final Cursor cursor = database.rawQuery(query, null)) {
-            while (cursor.moveToNext()) {
-                final YearMonth yearMonth = YearMonth.parse(cursor.getString(2));
-                summariesByMonth.computeIfAbsent(yearMonth, ExpenseMonthlySummary::new)
-                                .addExpense(ExpenseType.byDbId(cursor.getInt(0)), cursor.getDouble(1));
-            }
-        }
-
-        return new ArrayList<>(summariesByMonth.values());
-    }
-
-    public Optional<Expense> getEarliestEntry() {
-        return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE ASC LIMIT 1");
-    }
-
-    public Optional<Expense> getLatestEntry() {
-        return getSingleExpense(FETCH_EXPENSES_QUERY_BASE + " ORDER BY DATE DESC LIMIT 1");
-    }
-
-    private Optional<Expense> getSingleExpense(final String query) {
-        return queryForExpenses(query).stream().findFirst();
-    }
-
-    public List<Expense> findExpensesInInterval(final LocalDate startInclusive, final LocalDate endInclusive) {
-        var conditions = new ArrayList<String>();
-
-        if (startInclusive != null) {
-            conditions.add("DATE >= '%s'".formatted(dateFormatter.format(startInclusive)));
-        }
-        if (endInclusive != null) {
-            conditions.add("DATE <= '%s'".formatted(dateFormatter.format(endInclusive)));
-        }
-
-        String whereClause = conditions.isEmpty() ? "" : "WHERE " + join(" AND ", conditions);
-        String query = FETCH_EXPENSES_QUERY_BASE + whereClause;
-
-        return queryForExpenses(query);
-    }
-
-    private List<Expense> queryForExpenses(final String query) {
-        checkDatabaseAvailability();
-
-        try (Cursor cursor = database.rawQuery(query, null)) {
-            return extractExpenses(cursor);
-        }
-    }
-
-    private List<Expense> extractExpenses(final Cursor cursor) {
-        final List<Expense> expenses = new ArrayList<>();
-        if (cursor.moveToFirst()) {
-            do {
-                final Expense expense = new Expense();
-                expense.setId(cursor.getLong(0));
-                expense.setExpenseType(ExpenseType.byDbId(cursor.getInt(1)));
-                expense.setValue(cursor.getDouble(2));
-                expense.setDate(extractDate(cursor.getString(3)));
-                expense.setComment(cursor.getString(4));
-
-                expenses.add(expense);
-            } while (cursor.moveToNext());
-        }
-
-        return expenses;
-    }
-
-    private LocalDate extractDate(final String dateString) {
-        try {
-            return LocalDate.parse(dateString, dateFormatter);
-        } catch (DateTimeParseException ex) {
-            Log.w(CLASS_NAME, requireNonNull(ex.getMessage()));
-            return null;
-        }
-    }
-
-    public void restoreExpenses(final List<Expense> expenses, final IntConsumer progressConsumer) {
-        checkDatabaseAvailability();
-
-        database.beginTransaction();
-        try {
-            database.execSQL("DELETE FROM " + EXPENSES_TABLE);
-
-            int restoredCount = 0;
-            for (Expense expense : expenses) {
-                persistExpense(expense);
-                restoredCount++;
-                progressConsumer.accept(restoredCount);
-            }
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
-    @VisibleForTesting
-    public void closeDatabase() {
-        database.close();
     }
 }

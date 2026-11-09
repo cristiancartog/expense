@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summingDouble;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
+import static ro.pandemonium.expense.service.ExpenseEntityMapper.toExpenses;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.FULL_YEAR;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_FROM_DATE;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_TO_DATE;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -52,12 +54,12 @@ public final class YearlyReportService {
 
     public YearlyReportState initialize(final int requestedYear) {
         final LocalDate today = LocalDate.now(clock);
-        earliestEntryDate = expenseDao.getEarliestEntry()
-                .map(Expense::getDate)
-                .orElse(today);
-        latestEntryDate = expenseDao.getLatestEntry()
-                .map(Expense::getDate)
-                .orElse(today);
+        earliestEntryDate = Optional.ofNullable(expenseDao.getEarliestEntry())
+                                    .map(entity -> entity.date)
+                                    .orElse(today);
+        latestEntryDate = Optional.ofNullable(expenseDao.getLatestEntry())
+                                  .map(entity -> entity.date)
+                                  .orElse(today);
         earliestEntryYear = earliestEntryDate.getYear();
         latestEntryYear = latestEntryDate.getYear();
         final PeriodMode initialPeriodMode = requestedYear == latestEntryYear
@@ -120,8 +122,8 @@ public final class YearlyReportService {
                 ? latestEntryDate.minusYears(1)
                 : LocalDate.of(reportYear - 1, DECEMBER, 31);
 
-        final List<Expense> currentExpenses = expenseDao.findExpensesInInterval(currentStart, currentEnd);
-        final List<Expense> previousExpenses = expenseDao.findExpensesInInterval(previousStart, previousEnd);
+        final List<Expense> currentExpenses = toExpenses(expenseDao.findExpensesInInterval(currentStart, currentEnd));
+        final List<Expense> previousExpenses = toExpenses(expenseDao.findExpensesInInterval(previousStart, previousEnd));
         final Map<ExpenseType, Double> currentTotals = totalsByExpenseType(currentExpenses);
         final Map<ExpenseType, Double> previousTotals = totalsByExpenseType(previousExpenses);
         final Map<ExpenseType, Comparison> comparisons = new EnumMap<>(ExpenseType.class);

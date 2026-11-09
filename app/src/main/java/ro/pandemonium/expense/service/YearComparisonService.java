@@ -8,12 +8,14 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.model.Expense;
+import ro.pandemonium.expense.db.YearSummaryRow;
 import ro.pandemonium.expense.model.ExpenseType;
 
 @ActivityScoped
@@ -41,12 +43,12 @@ public final class YearComparisonService {
     public YearComparisonState initialize(final ExpenseType requestedExpenseType, final int requestedYear) {
         requireNonNull(requestedExpenseType);
         final int currentYear = LocalDate.now(clock).getYear();
-        final int requestedEarliestYear = expenseDao.getEarliestEntry()
-                .map(Expense::getDate)
+        final int requestedEarliestYear = Optional.ofNullable(expenseDao.getEarliestEntry())
+                .map(entity -> entity.date)
                 .map(LocalDate::getYear)
                 .orElse(currentYear);
-        final int requestedLatestYear = expenseDao.getLatestEntry()
-                .map(Expense::getDate)
+        final int requestedLatestYear = Optional.ofNullable(expenseDao.getLatestEntry())
+                .map(entity -> entity.date)
                 .map(LocalDate::getYear)
                 .orElse(currentYear);
 
@@ -86,8 +88,8 @@ public final class YearComparisonService {
                                             final int reportYear,
                                             final int firstExpenseYear,
                                             final int lastExpenseYear) {
-        final Map<String, Double> currentValues = requireNonNull(expenseDao.getMonthlySummaryInYear(reportExpenseType, reportYear));
-        final Map<String, Double> previousValues = requireNonNull(expenseDao.getMonthlySummaryInYear(reportExpenseType, reportYear - 1));
+        final Map<String, Double> currentValues = monthlyValues(reportExpenseType, reportYear);
+        final Map<String, Double> previousValues = monthlyValues(reportExpenseType, reportYear - 1);
         final Map<Month, Comparison> comparisons = new EnumMap<>(Month.class);
         double currentTotal = 0D;
         double previousTotal = 0D;
@@ -114,6 +116,14 @@ public final class YearComparisonService {
                 previousTotal,
                 comparisons
         );
+    }
+
+    private Map<String, Double> monthlyValues(final ExpenseType reportExpenseType, final int reportYear) {
+        final Map<String, Double> values = new TreeMap<>();
+        for (YearSummaryRow row : expenseDao.getMonthlySummaryInYear(reportExpenseType.getDbId(), Integer.toString(reportYear))) {
+            values.put(row.month, row.total);
+        }
+        return values;
     }
 
     private void requireInitialized() {

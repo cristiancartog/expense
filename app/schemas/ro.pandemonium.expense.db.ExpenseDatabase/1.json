@@ -1,0 +1,64 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "bfb3e96626fddc71df47105ab4dd3df7",
+    "entities": [
+      {
+        "tableName": "EXPENSES",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_ID` INTEGER PRIMARY KEY AUTOINCREMENT, `EXPENSE_TYPE` INTEGER NOT NULL, `VALUE` REAL NOT NULL, `DATE` TEXT NOT NULL, `COMMENT` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "_ID",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "expenseType",
+            "columnName": "EXPENSE_TYPE",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "VALUE",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "DATE",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "COMMENT",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_ID"
+          ]
+        },
+        "indices": [
+          {
+            "name": "IDX_EXPENSE_DATE",
+            "unique": false,
+            "columnNames": [
+              "DATE"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `IDX_EXPENSE_DATE` ON `${TABLE_NAME}` (`DATE`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bfb3e96626fddc71df47105ab4dd3df7')"
+    ]
+  }
+}

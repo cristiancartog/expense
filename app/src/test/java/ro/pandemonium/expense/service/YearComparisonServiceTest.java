@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -24,9 +24,10 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.db.ExpenseEntity;
+import ro.pandemonium.expense.db.YearSummaryRow;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 
@@ -54,8 +55,8 @@ public class YearComparisonServiceTest {
         assertEquals(12, state.monthlyComparisons().size());
         assertThrows(UnsupportedOperationException.class,
                 () -> state.monthlyComparisons().put(JANUARY, comparison(state, JANUARY)));
-        verify(store.expenseDao).getMonthlySummaryInYear(FOOD, 2024);
-        verify(store.expenseDao).getMonthlySummaryInYear(FOOD, 2023);
+        verify(store.expenseDao).getMonthlySummaryInYear(FOOD.getDbId(), "2024");
+        verify(store.expenseDao).getMonthlySummaryInYear(FOOD.getDbId(), "2023");
     }
 
     @Test
@@ -130,9 +131,9 @@ public class YearComparisonServiceTest {
     private MockMonthlySummaryStore storeWithBounds(final String earliest, final String latest) {
         final MockMonthlySummaryStore store = new MockMonthlySummaryStore();
         when(store.expenseDao.getEarliestEntry())
-                .thenReturn(Optional.of(expense(-1, OTHER, earliest)));
+                  .thenReturn(entity(expense(-1, OTHER, earliest)));
         when(store.expenseDao.getLatestEntry())
-                .thenReturn(Optional.of(expense(-2, OTHER, latest)));
+                  .thenReturn(entity(expense(-2, OTHER, latest)));
         return store;
     }
 
@@ -144,6 +145,10 @@ public class YearComparisonServiceTest {
         expense.setValue(0D);
         expense.setComment("");
         return expense;
+    }
+
+    private static ExpenseEntity entity(final Expense expense) {
+        return ExpenseEntityMapper.toEntity(expense, true);
     }
 
     private void assertComparison(final YearComparisonState state,
@@ -168,15 +173,22 @@ public class YearComparisonServiceTest {
         private boolean failQueries;
 
         private MockMonthlySummaryStore() {
-            when(expenseDao.getEarliestEntry()).thenReturn(Optional.empty());
-            when(expenseDao.getLatestEntry()).thenReturn(Optional.empty());
             doAnswer(invocation -> {
                 if (failQueries) {
                     throw new IllegalStateException("query failed");
                 }
-                final int year = invocation.getArgument(1);
-                return new HashMap<>(values.getOrDefault(year, Map.of()));
-            }).when(expenseDao).getMonthlySummaryInYear(eq(FOOD), anyInt());
+                final int year = Integer.parseInt(invocation.getArgument(1));
+                return values.getOrDefault(year, Map.of()).entrySet().stream()
+                             .map(entry -> row(entry.getKey(), entry.getValue()))
+                             .toList();
+            }).when(expenseDao).getMonthlySummaryInYear(eq(FOOD.getDbId()), anyString());
+        }
+
+        private YearSummaryRow row(final String month, final double total) {
+            final YearSummaryRow row = new YearSummaryRow();
+            row.month = month;
+            row.total = total;
+            return row;
         }
     }
 }

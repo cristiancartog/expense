@@ -2,6 +2,8 @@ package ro.pandemonium.expense.di;
 
 import android.content.Context;
 
+import androidx.room.Room;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -10,7 +12,7 @@ import dagger.hilt.InstallIn;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.db.ExpenseOpenHelper;
+import ro.pandemonium.expense.db.ExpenseDatabase;
 
 @Module
 @InstallIn(SingletonComponent.class)
@@ -21,10 +23,15 @@ public final class ExpenseModule {
 
     @Provides
     @Singleton
-    static ExpenseDao provideExpenseDao(@ApplicationContext final Context context) {
-        // The singleton DAO owns the application-scoped writable database for the process lifetime.
-        @SuppressWarnings("resource")
-        final ExpenseOpenHelper openHelper = new ExpenseOpenHelper(context);
-        return new ExpenseDao(openHelper.getWritableDatabase());
+    static ExpenseDatabase provideExpenseDatabase(@ApplicationContext final Context context) {
+        return Room.databaseBuilder(context, ExpenseDatabase.class, ExpenseDatabase.NAME)
+                   .allowMainThreadQueries()
+                   .build();
+    }
+
+    @Provides
+    @Singleton
+    static ExpenseDao provideExpenseDao(final ExpenseDatabase database) {
+        return database.expenseDao();
     }
 }

@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.db.ExpenseDao;
+import ro.pandemonium.expense.db.ExpenseEntity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.util.ExpenseUtil;
@@ -73,21 +74,26 @@ public final class ExpenseMainService {
 
     public ExpenseMainState nextMonth() {
         requireInitialized();
+
         return load(yearMonth.plusMonths(1));
     }
 
     public ExpenseMainState previousMonth() {
         requireInitialized();
+
         return load(yearMonth.minusMonths(1));
     }
 
     public ExpenseMainState selectMonth(final YearMonth selectedMonth) {
         requireInitialized();
-        return load(requireNonNull(selectedMonth));
+        requireNonNull(selectedMonth);
+
+        return load(selectedMonth);
     }
 
     public ExpenseMainState reload() {
         requireInitialized();
+
         return load(yearMonth);
     }
 
@@ -97,9 +103,16 @@ public final class ExpenseMainService {
 
         final boolean alreadyInCurrentList = expense.getId() != null;
         if (alreadyInCurrentList) {
-            expenseDao.updateExpense(expense);
+            final int updatedCount = expenseDao.update(ExpenseEntityMapper.toEntity(expense, true));
+            if (updatedCount != 1) {
+                throw new IllegalStateException("Expense with id " + expense.getId() + " was not updated");
+            }
         } else {
-            expenseDao.persistExpense(expense);
+            final long id = expenseDao.insert(ExpenseEntityMapper.toEntity(expense, false));
+            if (id <= 0) {
+                throw new IllegalStateException("Expense was not inserted");
+            }
+            expense.setId(id);
         }
 
         final ExpenseMainUpdate.OperationType operationType = operationType(expense, alreadyInCurrentList);
@@ -138,12 +151,14 @@ public final class ExpenseMainService {
 
     private boolean isInCurrentMonth(final Expense expense) {
         return YearMonth.from(expense.getDate())
-                .equals(yearMonth);
+                        .equals(yearMonth);
     }
 
     private ExpenseMainState load(final YearMonth requestedMonth) {
-        final List<Expense> expenses = requireNonNull(expenseDao.fetchExpenses(requestedMonth));
-        expenses.sort(Comparator.comparing(Expense::getDate));
+        final List<ExpenseEntity> entities = expenseDao.fetchExpensesInMonth(SPECIAL.getDbId(), requestedMonth.toString());
+        final List<Expense> expenses = ExpenseEntityMapper.toExpenses(entities).stream()
+                                                                 .sorted(Comparator.comparing(Expense::getDate))
+                                                                 .toList();
         yearMonth = requestedMonth;
         return new ExpenseMainState(yearMonth, expenses);
     }
@@ -159,7 +174,7 @@ public final class ExpenseMainService {
     public void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
         requireNonNull(progressPublisher);
 
-        final List<Expense> expenses = expenseDao.fetchExpenses((YearMonth) null);
+        final List<Expense> expenses = ExpenseEntityMapper.toExpenses(expenseDao.fetchAllExpenses());
         final ProgressPublisher publisher = new ProgressPublisher(expenses.size(), false, progressPublisher);
         publisher.publish(0, true);
         FileUtil.exportExpenses(context, expenses, publisher::publishIntermediate);
@@ -171,9 +186,15 @@ public final class ExpenseMainService {
         requireNonNull(progressPublisher);
 
         final List<Expense> expenses = FileUtil.importExpenses(context, backupFile);
+        final List<ExpenseEntity> entities = expenses.stream()
+                                                     .map(expense -> ExpenseEntityMapper.toEntity(expense, false))
+                                                     .toList();
         final ProgressPublisher publisher = new ProgressPublisher(expenses.size(), true, progressPublisher);
         publisher.publish(0, true);
-        expenseDao.restoreExpenses(expenses, publisher::publishIntermediate);
+        expenseDao.replaceAll(entities, publisher::publishIntermediate);
+        for (int i = 0; i < expenses.size(); i++) {
+            expenses.get(i).setId(entities.get(i).id);
+        }
         publisher.publish(expenses.size(), true);
     }
 
