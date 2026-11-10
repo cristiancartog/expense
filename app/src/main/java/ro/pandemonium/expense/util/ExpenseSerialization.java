@@ -13,7 +13,7 @@ public final class ExpenseSerialization {
     }
 
     public static String serialize(final Expense expense, final DateTimeFormatter dateFormatter) {
-        return String.format(Locale.getDefault(), "%d,%s,%s,%.2f,%s",
+        return String.format(Locale.ROOT, "%d,%s,%s,%.2f,%s",
                 expense.getId(),
                 expense.getExpenseType().name(),
                 dateFormatter.format(expense.getDate()),
