@@ -2,6 +2,7 @@ package ro.pandemonium.expense.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +40,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntConsumer;
 
@@ -256,10 +258,42 @@ public class ExpenseMainServiceTest {
     }
 
     @Test
-    public void restoreDatabaseImportsAndReplacesExpensesWhilePublishingProgress() throws IOException {
+    public void previewDatabaseRestoreCountsExpensesWithoutDumpingOrReplacingTheDatabase() throws IOException {
         final Uri backupFile = mock(Uri.class);
         final List<Expense> expenses = List.of(expense(1L, FOOD, "2026-11-04", 10D));
+
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            fileUtil.when(() -> FileUtil.importExpenses(context, backupFile)).thenReturn(expenses);
+
+            final List<Expense> previewedExpenses = service.previewDatabaseRestore(backupFile);
+
+            assertEquals(expenses, previewedExpenses);
+            fileUtil.verify(() -> FileUtil.importExpenses(context, backupFile));
+            fileUtil.verifyNoMoreInteractions();
+        }
+        verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void restoreDatabaseDumpsExistingExpensesBeforeReplacingThePreviewWhilePublishingProgress() throws IOException {
+        final Uri backupFile = mock(Uri.class);
+        final List<Expense> expenses = List.of(expense(500L, FOOD, "2026-11-04", 10D));
+        final List<Expense> existingExpenses = List.of(
+                expense(1L, PETROL, "2026-10-04", 20D),
+                expense(2L, SPECIAL, "2026-10-05", 30D)
+        );
+        when(expenseDao.fetchAllExpenses()).thenReturn(existingExpenses.stream()
+                                                                     .map(this::entity)
+                                                                     .toList());
+        final AtomicBoolean recoverySaved = new AtomicBoolean();
         doAnswer(invocation -> {
+            assertTrue(recoverySaved.get());
+            final List<ExpenseEntity> entities = invocation.getArgument(0);
+            assertEquals(1, entities.size());
+            assertNull(entities.getFirst().id);
+            assertEquals(FOOD, entities.getFirst().expenseType);
+            assertEquals(10D, entities.getFirst().value);
+            assertEquals(LocalDate.of(2026, 11, 4), entities.getFirst().date);
             final IntConsumer progress = invocation.getArgument(1);
             progress.accept(1);
             return null;
@@ -267,21 +301,38 @@ public class ExpenseMainServiceTest {
         final List<DatabaseTransferProgress> progress = new ArrayList<>();
 
         try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
-            fileUtil.when(() -> FileUtil.importExpenses(
-                    context,
-                    backupFile
-            )).thenReturn(expenses);
+            fileUtil.when(() -> FileUtil.importExpenses(context, backupFile)).thenReturn(expenses);
+            fileUtil.when(() -> FileUtil.exportExpenses(
+                    eq(context),
+                    eq(existingExpenses),
+                    any(IntConsumer.class)
+            )).thenAnswer(invocation -> {
+                final IntConsumer progressConsumer = invocation.getArgument(2);
+                progressConsumer.accept(1);
+                progressConsumer.accept(2);
+                recoverySaved.set(true);
+                return null;
+            });
+            final List<Expense> previewedExpenses = service.previewDatabaseRestore(backupFile);
+            // The selected file may change after previewing; restore must use the previewed data.
+            fileUtil.when(() -> FileUtil.importExpenses(context, backupFile)).thenThrow(new IOException("file changed"));
 
-            service.restoreDatabase(backupFile, progress::add);
+            service.restoreDatabase(previewedExpenses, progress::add);
 
-            fileUtil.verify(() -> FileUtil.importExpenses(
-                    context,
-                    backupFile
+            fileUtil.verify(() -> FileUtil.importExpenses(context, backupFile));
+            fileUtil.verify(() -> FileUtil.exportExpenses(
+                    eq(context),
+                    eq(existingExpenses),
+                    any(IntConsumer.class)
             ));
         }
 
         verify(expenseDao).replaceAll(anyList(), any());
         assertEquals(List.of(
+                new DatabaseTransferProgress(0, 2, false),
+                new DatabaseTransferProgress(1, 2, false),
+                new DatabaseTransferProgress(2, 2, false),
+                new DatabaseTransferProgress(2, 2, false),
                 new DatabaseTransferProgress(0, 1, true),
                 new DatabaseTransferProgress(1, 1, true),
                 new DatabaseTransferProgress(1, 1, true)
@@ -298,10 +349,47 @@ public class ExpenseMainServiceTest {
                     backupFile
             )).thenThrow(new IOException("invalid backup"));
 
-            assertThrows(IOException.class, () -> service.restoreDatabase(backupFile, ignored -> { }));
+            assertThrows(IOException.class, () -> service.previewDatabaseRestore(backupFile));
         }
 
+        verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void emptyPreviewCannotDumpOrReplaceTheDatabase() throws IOException {
+        final Uri backupFile = mock(Uri.class);
+
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            fileUtil.when(() -> FileUtil.importExpenses(context, backupFile)).thenReturn(List.of());
+            final List<Expense> previewedExpenses = service.previewDatabaseRestore(backupFile);
+
+            assertTrue(previewedExpenses.isEmpty());
+            assertThrows(IOException.class, () -> service.restoreDatabase(previewedExpenses, ignored -> { }));
+
+            fileUtil.verify(() -> FileUtil.importExpenses(context, backupFile));
+            fileUtil.verifyNoMoreInteractions();
+        }
+        verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void failedRecoveryDumpDoesNotReplaceTheDatabase() throws IOException {
+        final Uri backupFile = mock(Uri.class);
+        final List<Expense> expenses = List.of(expense(500L, FOOD, "2026-11-04", 10D));
+        when(expenseDao.fetchAllExpenses()).thenReturn(List.of(entity(expense(1L, PETROL, "2026-10-04", 20D))));
+        final List<DatabaseTransferProgress> progress = new ArrayList<>();
+
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            fileUtil.when(() -> FileUtil.importExpenses(context, backupFile)).thenReturn(expenses);
+            fileUtil.when(() -> FileUtil.exportExpenses(eq(context), anyList(), any(IntConsumer.class))).thenThrow(new IOException("backup failed"));
+            final List<Expense> previewedExpenses = service.previewDatabaseRestore(backupFile);
+
+            final IOException error = assertThrows(IOException.class, () -> service.restoreDatabase(previewedExpenses, progress::add));
+
+            assertEquals("backup failed", error.getMessage());
+        }
         verify(expenseDao, never()).replaceAll(anyList(), any());
+        assertEquals(List.of(new DatabaseTransferProgress(0, 1, false)), progress);
     }
 
     private void initializeEmptyMonth() {

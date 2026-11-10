@@ -181,21 +181,27 @@ public final class ExpenseMainService {
         publisher.publish(expenses.size(), true);
     }
 
-    public void restoreDatabase(final Uri backupFile, final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
+    public List<Expense> previewDatabaseRestore(final Uri backupFile) throws IOException {
         requireNonNull(backupFile);
-        requireNonNull(progressPublisher);
 
-        final List<Expense> expenses = FileUtil.importExpenses(context, backupFile);
+        return FileUtil.importExpenses(context, backupFile);
+    }
+
+    public void restoreDatabase(final List<Expense> expenses, final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
+        requireNonNull(expenses);
+        requireNonNull(progressPublisher);
+        if (expenses.isEmpty()) {
+            throw new IOException("Backup contains 0 expenses. Empty backups cannot be restored.");
+        }
+
         final List<ExpenseEntity> entities = expenses.stream()
                                                      .map(expense -> ExpenseEntityMapper.toEntity(expense, false))
                                                      .toList();
-        final ProgressPublisher publisher = new ProgressPublisher(expenses.size(), true, progressPublisher);
+        dumpDatabase(progressPublisher);
+        final ProgressPublisher publisher = new ProgressPublisher(entities.size(), true, progressPublisher);
         publisher.publish(0, true);
         expenseDao.replaceAll(entities, publisher::publishIntermediate);
-        for (int i = 0; i < expenses.size(); i++) {
-            expenses.get(i).setId(entities.get(i).id);
-        }
-        publisher.publish(expenses.size(), true);
+        publisher.publish(entities.size(), true);
     }
 
     private void requireInitialized() {

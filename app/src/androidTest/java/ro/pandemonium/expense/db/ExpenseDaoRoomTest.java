@@ -3,6 +3,7 @@ package ro.pandemonium.expense.db;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
@@ -103,6 +104,18 @@ public class ExpenseDaoRoomTest {
         assertTrue(expenseDao.fetchExpenses(List.of(), Set.of()).isEmpty());
         assertEquals(List.of(percent.id, apostrophe.id), ids(expenseDao.fetchExpenses(List.of(FOOD.getDbId()), Set.of("Bob's", "%_"))));
         assertFalse(ids(expenseDao.fetchExpenses(List.of(), Set.of("Bob's", "%_"))).contains(unrelated.id));
+    }
+
+    @Test
+    public void replaceAllRejectsAnEmptyListWithoutDeletingExistingExpenses() {
+        final ExpenseEntity original = persist(FOOD, 10, LocalDate.of(2026, 2, 1), "original");
+
+        assertThrows(IllegalArgumentException.class, () -> expenseDao.replaceAll(List.of(), completed -> fail("Unexpected progress")));
+
+        final List<ExpenseEntity> remaining = expenseDao.fetchAllExpenses();
+        assertEquals(1, remaining.size());
+        assertEquals(original.id, remaining.getFirst().id);
+        assertEquals("original", remaining.getFirst().comment);
     }
 
     @Test

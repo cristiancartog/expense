@@ -139,6 +139,9 @@ public abstract class ExpenseDao {
     public void replaceAll(final List<ExpenseEntity> expenses, final IntConsumer progressConsumer) {
         requireNonNull(expenses);
         requireNonNull(progressConsumer);
+        if (expenses.isEmpty()) {
+            throw new IllegalArgumentException("Cannot replace expenses with an empty list");
+        }
 
         deleteAll();
 

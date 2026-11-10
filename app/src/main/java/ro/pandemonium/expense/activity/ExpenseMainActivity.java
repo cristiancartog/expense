@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -94,6 +95,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private Filters lastUsedGlobalFilters;
     private TaskRunner expenseLoader;
     private TaskRunner databaseTransferRunner;
+    private AlertDialog restoreConfirmationDialog;
     private AlertDialog databaseTransferDialog;
     private ProgressBar databaseTransferProgress;
     private TextView databaseTransferStatus;
@@ -276,8 +278,37 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
 
         showDatabaseTransferDialog(R.string.databaseRestoreProgressTitle, R.string.databaseRestoreReading);
+        final AtomicReference<List<Expense>> expensesRef = new AtomicReference<>();
         databaseTransferRunner.submit(
-                progressPublisher -> mainService.restoreDatabase(backupFile, progressPublisher),
+                item -> {
+                    final List<Expense> expenses = mainService.previewDatabaseRestore(backupFile);
+                    expensesRef.set(expenses);
+                },
+                item -> { },
+                this::failDatabaseTransfer,
+                () -> confirmDatabaseRestore(expensesRef.get())
+        );
+    }
+
+    private void confirmDatabaseRestore(final List<Expense> expenses) {
+        dismissDatabaseTransferDialog();
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(R.string.databaseRestoreConfirmationTitle)
+                .setNegativeButton(R.string.importExportDialogCancelButton, null);
+        if (expenses.isEmpty()) {
+            builder.setMessage(R.string.databaseRestoreEmptyBackup);
+        } else {
+            builder.setMessage(getResources().getQuantityString(R.plurals.databaseRestoreConfirmationMessage, expenses.size(), expenses.size()))
+                   .setPositiveButton(R.string.databaseRestoreReplaceButton, (dialog, which) -> restoreDatabase(expenses));
+        }
+        restoreConfirmationDialog = builder.create();
+        restoreConfirmationDialog.show();
+    }
+
+    private void restoreDatabase(final List<Expense> expenses) {
+        showDatabaseTransferDialog(R.string.databaseRestoreProgressTitle, R.string.databaseRestoreBackupPreparing);
+        databaseTransferRunner.submit(
+                progressPublisher -> mainService.restoreDatabase(expenses, progressPublisher),
                 this::updateDatabaseTransferDialog,
                 this::failDatabaseTransfer,
                 () -> finishDatabaseTransfer(R.string.expenseListActivityRestoreSuccessful, true)
@@ -332,17 +363,25 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    protected void onDestroy() {
+        dismissRestoreConfirmationDialog();
+        dismissDatabaseTransferDialog();
+        super.onDestroy();
+    }
+
+    private void dismissRestoreConfirmationDialog() {
+        if (restoreConfirmationDialog != null) {
+            restoreConfirmationDialog.dismiss();
+            restoreConfirmationDialog = null;
+        }
+    }
+
     private void dismissDatabaseTransferDialog() {
         if (databaseTransferDialog != null) {
             databaseTransferDialog.dismiss();
             databaseTransferDialog = null;
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        dismissDatabaseTransferDialog();
-        super.onDestroy();
     }
 
     @SuppressWarnings("unchecked")
