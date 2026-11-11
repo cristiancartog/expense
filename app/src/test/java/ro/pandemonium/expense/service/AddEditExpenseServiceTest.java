@@ -16,6 +16,8 @@ import java.time.ZoneOffset;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import ro.pandemonium.expense.model.Expense;
 
@@ -100,6 +102,21 @@ public class AddEditExpenseServiceTest {
         assertTrue(romanianService.canSave("12,50"));
         assertEquals(12.5D, romanianService.createExpense(FOOD, "12,50", "").getValue());
         assertFalse(romanianService.canSave("12.50"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"NaN", "Infinity", "∞", "-∞", "0.001", "12.501", "1000000000.00"})
+    public void valueValidationRejectsUnsupportedAmounts(final String value) {
+        service.initialize(null);
+
+        assertFalse(service.canSave(value));
+        assertThrows(IllegalArgumentException.class, () -> service.createExpense(FOOD, value, ""));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "0.01", "0.29", "1.13", "12.5000", "999999999.99"})
+    public void valueValidationAcceptsSupportedAmounts(final String value) {
+        assertTrue(service.canSave(value));
     }
 
     @Test

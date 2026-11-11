@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.util.ExpenseUtil;
 
 @ActivityScoped
 public final class AddEditExpenseService {
@@ -33,7 +34,6 @@ public final class AddEditExpenseService {
     AddEditExpenseService(final Clock clock, final Locale locale) {
         this.clock = requireNonNull(clock);
         valueFormatter = new DecimalFormat(ADD_ACTIVITY_FORMAT_PATTERN, DecimalFormatSymbols.getInstance(requireNonNull(locale)));
-        valueFormatter.setParseBigDecimal(true);
     }
 
     public Expense initialize(final Expense expenseToEdit) {
@@ -99,7 +99,7 @@ public final class AddEditExpenseService {
         }
 
         final double value = parsedValue.doubleValue();
-        return Double.isFinite(value) && value >= 0D ? value : null;
+        return ExpenseUtil.isValidValue(value) ? value : null;
     }
 
     private void requireInitialized() {

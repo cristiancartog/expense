@@ -69,7 +69,7 @@ public abstract class ExpenseDao {
     @Query("""
         SELECT _ID, EXPENSE_TYPE, VALUE, DATE, COMMENT
         FROM EXPENSES
-        WHERE COMMENT LIKE :commentPattern ESCAPE '\'
+        WHERE COMMENT LIKE :commentPattern ESCAPE '\\'
         """)
     protected abstract List<ExpenseEntity> fetchByComment(String commentPattern);
 

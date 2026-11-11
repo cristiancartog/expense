@@ -171,14 +171,19 @@ public final class ExpenseMainService {
         return Collections.unmodifiableMap(totals);
     }
 
-    public void dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
+    public boolean dumpDatabase(final Consumer<DatabaseTransferProgress> progressPublisher) throws IOException {
         requireNonNull(progressPublisher);
 
         final List<Expense> expenses = ExpenseEntityMapper.toExpenses(expenseDao.fetchAllExpenses());
+        if (expenses.isEmpty()) {
+            return false;
+        }
+
         final ProgressPublisher publisher = new ProgressPublisher(expenses.size(), false, progressPublisher);
         publisher.publish(0, true);
         FileUtil.exportExpenses(context, expenses, publisher::publishIntermediate);
         publisher.publish(expenses.size(), true);
+        return true;
     }
 
     public List<Expense> previewDatabaseRestore(final Uri backupFile) throws IOException {
@@ -194,14 +199,33 @@ public final class ExpenseMainService {
             throw new IOException("Backup contains 0 expenses. Empty backups cannot be restored.");
         }
 
-        final List<ExpenseEntity> entities = expenses.stream()
-                                                     .map(expense -> ExpenseEntityMapper.toEntity(expense, false))
-                                                     .toList();
+        final List<ExpenseEntity> entities = prepareRestoreEntities(expenses);
         dumpDatabase(progressPublisher);
         final ProgressPublisher publisher = new ProgressPublisher(entities.size(), true, progressPublisher);
         publisher.publish(0, true);
         expenseDao.replaceAll(entities, publisher::publishIntermediate);
         publisher.publish(entities.size(), true);
+    }
+
+    private List<ExpenseEntity> prepareRestoreEntities(final List<Expense> expenses) throws IOException {
+        try {
+            return expenses.stream()
+                           .peek(this::validateRestoreExpense)
+                           .map(expense -> ExpenseEntityMapper.toEntity(expense, false))
+                           .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Backup contains an invalid expense", e);
+        }
+    }
+
+    private void validateRestoreExpense(final Expense expense) {
+        if (expense == null || expense.getExpenseType() == null || expense.getDate() == null || expense.getComment() == null) {
+            throw new IllegalArgumentException("Expense is missing required fields");
+        }
+
+        if (!ExpenseUtil.isValidValue(expense.getValue())) {
+            throw new IllegalArgumentException("Expense contains an invalid amount");
+        }
     }
 
     private void requireInitialized() {

@@ -11,6 +11,16 @@ import ro.pandemonium.expense.model.ExpenseType;
 
 public class ExpenseUtil {
 
+    private static final double MAX_VALUE = 999999999.99D;
+
+    public static boolean isValidValue(final Double value) {
+        return value != null
+                && Double.isFinite(value)
+                && value >= 0D
+                && value <= MAX_VALUE
+                && value == Math.round(value * 100D) / 100D;
+    }
+
     public static double computeTotalValue(final List<Expense> expenses) {
         return expenses.stream()
                 .mapToDouble(Expense::getValue)

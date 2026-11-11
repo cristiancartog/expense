@@ -107,6 +107,15 @@ public class ExpenseDaoRoomTest {
     }
 
     @Test
+    public void treatsBackslashesLiterallyInCommentFilters() {
+        final ExpenseEntity backslash = persist(FOOD, 1, LocalDate.of(2026, 1, 1), "receipt\\10%_");
+        persist(PETROL, 2, LocalDate.of(2026, 1, 2), "receipt10%_");
+
+        assertEquals(List.of(backslash.id), ids(expenseDao.fetchExpenses(List.of(), Set.of("\\"))));
+        assertEquals(List.of(backslash.id), ids(expenseDao.fetchExpenses(List.of(), Set.of("\\10%_"))));
+    }
+
+    @Test
     public void replaceAllRejectsAnEmptyListWithoutDeletingExistingExpenses() {
         final ExpenseEntity original = persist(FOOD, 10, LocalDate.of(2026, 2, 1), "original");
 

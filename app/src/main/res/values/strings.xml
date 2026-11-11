@@ -119,11 +119,12 @@
     <string name="databaseDumpProgressTitle">Database dump</string>
     <string name="databaseRestoreProgressTitle">Database restore</string>
     <string name="databaseDumpPreparing">Preparing expenses…</string>
+    <string name="databaseDumpEmptyDatabase">Database is empty. No backup file was created.</string>
     <string name="databaseRestoreReading">Reading backup…</string>
     <string name="databaseRestoreConfirmationTitle">Restore backup?</string>
     <plurals name="databaseRestoreConfirmationMessage">
-        <item quantity="one">Backup contains %1$d expense. Restoring will delete all current expenses and replace them with this expense. A recovery backup will be saved in Documents/expense_db_backup first.</item>
-        <item quantity="other">Backup contains %1$d expenses. Restoring will delete all current expenses and replace them with these %1$d expenses. A recovery backup will be saved in Documents/expense_db_backup first.</item>
+        <item quantity="one">Backup contains %1$d expense. Restoring will delete all current expenses and replace them with this expense. Any current expenses will first be saved in Documents/expense_db_backup.</item>
+        <item quantity="other">Backup contains %1$d expenses. Restoring will delete all current expenses and replace them with these %1$d expenses. Any current expenses will first be saved in Documents/expense_db_backup.</item>
     </plurals>
     <string name="databaseRestoreEmptyBackup">Backup contains 0 expenses. Empty backups cannot be restored. Your current expenses will be kept.</string>
     <string name="databaseRestoreReplaceButton">Replace all expenses</string>

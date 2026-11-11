@@ -1,6 +1,7 @@
 package ro.pandemonium.expense.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -77,6 +78,35 @@ public class ExpenseDatabaseRestoreTest {
     }
 
     @Test
+    public void dumpingAnEmptyDatabaseDoesNotCreateABackupFile() throws IOException {
+        expenseDao.delete(original.id);
+        final Set<Uri> previousBackups = backupUris();
+
+        assertFalse(service.dumpDatabase(ignored -> fail("Unexpected dump progress")));
+
+        assertEquals(previousBackups, backupUris());
+        assertTrue(expenseDao.fetchAllExpenses().isEmpty());
+    }
+
+    @Test
+    public void restoringIntoAnEmptyDatabaseDoesNotCreateARecoveryBackup() throws IOException {
+        expenseDao.delete(original.id);
+        Files.writeString(backupFile.toPath(), "500,PETROL,2026-11-09,30.25,restored expense\n", StandardCharsets.UTF_8);
+        final List<Expense> previewedExpenses = service.previewDatabaseRestore(Uri.fromFile(backupFile));
+        final Set<Uri> previousBackups = backupUris();
+
+        service.restoreDatabase(previewedExpenses, progress -> assertTrue(progress.restore()));
+
+        final List<ExpenseEntity> restored = expenseDao.fetchAllExpenses();
+        assertEquals(1, restored.size());
+        assertEquals(PETROL, restored.getFirst().expenseType);
+        assertEquals(30.25, restored.getFirst().value, 0.0);
+        assertEquals(LocalDate.of(2026, 11, 9), restored.getFirst().date);
+        assertEquals("restored expense", restored.getFirst().comment);
+        assertEquals(previousBackups, backupUris());
+    }
+
+    @Test
     public void zeroByteBackupCannotDeleteExistingExpenses() throws IOException {
         assertEquals(0, backupFile.length());
 
@@ -88,6 +118,52 @@ public class ExpenseDatabaseRestoreTest {
         Files.writeString(backupFile.toPath(), " \t\r\n\n  \r\n\t", StandardCharsets.UTF_8);
 
         assertEmptyBackupIsSafe();
+    }
+
+    @Test
+    public void invalidRecordAfterAValidRecordLeavesOriginalHistoryUnchanged() throws IOException {
+        final List<String> invalidRecords = List.of(
+                "501,FOOD,2026-11-10,-1.00",
+                "501,FOOD,2026-11-10,NaN",
+                "501,FOOD,2026-11-10,Infinity",
+                "501,FOOD,2026-11-10,-Infinity",
+                "501,FOOD,2026-11-10,0.001",
+                "501,FOOD,2026-11-10,1000000000.00",
+                "501,FOOD,2026-02-30,12.50",
+                "501,FOOD,2026-02-29,12.50",
+                "501,UNKNOWN,2026-11-10,12.50",
+                "501,,2026-11-10,12.50",
+                "501,FOOD,,12.50",
+                "501,FOOD,2026-11-10,",
+                ",FOOD,2026-11-10,12.50",
+                "501,FOOD,2026-11-10"
+        );
+
+        for (String invalidRecord : invalidRecords) {
+            Files.writeString(
+                    backupFile.toPath(),
+                    "500,PETROL,2026-11-09,30.25,valid expense\n" + invalidRecord + "\n",
+                    StandardCharsets.UTF_8
+            );
+
+            assertThrows(
+                    IOException.class,
+                    () -> service.previewDatabaseRestore(Uri.fromFile(backupFile))
+            );
+
+            assertOriginalExpenseRemains();
+        }
+    }
+
+    @Test
+    public void invalidPreviewMutationCannotReplaceOriginalHistory() throws IOException {
+        Files.writeString(backupFile.toPath(), "500,PETROL,2026-11-09,30.25,restored expense\n", StandardCharsets.UTF_8);
+        final List<Expense> previewedExpenses = service.previewDatabaseRestore(Uri.fromFile(backupFile));
+        previewedExpenses.getFirst().setValue(Double.NaN);
+
+        assertThrows(IOException.class, () -> service.restoreDatabase(previewedExpenses, ignored -> fail("Unexpected transfer")));
+
+        assertOriginalExpenseRemains();
     }
 
     @Test

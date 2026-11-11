@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -235,11 +236,16 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     public void dbDumpRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
         showDatabaseTransferDialog(R.string.databaseDumpProgressTitle, R.string.databaseDumpPreparing);
+
+        final AtomicBoolean dumpedRef = new AtomicBoolean();
         databaseTransferRunner.submit(
-                mainService::dumpDatabase,
+                progressPublisher -> {
+                    boolean dbDumped = mainService.dumpDatabase(progressPublisher);
+                    dumpedRef.set(dbDumped);
+                },
                 this::updateDatabaseTransferDialog,
                 this::failDatabaseTransfer,
-                () -> finishDatabaseTransfer(R.string.expenseListActivityExportSuccessful, false)
+                () -> finishDatabaseTransfer(dumpedRef.get() ? R.string.expenseListActivityExportSuccessful : R.string.databaseDumpEmptyDatabase, false)
         );
     }
 
@@ -348,10 +354,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         databaseTransferPercentage.setText(getString(R.string.databaseProgressPercentage, percentage));
     }
 
-    private void finishDatabaseTransfer(final int successMessage,
+    private void finishDatabaseTransfer(final int messageResource,
                                         final boolean refreshExpenses) {
         dismissDatabaseTransferDialog();
-        Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show();
+
+        Toast.makeText(this, messageResource, Toast.LENGTH_SHORT).show();
         if (refreshExpenses) {
             loadExpenses(mainService::reload);
         }

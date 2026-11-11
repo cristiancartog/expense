@@ -29,6 +29,9 @@ import android.content.Context;
 import android.net.Uri;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
@@ -241,7 +244,7 @@ public class ExpenseMainServiceTest {
                         return null;
                     });
 
-            service.dumpDatabase(progress::add);
+            assertTrue(service.dumpDatabase(progress::add));
 
             fileUtil.verify(() -> FileUtil.exportExpenses(
                     eq(context),
@@ -255,6 +258,19 @@ public class ExpenseMainServiceTest {
                 new DatabaseTransferProgress(2, 2, false),
                 new DatabaseTransferProgress(2, 2, false)
         ), progress);
+    }
+
+    @Test
+    public void dumpingAnEmptyDatabaseReportsNoDumpWithoutExportingOrPublishingProgress() throws IOException {
+        when(expenseDao.fetchAllExpenses()).thenReturn(List.of());
+        final List<DatabaseTransferProgress> progress = new ArrayList<>();
+
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            assertFalse(service.dumpDatabase(progress::add));
+
+            fileUtil.verifyNoInteractions();
+        }
+        assertTrue(progress.isEmpty());
     }
 
     @Test
@@ -340,6 +356,24 @@ public class ExpenseMainServiceTest {
     }
 
     @Test
+    public void restoringIntoAnEmptyDatabaseSkipsTheRecoveryDumpAndProceedsWithRestore() throws IOException {
+        when(expenseDao.fetchAllExpenses()).thenReturn(List.of());
+        final List<Expense> expenses = List.of(expense(500L, FOOD, "2026-11-04", 10D));
+        final List<DatabaseTransferProgress> progress = new ArrayList<>();
+
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            service.restoreDatabase(expenses, progress::add);
+
+            fileUtil.verifyNoInteractions();
+        }
+        verify(expenseDao).replaceAll(anyList(), any());
+        assertEquals(List.of(
+                new DatabaseTransferProgress(0, 1, true),
+                new DatabaseTransferProgress(1, 1, true)
+        ), progress);
+    }
+
+    @Test
     public void failedImportDoesNotModifyTheDatabase() throws IOException {
         final Uri backupFile = mock(Uri.class);
 
@@ -353,6 +387,45 @@ public class ExpenseMainServiceTest {
         }
 
         verifyNoInteractions(expenseDao);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(doubles = {-0.01, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.001, 1000000000D})
+    public void invalidAmountAnywhereInThePreviewCannotDumpOrReplaceTheDatabase(final Double amount) {
+        final Expense invalid = expense(2L, FOOD, "2026-11-04", 10D);
+        invalid.setValue(amount);
+
+        assertInvalidRestoreIsSafe(List.of(expense(1L, PETROL, "2026-11-04", 20D), invalid));
+    }
+
+    @Test
+    public void missingRequiredFieldsCannotDumpOrReplaceTheDatabase() {
+        final Expense missingType = expense(1L, null, "2026-11-04", 10D);
+        final Expense missingComment = expense(2L, FOOD, "2026-11-04", 10D);
+        missingComment.setComment(null);
+        final Expense missingDate = new Expense();
+        missingDate.setExpenseType(FOOD);
+        missingDate.setValue(10D);
+        missingDate.setComment("");
+
+        assertInvalidRestoreIsSafe(List.of(missingType));
+        assertInvalidRestoreIsSafe(List.of(missingComment));
+        assertInvalidRestoreIsSafe(List.of(missingDate));
+        final List<Expense> nullRecord = new ArrayList<>();
+        nullRecord.add(null);
+        assertInvalidRestoreIsSafe(nullRecord);
+    }
+
+    private void assertInvalidRestoreIsSafe(final List<Expense> expenses) {
+        final List<DatabaseTransferProgress> progress = new ArrayList<>();
+        try (MockedStatic<FileUtil> fileUtil = mockStatic(FileUtil.class)) {
+            assertThrows(IOException.class, () -> service.restoreDatabase(expenses, progress::add));
+
+            fileUtil.verifyNoInteractions();
+        }
+        verifyNoInteractions(expenseDao);
+        assertTrue(progress.isEmpty());
     }
 
     @Test
