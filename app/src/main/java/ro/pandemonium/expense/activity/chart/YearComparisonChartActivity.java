@@ -115,8 +115,6 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         previousYearButton = findViewById(R.id.yearlyComparisonPreviousYear);
 
         reportSwitch.setOnCheckedChangeListener(this::switchChart);
-        nextYearButton.setOnClickListener(this::nextYearClicked);
-        previousYearButton.setOnClickListener(this::previousYearClicked);
     }
 
     private void configureChart() {
@@ -285,13 +283,13 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         report.setVisibility(isChecked ? View.GONE : View.VISIBLE);
     }
 
-    private void nextYearClicked(final View ignored) {
+    public void nextYearClicked(final View ignored) {
         if (!loading) {
             loadComparison(comparisonService::nextYear);
         }
     }
 
-    private void previousYearClicked(final View ignored) {
+    public void previousYearClicked(final View ignored) {
         if (!loading) {
             loadComparison(comparisonService::previousYear);
         }

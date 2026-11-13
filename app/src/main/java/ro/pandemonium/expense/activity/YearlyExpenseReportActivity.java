@@ -97,10 +97,6 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
         withoutSpecialVariationText = findViewById(R.id.yearlyReportWithoutSpecialVariation);
         nextYearButton = findViewById(R.id.yearlyReportNextYear);
         previousYearButton = findViewById(R.id.yearlyReportPreviousYear);
-
-        nextYearButton.setOnClickListener(this::showNextYearYearlyReport);
-        previousYearButton.setOnClickListener(this::showPreviousYearYearlyReport);
-        currentYearText.setOnClickListener(this::toggleComparisonPeriod);
     }
 
     private void createExpenseTypeRows() {
@@ -148,19 +144,19 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
                 .putExtra(INTENT_YEAR, reportState.year()));
     }
 
-    private void showNextYearYearlyReport(final View ignored) {
+    public void showNextYearYearlyReport(final View ignored) {
         if (!loading) {
             loadReport(reportService::nextYear);
         }
     }
 
-    private void showPreviousYearYearlyReport(final View ignored) {
+    public void showPreviousYearYearlyReport(final View ignored) {
         if (!loading) {
             loadReport(reportService::previousYear);
         }
     }
 
-    private void toggleComparisonPeriod(final View ignored) {
+    public void toggleComparisonPeriod(final View ignored) {
         if (!loading) {
             loadReport(reportService::toggleComparisonPeriod);
         }

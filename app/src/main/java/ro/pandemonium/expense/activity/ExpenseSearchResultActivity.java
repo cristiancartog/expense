@@ -50,14 +50,13 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
         totalTextView = findViewById(R.id.expenseSearchResultTotal);
         filtersButton = findViewById(R.id.expenseSearchResultFiltersButton);
-        filtersButton.setOnClickListener(this::showSearchResultsFiltersDialog);
         filtersButton.setOnLongClickListener(this::clearDialogFilters);
 
         final Filters filters = getIntent().getSerializableExtra(Constants.INTENT_FILTERS, Filters.class);
         showExpenses(searchService.initialize(filters));
     }
 
-    private void showSearchResultsFiltersDialog(final View view) {
+    public void showSearchResultsFiltersDialog(final View view) {
         showFiltersDialog();
     }
 

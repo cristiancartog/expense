@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseArray;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -87,21 +88,6 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.sorting_menu, menu);
-        menu.findItem(R.id.main_menu_order_by_date)
-                .setOnMenuItemClickListener(item -> {
-                    sortExpenses(item.getOrder());
-                    return true;
-                });
-        menu.findItem(R.id.main_menu_order_by_type)
-                .setOnMenuItemClickListener(item -> {
-                    sortExpenses(item.getOrder());
-                    return true;
-                });
-        menu.findItem(R.id.main_menu_order_by_value)
-                .setOnMenuItemClickListener(item -> {
-                    sortExpenses(item.getOrder());
-                    return true;
-                });
         return true;
     }
 
@@ -117,8 +103,8 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 });
     }
 
-    private void sortExpenses(int order) {
-        expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(order));
+    public void sortExpenses(final MenuItem item) {
+        expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(item.getOrder()));
     }
 
     void filtersUpdated() {

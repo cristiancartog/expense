@@ -3,14 +3,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/main_menu_order_by_date"
+        android:onClick="sortExpenses"
         android:orderInCategory="1"
         android:title="@string/mainMenuOrderByDate" />
     <item
         android:id="@+id/main_menu_order_by_type"
+        android:onClick="sortExpenses"
         android:orderInCategory="2"
         android:title="@string/mainMenuOrderByType" />
     <item
         android:id="@+id/main_menu_order_by_value"
+        android:onClick="sortExpenses"
         android:orderInCategory="3"
         android:title="@string/mainMenuOrderByValue" />
 </menu>

@@ -72,6 +72,7 @@
 
         <Button
             android:id="@+id/addExpenseDate"
+            android:onClick="addExpenseDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_row="3"
@@ -81,6 +82,7 @@
 
     <Button
         android:id="@+id/saveExpenseButton"
+        android:onClick="saveExpense"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"

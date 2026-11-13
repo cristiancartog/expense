@@ -69,9 +69,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
         saveExpenseButton = findViewById(R.id.saveExpenseButton);
 
         saveExpenseButton.setEnabled(false);
-        saveExpenseButton.setOnClickListener(this::saveExpense);
         valueField.addTextChangedListener(this);
-        dateButton.setOnClickListener(this::addExpenseDate);
 
         final Intent intent = getIntent();
         @SuppressWarnings("unchecked")
@@ -104,7 +102,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
         }
     }
 
-    private void saveExpense(final View view) {
+    public void saveExpense(final View view) {
         final Intent intent = getIntent();
 
         final Expense expense = addEditExpenseService.createExpense(
@@ -119,7 +117,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
         finish();
     }
 
-    private void addExpenseDate(final View view) {
+    public void addExpenseDate(final View view) {
         new DatePickerDialog(this, this, expenseDate.getYear(), expenseDate.getMonth().ordinal(), expenseDate.getDayOfMonth())
                 .show();
     }

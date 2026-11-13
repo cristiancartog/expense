@@ -137,7 +137,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
         totalTextView = findViewById(R.id.expenseListTotal);
         changeMonthButton = findViewById(R.id.expenseListChangeMonthButton);
-        changeMonthButton.setOnClickListener(this::changeMonth);
 
         filtersButton = findViewById(R.id.expenseListFiltersButton);
         filtersButton.setOnLongClickListener(this::clearFilters);
@@ -155,7 +154,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         loadExpenses(mainService::initialize);
     }
 
-    private void changeMonth(final View view) {
+    public void changeMonth(final View view) {
         new DatePickerDialog(this, this, yearMonth.getYear(), yearMonth.getMonthValue() - 1, 1).show();
     }
 
