@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 import static ro.pandemonium.expense.model.ExpenseType.PETROL;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,7 +49,7 @@ public class AddEditExpenseServiceTest {
         assertNotSame(originalExpense, initializedExpense);
         assertEquals(12L, initializedExpense.getId());
         assertEquals(FOOD, initializedExpense.getExpenseType());
-        assertEquals(42.5D, initializedExpense.getValue());
+        assertEquals(0, initializedExpense.getValue().compareTo(BigDecimal.valueOf(42.5D)));
         assertEquals(LocalDate.of(2026, 10, 20), initializedExpense.getDate());
         assertEquals("Lunch", initializedExpense.getComment());
     }
@@ -62,7 +63,7 @@ public class AddEditExpenseServiceTest {
 
         assertEquals(12L, result.getId());
         assertEquals(PETROL, result.getExpenseType());
-        assertEquals(18.75D, result.getValue());
+        assertEquals(0, result.getValue().compareTo(BigDecimal.valueOf(18.75D)));
         assertEquals(LocalDate.of(2026, 12, 5), result.getDate());
         assertEquals("Train", result.getComment());
     }
@@ -76,7 +77,7 @@ public class AddEditExpenseServiceTest {
         service.createExpense(PETROL, "18.75", "Train");
 
         assertEquals(FOOD, originalExpense.getExpenseType());
-        assertEquals(42.5D, originalExpense.getValue());
+        assertEquals(0, originalExpense.getValue().compareTo(BigDecimal.valueOf(42.5D)));
         assertEquals(LocalDate.of(2026, 10, 20), originalExpense.getDate());
         assertEquals("Lunch", originalExpense.getComment());
     }
@@ -100,12 +101,12 @@ public class AddEditExpenseServiceTest {
         romanianService.initialize(null);
 
         assertTrue(romanianService.canSave("12,50"));
-        assertEquals(12.5D, romanianService.createExpense(FOOD, "12,50", "").getValue());
+        assertEquals(0, romanianService.createExpense(FOOD, "12,50", "").getValue().compareTo(BigDecimal.valueOf(12.5D)));
         assertFalse(romanianService.canSave("12.50"));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"NaN", "Infinity", "∞", "-∞", "0.001", "12.501", "1000000000.00"})
+    @ValueSource(strings = {"NaN", "Infinity", "∞", "-∞", "0.001", "12.501", "1000000000.00", "12.500000000000000001", "999999999.990000001"})
     public void valueValidationRejectsUnsupportedAmounts(final String value) {
         service.initialize(null);
 
@@ -115,8 +116,11 @@ public class AddEditExpenseServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"0", "0.01", "0.29", "1.13", "12.5000", "999999999.99"})
-    public void valueValidationAcceptsSupportedAmounts(final String value) {
+    public void createsSupportedAmountsWithTwoDecimalPlaces(final String value) {
+        service.initialize(null);
+
         assertTrue(service.canSave(value));
+        assertEquals(new BigDecimal(value).setScale(2), service.createExpense(FOOD, value, "").getValue());
     }
 
     @Test
@@ -136,7 +140,7 @@ public class AddEditExpenseServiceTest {
         final Expense expense = new Expense();
         expense.setId(id);
         expense.setExpenseType(FOOD);
-        expense.setValue(value);
+        expense.setValue(BigDecimal.valueOf(value));
         expense.setDate(LocalDate.parse(date));
         expense.setComment(comment);
         return expense;

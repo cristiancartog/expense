@@ -1,5 +1,8 @@
 package ro.pandemonium.expense.util;
 
+import static ro.pandemonium.expense.util.ExpenseMathUtil.amount;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -15,11 +18,11 @@ public final class ExpenseSerialization {
     }
 
     public static String serialize(final Expense expense) {
-        return String.format(Locale.ROOT, "%d,%s,%s,%.2f,%s",
+        return String.format(Locale.ROOT, "%d,%s,%s,%s,%s",
                 expense.getId(),
                 expense.getExpenseType().name(),
                 CSV_DATE_FORMATTER.format(expense.getDate()),
-                expense.getValue(),
+                expense.getValue().toPlainString(),
                 expense.getComment());
     }
 
@@ -40,7 +43,7 @@ public final class ExpenseSerialization {
         expense.setId(Long.valueOf(parts[0]));
         expense.setExpenseType(ExpenseType.valueOf(parts[1]));
         expense.setDate(LocalDate.parse(parts[2], CSV_DATE_FORMATTER));
-        expense.setValue(Double.valueOf(parts[3]));
+        expense.setValue(amount(new BigDecimal(parts[3])));
         expense.setComment(parts.length == 5 ? parts[4] : "");
 
         return expense;

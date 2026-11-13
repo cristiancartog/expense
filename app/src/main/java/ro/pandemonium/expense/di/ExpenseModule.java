@@ -25,6 +25,8 @@ public final class ExpenseModule {
     @Singleton
     static ExpenseDatabase provideExpenseDatabase(@ApplicationContext final Context context) {
         return Room.databaseBuilder(context, ExpenseDatabase.class, ExpenseDatabase.NAME)
+                   // Version 1 data is restored from a CSV backup after upgrading.
+                   .fallbackToDestructiveMigrationFrom(true, 1)
                    .allowMainThreadQueries()
                    .build();
     }

@@ -1,11 +1,11 @@
 package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
-import static ro.pandemonium.expense.Constants.ADD_ACTIVITY_FORMAT_PATTERN;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.amount;
 import static ro.pandemonium.expense.util.StringUtils.isEmpty;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.ParsePosition;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.ExpenseUtil;
 
 @ActivityScoped
@@ -33,7 +34,7 @@ public final class AddEditExpenseService {
 
     AddEditExpenseService(final Clock clock, final Locale locale) {
         this.clock = requireNonNull(clock);
-        valueFormatter = new DecimalFormat(ADD_ACTIVITY_FORMAT_PATTERN, DecimalFormatSymbols.getInstance(requireNonNull(locale)));
+        valueFormatter = ExpenseFormatUtil.inputFormatter(requireNonNull(locale));
     }
 
     public Expense initialize(final Expense expenseToEdit) {
@@ -58,7 +59,7 @@ public final class AddEditExpenseService {
         requireNonNull(expenseType);
         requireNonNull(comment);
 
-        final Double value = parseValue(valueText);
+        final BigDecimal value = parseValue(valueText);
         if (value == null) {
             throw new IllegalArgumentException("Expense value is not valid");
         }
@@ -86,7 +87,7 @@ public final class AddEditExpenseService {
         return copy;
     }
 
-    private Double parseValue(final String valueText) {
+    private BigDecimal parseValue(final String valueText) {
         if (isEmpty(valueText)) {
             return null;
         }
@@ -94,12 +95,15 @@ public final class AddEditExpenseService {
         final String normalizedValue = valueText.trim();
         final ParsePosition position = new ParsePosition(0);
         final Number parsedValue = valueFormatter.parse(normalizedValue, position);
-        if (parsedValue == null || position.getIndex() != normalizedValue.length()) {
+        if (parsedValue == null
+                || position.getIndex() != normalizedValue.length()
+                || !Double.isFinite(parsedValue.doubleValue())) {
             return null;
         }
 
-        final double value = parsedValue.doubleValue();
-        return ExpenseUtil.isValidValue(value) ? value : null;
+        // The formatter parses finite values as BigDecimal; NaN and infinity are rejected above.
+        final BigDecimal value = (BigDecimal) parsedValue;
+        return ExpenseUtil.isValidValue(value) ? amount(value) : null;
     }
 
     private void requireInitialized() {

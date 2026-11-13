@@ -6,6 +6,7 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import ro.pandemonium.expense.model.ExpenseType;
@@ -26,7 +27,8 @@ public final class ExpenseEntity {
 
     @NonNull
     @ColumnInfo(name = "VALUE")
-    public Double value;
+    // Persisted as an integer scaled by 10^SCALE through ExpenseConverters.
+    public BigDecimal value;
 
     @NonNull
     @ColumnInfo(name = "DATE")

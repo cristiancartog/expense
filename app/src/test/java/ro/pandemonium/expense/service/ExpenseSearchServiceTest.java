@@ -12,6 +12,7 @@ import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,7 +103,7 @@ public class ExpenseSearchServiceTest {
         expense.setId(id);
         expense.setExpenseType(FOOD);
         expense.setDate(LocalDate.parse(date));
-        expense.setValue(value);
+        expense.setValue(BigDecimal.valueOf(value));
         expense.setComment("");
         return expense;
     }

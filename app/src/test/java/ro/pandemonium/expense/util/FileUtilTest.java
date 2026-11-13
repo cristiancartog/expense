@@ -13,10 +13,12 @@ import android.net.Uri;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.math.BigDecimal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 import ro.pandemonium.expense.model.Expense;
 
@@ -25,6 +27,19 @@ class FileUtilTest {
     private final Context context = mock(Context.class);
     private final ContentResolver resolver = mock(ContentResolver.class);
     private final Uri backupUri = mock(Uri.class);
+
+    @ParameterizedTest
+    @ValueSource(doubles = {0, 0.01, 0.10, 0.20, 0.29, 1.13, 12.50, 1234.56, 999999999.99})
+    void importsBackupsWrittenByTheDoubleVersion(final double value) throws IOException {
+        // This is the exact formatter used by the version whose Expense.value was Double.
+        prepareBackup(String.format(Locale.ROOT, "%d,%s,%s,%.2f,%s%n", 500L, "FOOD", "2024-02-29", value, "Prânz, cafea"));
+
+        final Expense expense = FileUtil.importExpenses(context, backupUri).getFirst();
+
+        assertEquals(BigDecimal.valueOf(value).setScale(2), expense.getValue());
+        assertEquals(LocalDate.of(2024, 2, 29), expense.getDate());
+        assertEquals("Prânz, cafea", expense.getComment());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -49,7 +64,7 @@ class FileUtilTest {
         final List<Expense> expenses = FileUtil.importExpenses(context, backupUri);
 
         assertEquals(1, expenses.size());
-        assertEquals(Double.valueOf(amount), expenses.getFirst().getValue());
+        assertEquals(new BigDecimal(amount).setScale(2), expenses.getFirst().getValue());
         assertEquals(LocalDate.of(2024, 2, 29), expenses.getFirst().getDate());
         assertEquals("Lunch, coffee", expenses.getFirst().getComment());
     }

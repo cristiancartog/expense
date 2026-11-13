@@ -3,8 +3,6 @@ package ro.pandemonium.expense.activity.chart;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
-import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
-import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.util.DateUtil.currentYear;
 
 import android.graphics.Color;
@@ -32,7 +30,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.Month;
 import java.time.format.TextStyle;
@@ -41,7 +39,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.OptionalDouble;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -52,16 +50,18 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.service.Comparison;
 import ro.pandemonium.expense.service.YearComparisonService;
 import ro.pandemonium.expense.service.YearComparisonState;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
+import ro.pandemonium.expense.view.ExpenseChartValueFormatter;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 @AndroidEntryPoint
 public class YearComparisonChartActivity extends AppCompatActivity {
 
-    private static final NumberFormat VALUE_FORMATTER = new DecimalFormat(NUMBER_FORMAT_PATTERN);
-    private static final NumberFormat PERCENT_FORMATTER = new DecimalFormat(PERCENT_FORMAT_PATTERN);
+    private final NumberFormat valueFormatter = ExpenseFormatUtil.amountFormatter();
+    private final NumberFormat percentFormatter = ExpenseFormatUtil.percentageFormatter();
 
     private final Map<Month, TextView> monthToPreviousYearValue = new EnumMap<>(Month.class);
     private final Map<Month, TextView> monthToCurrentYearValue = new EnumMap<>(Month.class);
@@ -149,6 +149,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         leftYAxis.setSpaceTop(10f);
         leftYAxis.setTextColor(Color.WHITE);
         leftYAxis.setAxisMinimum(0f);
+        leftYAxis.setValueFormatter(new ExpenseChartValueFormatter());
 
         barChart.setPinchZoom(false);
         barChart.setDrawBarShadow(false);
@@ -212,32 +213,32 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         currentYearLabel.setText(getString(R.string.yearComparisonYearPlaceholder, state.year()));
         currentYearReportLabel.setText(getString(R.string.yearComparisonYearPlaceholder, state.year()));
         previousYearReportLabel.setText(getString(R.string.yearComparisonYearPlaceholder, state.year() - 1));
-        currentYearTotalLabel.setText(VALUE_FORMATTER.format(state.currentYearTotal()));
-        previousYearTotalLabel.setText(VALUE_FORMATTER.format(state.previousYearTotal()));
+        currentYearTotalLabel.setText(valueFormatter.format(state.currentYearTotal()));
+        previousYearTotalLabel.setText(valueFormatter.format(state.previousYearTotal()));
 
         recreateDataSets(state);
 
         for (Map.Entry<Month, Comparison> entry : state.monthlyComparisons().entrySet()) {
             final Comparison comparison = entry.getValue();
-            requireNonNull(monthToCurrentYearValue.get(entry.getKey())).setText(VALUE_FORMATTER.format(comparison.currentValue()));
-            requireNonNull(monthToPreviousYearValue.get(entry.getKey())).setText(VALUE_FORMATTER.format(comparison.previousValue()));
+            requireNonNull(monthToCurrentYearValue.get(entry.getKey())).setText(valueFormatter.format(comparison.currentValue()));
+            requireNonNull(monthToPreviousYearValue.get(entry.getKey())).setText(valueFormatter.format(comparison.previousValue()));
             updateVariation(
                     requireNonNull(monthToVariationLabel.get(entry.getKey())),
-                    comparison.variation()
+                    comparison.variationPercentage()
             );
         }
     }
 
-    private void updateVariation(final TextView variationLabel, final OptionalDouble variation) {
+    private void updateVariation(final TextView variationLabel, final Optional<BigDecimal> variation) {
         if (variation.isEmpty()) {
             variationLabel.setText("-");
             variationLabel.setTextColor(getColor(R.color.report_variation_negative));
             return;
         }
 
-        final double value = variation.getAsDouble();
-        variationLabel.setText(PERCENT_FORMATTER.format(value));
-        variationLabel.setTextColor(getColor(value < 0
+        final BigDecimal value = variation.orElseThrow();
+        variationLabel.setText(percentFormatter.format(value));
+        variationLabel.setTextColor(getColor(value.signum() < 0
                 ? R.color.report_variation_negative
                 : R.color.report_variation_positive));
     }
@@ -247,8 +248,8 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         final List<BarEntry> previousYearValues = new ArrayList<>();
         int index = 0;
         for (Comparison comparison : state.monthlyComparisons().values()) {
-            currentYearValues.add(new BarEntry(index, (float) comparison.currentValue()));
-            previousYearValues.add(new BarEntry(index, (float) comparison.previousValue()));
+            currentYearValues.add(new BarEntry(index, comparison.currentValue().floatValue(), comparison.currentValue()));
+            previousYearValues.add(new BarEntry(index, comparison.previousValue().floatValue(), comparison.previousValue()));
             index++;
         }
 
@@ -271,6 +272,7 @@ public class YearComparisonChartActivity extends AppCompatActivity {
         final float barWidth = (1 - groupSpace) / dataSets.size() - barSpace;
         final BarData barData = new BarData(dataSets);
         barData.setBarWidth(barWidth);
+        barData.setValueFormatter(new ExpenseChartValueFormatter());
 
         barChart.setData(barData);
         barChart.groupBars(0, groupSpace, barSpace);

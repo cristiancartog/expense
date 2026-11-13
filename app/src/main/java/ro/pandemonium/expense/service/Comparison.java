@@ -2,14 +2,17 @@ package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.OptionalDouble;
+import java.math.BigDecimal;
+import java.util.Optional;
 
 public record Comparison(
-        double currentValue,
-        double previousValue,
-        OptionalDouble variation) {
+        BigDecimal currentValue,
+        BigDecimal previousValue,
+        Optional<BigDecimal> variationPercentage) {
 
     public Comparison {
-        requireNonNull(variation);
+        requireNonNull(currentValue);
+        requireNonNull(previousValue);
+        requireNonNull(variationPercentage);
     }
 }

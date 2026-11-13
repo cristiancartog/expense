@@ -11,6 +11,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -163,10 +164,10 @@ public final class ExpenseMainService {
         return new ExpenseMainState(yearMonth, expenses);
     }
 
-    public Map<ExpenseType, Double> totalsByExpenseType(final List<Expense> expenses) {
+    public Map<ExpenseType, BigDecimal> totalsByExpenseType(final List<Expense> expenses) {
         requireNonNull(expenses);
 
-        final Map<ExpenseType, Double> totals = new EnumMap<>(ExpenseType.class);
+        final Map<ExpenseType, BigDecimal> totals = new EnumMap<>(ExpenseType.class);
         totals.putAll(ExpenseUtil.computeExpenseSumByCategory(expenses));
         return Collections.unmodifiableMap(totals);
     }

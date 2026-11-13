@@ -1,8 +1,10 @@
 package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
-import static ro.pandemonium.expense.util.ExpenseMathUtil.variation;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.ZERO;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.variationPercentage;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Month;
@@ -88,22 +90,22 @@ public final class YearComparisonService {
                                             final int reportYear,
                                             final int firstExpenseYear,
                                             final int lastExpenseYear) {
-        final Map<String, Double> currentValues = monthlyValues(reportExpenseType, reportYear);
-        final Map<String, Double> previousValues = monthlyValues(reportExpenseType, reportYear - 1);
+        final Map<String, BigDecimal> currentValues = monthlyValues(reportExpenseType, reportYear);
+        final Map<String, BigDecimal> previousValues = monthlyValues(reportExpenseType, reportYear - 1);
         final Map<Month, Comparison> comparisons = new EnumMap<>(Month.class);
-        double currentTotal = 0D;
-        double previousTotal = 0D;
+        BigDecimal currentTotal = ZERO;
+        BigDecimal previousTotal = ZERO;
 
         for (Month month : Month.values()) {
             final String monthKey = "%02d".formatted(month.getValue());
-            final double currentValue = currentValues.getOrDefault(monthKey, 0D);
-            final double previousValue = previousValues.getOrDefault(monthKey, 0D);
-            currentTotal += currentValue;
-            previousTotal += previousValue;
+            final BigDecimal currentValue = currentValues.getOrDefault(monthKey, ZERO);
+            final BigDecimal previousValue = previousValues.getOrDefault(monthKey, ZERO);
+            currentTotal = currentTotal.add(currentValue);
+            previousTotal = previousTotal.add(previousValue);
             comparisons.put(month, new Comparison(
                     currentValue,
                     previousValue,
-                    variation(currentValue, previousValue)
+                    variationPercentage(currentValue, previousValue)
             ));
         }
 
@@ -118,8 +120,8 @@ public final class YearComparisonService {
         );
     }
 
-    private Map<String, Double> monthlyValues(final ExpenseType reportExpenseType, final int reportYear) {
-        final Map<String, Double> values = new TreeMap<>();
+    private Map<String, BigDecimal> monthlyValues(final ExpenseType reportExpenseType, final int reportYear) {
+        final Map<String, BigDecimal> values = new TreeMap<>();
         for (YearSummaryRow row : expenseDao.getMonthlySummaryInYear(reportExpenseType.getDbId(), Integer.toString(reportYear))) {
             values.put(row.month, row.total);
         }

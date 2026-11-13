@@ -1,7 +1,10 @@
 package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.ZERO;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.amount;
 
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -19,19 +22,19 @@ public record ExpenseHistoryState(
         monthlyValues = List.copyOf(requireNonNull(monthlyValues));
     }
 
-    public record MonthlyValues(YearMonth yearMonth, Map<ExpenseType, Double> values) {
+    public record MonthlyValues(YearMonth yearMonth, Map<ExpenseType, BigDecimal> values) {
 
         public MonthlyValues {
             requireNonNull(yearMonth);
             requireNonNull(values);
 
-            final Map<ExpenseType, Double> valuesCopy = new EnumMap<>(ExpenseType.class);
-            valuesCopy.putAll(values);
+            final Map<ExpenseType, BigDecimal> valuesCopy = new EnumMap<>(ExpenseType.class);
+            values.forEach((expenseType, value) -> valuesCopy.put(expenseType, amount(value)));
             values = Collections.unmodifiableMap(valuesCopy);
         }
 
-        public double valueFor(final ExpenseType expenseType) {
-            return values.getOrDefault(requireNonNull(expenseType), 0D);
+        public BigDecimal valueFor(final ExpenseType expenseType) {
+            return values.getOrDefault(requireNonNull(expenseType), ZERO);
         }
     }
 }

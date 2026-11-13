@@ -4,14 +4,16 @@ import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingDouble;
+import static java.util.stream.Collectors.reducing;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 import static ro.pandemonium.expense.service.ExpenseEntityMapper.toExpenses;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.FULL_YEAR;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_FROM_DATE;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_TO_DATE;
-import static ro.pandemonium.expense.util.ExpenseMathUtil.variation;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.ZERO;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.variationPercentage;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.EnumMap;
@@ -124,8 +126,8 @@ public final class YearlyReportService {
 
         final List<Expense> currentExpenses = toExpenses(expenseDao.findExpensesInInterval(currentStart, currentEnd));
         final List<Expense> previousExpenses = toExpenses(expenseDao.findExpensesInInterval(previousStart, previousEnd));
-        final Map<ExpenseType, Double> currentTotals = totalsByExpenseType(currentExpenses);
-        final Map<ExpenseType, Double> previousTotals = totalsByExpenseType(previousExpenses);
+        final Map<ExpenseType, BigDecimal> currentTotals = totalsByExpenseType(currentExpenses);
+        final Map<ExpenseType, BigDecimal> previousTotals = totalsByExpenseType(previousExpenses);
         final Map<ExpenseType, Comparison> comparisons = new EnumMap<>(ExpenseType.class);
 
         for (ExpenseType expenseType : ExpenseType.values()) {
@@ -147,33 +149,33 @@ public final class YearlyReportService {
         );
     }
 
-    private Map<ExpenseType, Double> totalsByExpenseType(final List<Expense> expenses) {
-        final Map<ExpenseType, Double> totals = expenses.stream()
+    private Map<ExpenseType, BigDecimal> totalsByExpenseType(final List<Expense> expenses) {
+        final Map<ExpenseType, BigDecimal> totals = expenses.stream()
                 .collect(
                     groupingBy(
                         Expense::getExpenseType,
                         () -> new EnumMap<>(ExpenseType.class),
-                        summingDouble(Expense::getValue)
+                        reducing(ZERO, Expense::getValue, BigDecimal::add)
                     )
                 );
         for (ExpenseType expenseType : ExpenseType.values()) {
-            totals.putIfAbsent(expenseType, 0D);
+            totals.putIfAbsent(expenseType, ZERO);
         }
         return totals;
     }
 
-    private double total(final List<Expense> expenses, final boolean includeSpecial) {
+    private BigDecimal total(final List<Expense> expenses, final boolean includeSpecial) {
         return expenses.stream()
-                .filter(expense -> includeSpecial || expense.getExpenseType() != SPECIAL)
-                .mapToDouble(Expense::getValue)
-                .sum();
+                       .filter(expense -> includeSpecial || expense.getExpenseType() != SPECIAL)
+                       .map(Expense::getValue)
+                       .reduce(ZERO, BigDecimal::add);
     }
 
-    private Comparison comparison(final double currentValue, final double previousValue) {
+    private Comparison comparison(final BigDecimal currentValue, final BigDecimal previousValue) {
         return new Comparison(
                 currentValue,
                 previousValue,
-                variation(currentValue, previousValue)
+                variationPercentage(currentValue, previousValue)
         );
     }
 

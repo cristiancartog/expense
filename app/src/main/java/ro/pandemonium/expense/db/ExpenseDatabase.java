@@ -6,7 +6,7 @@ import androidx.room.TypeConverters;
 
 @Database(
     entities = ExpenseEntity.class,
-    version = 1
+    version = 2
 )
 @TypeConverters(ExpenseConverters.class)
 public abstract class ExpenseDatabase extends RoomDatabase {

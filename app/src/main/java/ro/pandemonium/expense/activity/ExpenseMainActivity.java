@@ -40,6 +40,7 @@ import com.github.mikephil.charting.data.PieEntry;
 import androidx.appcompat.widget.SwitchCompat;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ import ro.pandemonium.expense.service.DatabaseTransferProgress;
 import ro.pandemonium.expense.service.ExpenseMainService;
 import ro.pandemonium.expense.service.ExpenseMainState;
 import ro.pandemonium.expense.service.ExpenseMainUpdate;
+import ro.pandemonium.expense.view.ExpenseChartValueFormatter;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 import ro.pandemonium.expense.util.TaskRunner;
 
@@ -448,13 +450,13 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void updatePieData() {
         updateMonthButtonLabel();
 
-        Map<ExpenseType, Double> expenseTypeValues = mainService.totalsByExpenseType(expenseListAdapter.getExpenses(false));
+        Map<ExpenseType, BigDecimal> expenseTypeValues = mainService.totalsByExpenseType(expenseListAdapter.getExpenses(false));
 
         final List<PieEntry> entries = new ArrayList<>();
         final Resources resources = getResources();
-        for (Map.Entry<ExpenseType, Double> entry : expenseTypeValues.entrySet()) {
+        for (Map.Entry<ExpenseType, BigDecimal> entry : expenseTypeValues.entrySet()) {
             String text = resources.getString(ExpenseTypeUi.getTextResource(entry.getKey()));
-            entries.add(new PieEntry(entry.getValue().floatValue(), text));
+            entries.add(new PieEntry(entry.getValue().floatValue(), text, entry.getValue()));
         }
 
         final PieDataSet pieDataSet = new PieDataSet(entries, null);
@@ -473,6 +475,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         pieDataSet.setColors(colors);
 
         PieData data = new PieData(pieDataSet);
+        data.setValueFormatter(new ExpenseChartValueFormatter());
         data.setValueTextSize(11f);
         data.setValueTextColor(Color.WHITE);
 

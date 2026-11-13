@@ -12,7 +12,6 @@ import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 
 import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
@@ -23,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -60,9 +59,9 @@ public class ExpenseDaoRoomTest {
         expense.id = expenseDao.insert(expense);
         assertTrue(expense.id > 0);
 
-        expense.value = 18.0;
+        expense.value = BigDecimal.valueOf(18.0);
         assertEquals(1, expenseDao.update(expense));
-        assertEquals(18.0, expenseDao.fetchAllExpenses().getFirst().value, 0.0);
+        assertEquals(0, expenseDao.fetchAllExpenses().getFirst().value.compareTo(BigDecimal.valueOf(18.0)));
 
         assertEquals(1, expenseDao.delete(expense.id));
         assertTrue(expenseDao.fetchAllExpenses().isEmpty());
@@ -86,9 +85,25 @@ public class ExpenseDaoRoomTest {
 
         final List<YearSummaryRow> yearlySummary = expenseDao.getMonthlySummaryInYear(FOOD.getDbId(), "2025");
         assertEquals(List.of("10", "11"), yearlySummary.stream().map(row -> row.month).toList());
-        assertEquals(List.of(10.0, 20.0), yearlySummary.stream().map(row -> row.total).toList());
+        assertEquals(List.of(new BigDecimal("10.00"), new BigDecimal("20.00")), yearlySummary.stream().map(row -> row.total).toList());
         final List<MonthlySummaryRow> summaries = expenseDao.getMonthlySummary(List.of(FOOD.getDbId(), PETROL.getDbId()));
         assertEquals(3, summaries.size());
+    }
+
+    @Test
+    public void storesScaledIntegersAndSumsFractionalAmountsExactly() {
+        persist(FOOD, 0.10, LocalDate.of(2026, 1, 1), "first");
+        persist(FOOD, 0.20, LocalDate.of(2026, 1, 2), "second");
+
+        assertEquals(new BigDecimal("0.30"), expenseDao.getMonthlySummaryInYear(FOOD.getDbId(), "2026").getFirst().total);
+        assertEquals(new BigDecimal("0.30"), expenseDao.getMonthlySummary(List.of(FOOD.getDbId())).getFirst().total);
+        try (Cursor cursor = database.getOpenHelper().getReadableDatabase().query("SELECT VALUE, TYPEOF(VALUE) FROM EXPENSES ORDER BY _ID")) {
+            assertTrue(cursor.moveToFirst());
+            assertEquals(10L, cursor.getLong(0));
+            assertEquals("integer", cursor.getString(1));
+            assertTrue(cursor.moveToNext());
+            assertEquals(20L, cursor.getLong(0));
+        }
     }
 
     @Test
@@ -164,43 +179,7 @@ public class ExpenseDaoRoomTest {
     }
 
     @Test
-    public void adoptsExactLegacyVersionOneSchemaWithoutLosingData() {
-        database.close();
-        final String databaseName = "legacy-expenses-" + System.nanoTime() + ".db";
-        final File databaseFile = context.getDatabasePath(databaseName);
-        databaseFile.getParentFile().mkdirs();
-
-        try (SQLiteDatabase legacyDatabase = SQLiteDatabase.openOrCreateDatabase(databaseFile, null)) {
-            legacyDatabase.execSQL("""
-                CREATE TABLE EXPENSES(
-                    _ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    EXPENSE_TYPE INTEGER NOT NULL,
-                    VALUE REAL NOT NULL,
-                    DATE TEXT NOT NULL,
-                    COMMENT TEXT)
-                """);
-            legacyDatabase.execSQL("CREATE INDEX IF NOT EXISTS IDX_EXPENSE_DATE ON EXPENSES(DATE)");
-            legacyDatabase.execSQL("INSERT INTO EXPENSES(_ID, EXPENSE_TYPE, VALUE, DATE, COMMENT) VALUES(41, 80, 9.5, '2024-03-02', 'legacy')");
-            legacyDatabase.setVersion(1);
-        }
-
-        database = Room.databaseBuilder(context, ExpenseDatabase.class, databaseName)
-                       .allowMainThreadQueries()
-                       .build();
-        expenseDao = database.expenseDao();
-
-        final ExpenseEntity adopted = expenseDao.fetchAllExpenses().getFirst();
-        assertEquals(Long.valueOf(41), adopted.id);
-        assertEquals(FOOD, adopted.expenseType);
-        assertEquals("legacy", adopted.comment);
-        assertSchemaAndIndex(database);
-
-        database.close();
-        assertTrue(context.deleteDatabase(databaseName));
-    }
-
-    @Test
-    public void createsTheLegacyCompatibleSchemaAndIndex() {
+    public void createsTheScaledIntegerSchemaAndIndex() {
         assertSchemaAndIndex(database);
     }
 
@@ -211,6 +190,9 @@ public class ExpenseDaoRoomTest {
             assertEquals("_ID", columns.getString(columns.getColumnIndexOrThrow("name")));
             assertEquals("INTEGER", columns.getString(columns.getColumnIndexOrThrow("type")));
             assertEquals(1, columns.getInt(columns.getColumnIndexOrThrow("pk")));
+            assertTrue(columns.moveToPosition(2));
+            assertEquals("VALUE", columns.getString(columns.getColumnIndexOrThrow("name")));
+            assertEquals("INTEGER", columns.getString(columns.getColumnIndexOrThrow("type")));
         }
         try (Cursor indexes = testedDatabase.getOpenHelper().getReadableDatabase().query("PRAGMA index_list(EXPENSES)")) {
             boolean dateIndexFound = false;
@@ -231,7 +213,7 @@ public class ExpenseDaoRoomTest {
         final ExpenseEntity expense = new ExpenseEntity();
         expense.id = id;
         expense.expenseType = type;
-        expense.value = value;
+        expense.value = BigDecimal.valueOf(value);
         expense.date = date;
         expense.comment = comment;
         return expense;

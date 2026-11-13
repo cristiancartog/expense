@@ -3,8 +3,6 @@ package ro.pandemonium.expense.activity;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_TYPE;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
-import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
-import static ro.pandemonium.expense.Constants.PERCENT_FORMAT_PATTERN;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_FROM_DATE;
 import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_TO_DATE;
 
@@ -20,11 +18,11 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.OptionalDouble;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -37,6 +35,7 @@ import ro.pandemonium.expense.service.Comparison;
 import ro.pandemonium.expense.service.YearlyReportService;
 import ro.pandemonium.expense.service.YearlyReportState;
 import ro.pandemonium.expense.util.DateUtil;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
@@ -45,8 +44,8 @@ import ro.pandemonium.expense.view.ExpenseTypeUi;
 @AndroidEntryPoint
 public class YearlyExpenseReportActivity extends AppCompatActivity {
 
-    private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
-    private final NumberFormat percentFormatter = new DecimalFormat(PERCENT_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = ExpenseFormatUtil.amountFormatter();
+    private final NumberFormat percentFormatter = ExpenseFormatUtil.percentageFormatter();
 
     @Inject
     YearlyReportService reportService;
@@ -217,18 +216,18 @@ public class YearlyExpenseReportActivity extends AppCompatActivity {
                                   final TextView variation) {
         currentValue.setText(numberFormatter.format(comparison.currentValue()));
         previousValue.setText(numberFormatter.format(comparison.previousValue()));
-        updateVariationText(variation, comparison.variation());
+        updateVariationText(variation, comparison.variationPercentage());
     }
 
-    private void updateVariationText(final TextView textView, final OptionalDouble variation) {
+    private void updateVariationText(final TextView textView, final Optional<BigDecimal> variation) {
         if (variation.isEmpty()) {
             textView.setText("-");
             textView.setTextColor(getColor(R.color.report_variation_negative));
             return;
         }
 
-        final double value = variation.getAsDouble();
-        textView.setTextColor(getColor(value < 0
+        final BigDecimal value = variation.orElseThrow();
+        textView.setTextColor(getColor(value.signum() < 0
                 ? R.color.report_variation_negative
                 : R.color.report_variation_positive));
         textView.setText(percentFormatter.format(value));

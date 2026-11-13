@@ -20,6 +20,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import ro.pandemonium.expense.util.LoadErrorUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
+import ro.pandemonium.expense.view.ExpenseChartValueFormatter;
 
 @AndroidEntryPoint
 public class ExpenseHistoryChartActivity extends AppCompatActivity {
@@ -104,6 +106,7 @@ public class ExpenseHistoryChartActivity extends AppCompatActivity {
         leftYAxis.setSpaceTop(10f);
         leftYAxis.setTextColor(Color.WHITE);
         leftYAxis.setAxisMinimum(0f);
+        leftYAxis.setValueFormatter(new ExpenseChartValueFormatter());
 
         barChart.getAxisRight().setEnabled(false);
     }
@@ -120,7 +123,8 @@ public class ExpenseHistoryChartActivity extends AppCompatActivity {
         for (MonthlyValues monthlyValues : state.monthlyValues()) {
             pointToMonthName.put((float) monthIndex, monthlyValues.yearMonth().toString());
             for (ExpenseType expenseType : state.expenseTypes()) {
-                requireNonNull(entriesByExpenseType.get(expenseType)).add(new BarEntry(monthIndex, (float) monthlyValues.valueFor(expenseType)));
+                final BigDecimal amount = monthlyValues.valueFor(expenseType);
+                requireNonNull(entriesByExpenseType.get(expenseType)).add(new BarEntry(monthIndex, amount.floatValue(), amount));
             }
             monthIndex++;
         }
@@ -137,6 +141,7 @@ public class ExpenseHistoryChartActivity extends AppCompatActivity {
         }
 
         final BarData data = new BarData(dataSets);
+        data.setValueFormatter(new ExpenseChartValueFormatter());
         final float barWidth = (1 - GROUP_SPACE) / state.expenseTypes().size() - BAR_SPACE;
         data.setBarWidth(barWidth);
         barChart.setData(data);

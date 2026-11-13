@@ -7,6 +7,7 @@ import static ro.pandemonium.expense.util.ExpenseSerialization.serialize;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 
@@ -22,7 +23,7 @@ public class ExpenseTest {
         expense.setDate(LocalDate.of(2000, Month.MARCH, 31));
         expense.setComment("The big brown fox...");
         expense.setExpenseType(ExpenseType.OTHER);
-        expense.setValue(123D);
+        expense.setValue(new BigDecimal("123.00"));
 
         String expenseCsv = serialize(expense);
 

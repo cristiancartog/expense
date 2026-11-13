@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.DateTimeException;
 import java.util.Locale;
@@ -52,7 +53,7 @@ class ExpenseSerializationTest {
         expense.setId(12345678L);
         expense.setExpenseType(ExpenseType.FOOD);
         expense.setDate(LocalDate.of(2026, 11, 10));
-        expense.setValue(Double.valueOf(value));
+        expense.setValue(new BigDecimal(value));
         expense.setComment("Lunch");
 
         final String serializedExpense = serialize(expense);
@@ -102,7 +103,7 @@ class ExpenseSerializationTest {
     void acceptsSupportedAmountsAndLeapDays(final String amount) {
         final Expense expense = deserialize("1,FOOD,2024-02-29," + amount + ",");
 
-        assertEquals(Double.valueOf(amount), expense.getValue());
+        assertEquals(new BigDecimal(amount).setScale(2), expense.getValue());
         assertEquals(LocalDate.of(2024, 2, 29), expense.getDate());
         assertEquals("", expense.getComment());
     }

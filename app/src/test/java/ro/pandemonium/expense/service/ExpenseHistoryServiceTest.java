@@ -11,6 +11,7 @@ import static ro.pandemonium.expense.model.ExpenseType.PETROL;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +24,6 @@ import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.service.ExpenseHistoryState.MonthlyValues;
 
 public class ExpenseHistoryServiceTest {
-
-    private static final double DELTA = 0.000001D;
 
     private final ExpenseDao expenseDao = mock(ExpenseDao.class);
     private final ExpenseHistoryService service = new ExpenseHistoryService(expenseDao);
@@ -54,12 +53,12 @@ public class ExpenseHistoryServiceTest {
 
         final ExpenseHistoryState state = service.load(requestedTypes);
         requestedTypes.add(PETROL);
-        summary.total = 20D;
+        summary.total = BigDecimal.valueOf(20D);
 
         assertEquals(List.of(FOOD), state.expenseTypes());
-        assertEquals(10D, state.monthlyValues().getFirst().valueFor(FOOD), DELTA);
+        assertEquals(0, state.monthlyValues().getFirst().valueFor(FOOD).compareTo(BigDecimal.valueOf(10D)));
         assertThrows(UnsupportedOperationException.class, () -> state.expenseTypes().add(PETROL));
-        assertThrows(UnsupportedOperationException.class, () -> state.monthlyValues().getFirst().values().put(FOOD, 20D));
+        assertThrows(UnsupportedOperationException.class, () -> state.monthlyValues().getFirst().values().put(FOOD, BigDecimal.valueOf(20D)));
     }
 
     @Test
@@ -73,7 +72,7 @@ public class ExpenseHistoryServiceTest {
         final MonthlySummaryRow row = new MonthlySummaryRow();
         row.expenseType = expenseType.getDbId();
         row.month = month;
-        row.total = total;
+        row.total = BigDecimal.valueOf(total);
         return row;
     }
 
@@ -82,7 +81,7 @@ public class ExpenseHistoryServiceTest {
                              final double food,
                              final double petrol) {
         assertEquals(yearMonth, values.yearMonth());
-        assertEquals(food, values.valueFor(FOOD), DELTA);
-        assertEquals(petrol, values.valueFor(PETROL), DELTA);
+        assertEquals(0, values.valueFor(FOOD).compareTo(BigDecimal.valueOf(food)));
+        assertEquals(0, values.valueFor(PETROL).compareTo(BigDecimal.valueOf(petrol)));
     }
 }

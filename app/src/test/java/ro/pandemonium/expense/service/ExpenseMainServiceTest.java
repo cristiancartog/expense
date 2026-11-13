@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
@@ -211,13 +212,13 @@ public class ExpenseMainServiceTest {
 
     @Test
     public void totalsByExpenseTypeAggregatesValuesAndHandlesAnEmptyList() {
-        final Map<?, Double> totals = service.totalsByExpenseType(List.of(
+        final Map<?, BigDecimal> totals = service.totalsByExpenseType(List.of(
                 expense(1L, FOOD, "2026-11-04", 10D),
                 expense(2L, FOOD, "2026-11-05", 5D),
                 expense(3L, PETROL, "2026-11-06", 20D)
         ));
 
-        assertEquals(Map.of(FOOD, 15D, PETROL, 20D), totals);
+        assertEquals(Map.of(FOOD, new BigDecimal("15.00"), PETROL, new BigDecimal("20.00")), totals);
         assertTrue(service.totalsByExpenseType(List.of()).isEmpty());
         assertThrows(UnsupportedOperationException.class, totals::clear);
     }
@@ -308,7 +309,7 @@ public class ExpenseMainServiceTest {
             assertEquals(1, entities.size());
             assertNull(entities.getFirst().id);
             assertEquals(FOOD, entities.getFirst().expenseType);
-            assertEquals(10D, entities.getFirst().value);
+            assertEquals(0, entities.getFirst().value.compareTo(BigDecimal.valueOf(10D)));
             assertEquals(LocalDate.of(2026, 11, 4), entities.getFirst().date);
             final IntConsumer progress = invocation.getArgument(1);
             progress.accept(1);
@@ -391,10 +392,10 @@ public class ExpenseMainServiceTest {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(doubles = {-0.01, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.001, 1000000000D})
-    public void invalidAmountAnywhereInThePreviewCannotDumpOrReplaceTheDatabase(final Double amount) {
+    @ValueSource(strings = {"-0.01", "1000000000"})
+    public void invalidAmountAnywhereInThePreviewCannotDumpOrReplaceTheDatabase(final String amount) {
         final Expense invalid = expense(2L, FOOD, "2026-11-04", 10D);
-        invalid.setValue(amount);
+        invalid.setValue(amount == null ? null : new BigDecimal(amount));
 
         assertInvalidRestoreIsSafe(List.of(expense(1L, PETROL, "2026-11-04", 20D), invalid));
     }
@@ -406,7 +407,7 @@ public class ExpenseMainServiceTest {
         missingComment.setComment(null);
         final Expense missingDate = new Expense();
         missingDate.setExpenseType(FOOD);
-        missingDate.setValue(10D);
+        missingDate.setValue(BigDecimal.valueOf(10D));
         missingDate.setComment("");
 
         assertInvalidRestoreIsSafe(List.of(missingType));
@@ -479,7 +480,7 @@ public class ExpenseMainServiceTest {
         expense.setId(id);
         expense.setExpenseType(expenseType);
         expense.setDate(LocalDate.parse(date));
-        expense.setValue(value);
+        expense.setValue(BigDecimal.valueOf(value));
         expense.setComment("");
         return expense;
     }

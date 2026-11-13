@@ -2,7 +2,7 @@ package ro.pandemonium.expense.activity;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
-import static ro.pandemonium.expense.Constants.NUMBER_FORMAT_PATTERN;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.percentage;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NavUtils;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,6 +32,7 @@ import ro.pandemonium.expense.activity.dialog.ExpenseTypeSelectionDialog;
 import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
@@ -48,7 +49,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     final ExpenseListAdapter expenseListAdapter = new ExpenseListAdapter();
 
     TextView totalTextView;
-    private final NumberFormat numberFormatter = new DecimalFormat(NUMBER_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = ExpenseFormatUtil.amountFormatter();
 
     final SparseArray<Comparator<Expense>> mapSortingMenuItemToComparator = new SparseArray<>();
 
@@ -136,7 +137,6 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         addEditExpenseLauncher.launch(intent);
     }
 
-
     void clearFilters() {
         if (expenseListAdapter.isFiltered()) {
             expenseListAdapter.clearFilters();
@@ -147,12 +147,12 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     }
 
     void updateTotal() {
-        final double total = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(true));
+        final BigDecimal total = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(true));
         final String formattedTotal = numberFormatter.format(total);
 
         if (expenseListAdapter.isFiltered()) {
-            final double filteredTotal = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(false));
-            final double percentage = total > 0 ? (filteredTotal / total * 100) : 0;
+            final BigDecimal filteredTotal = ExpenseUtil.computeTotalValue(expenseListAdapter.getExpenses(false));
+            final BigDecimal percentage = percentage(filteredTotal, total);
 
             final String filteredFormattedTotal = getResources().getString(R.string.abstractExpenseListActivityFilteredTotalLabel,
                     numberFormatter.format(filteredTotal), numberFormatter.format(percentage), formattedTotal);

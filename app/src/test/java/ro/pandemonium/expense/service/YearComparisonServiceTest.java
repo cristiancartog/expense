@@ -18,6 +18,7 @@ import static ro.pandemonium.expense.model.ExpenseType.OTHER;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,15 +49,30 @@ public class YearComparisonServiceTest {
         assertEquals(2024, state.year());
         assertTrue(state.previousYearEnabled());
         assertTrue(state.nextYearEnabled());
-        assertEquals(175D, state.currentYearTotal(), DELTA);
-        assertEquals(150D, state.previousYearTotal(), DELTA);
+        assertEquals(new BigDecimal("175.00"), state.currentYearTotal());
+        assertEquals(new BigDecimal("150.00"), state.previousYearTotal());
         assertComparison(state, JANUARY, 150D, 100D, 0.5D);
-        assertFalse(comparison(state, FEBRUARY).variation().isPresent());
+        assertFalse(comparison(state, FEBRUARY).variationPercentage().isPresent());
         assertEquals(12, state.monthlyComparisons().size());
         assertThrows(UnsupportedOperationException.class,
                 () -> state.monthlyComparisons().put(JANUARY, comparison(state, JANUARY)));
         verify(store.expenseDao).getMonthlySummaryInYear(FOOD.getDbId(), "2024");
         verify(store.expenseDao).getMonthlySummaryInYear(FOOD.getDbId(), "2023");
+    }
+
+    @Test
+    public void reportPreservesCentsAndRoundsCalculatedPercentages() {
+        final MockMonthlySummaryStore store = storeWithBounds("2023-01-01", "2024-12-31");
+        store.values.put(2023, Map.of("01", 32D));
+        store.values.put(2024, Map.of("01", 33D, "02", 0.10D, "03", 0.20D));
+
+        final YearComparisonState state = service(store.expenseDao).initialize(FOOD, 2024);
+
+        assertEquals(new BigDecimal("33.30"), state.currentYearTotal());
+        assertEquals(new BigDecimal("32.00"), state.previousYearTotal());
+        assertEquals(new BigDecimal("0.10"), comparison(state, FEBRUARY).currentValue());
+        assertEquals(new BigDecimal("0.00"), comparison(state, FEBRUARY).previousValue());
+        assertEquals(new BigDecimal("3.13"), comparison(state, JANUARY).variationPercentage().orElseThrow());
     }
 
     @Test
@@ -110,10 +126,10 @@ public class YearComparisonServiceTest {
         assertEquals(2026, state.year());
         assertFalse(state.previousYearEnabled());
         assertFalse(state.nextYearEnabled());
-        assertEquals(0D, state.currentYearTotal(), DELTA);
-        assertEquals(0D, state.previousYearTotal(), DELTA);
+        assertEquals(new BigDecimal("0.00"), state.currentYearTotal());
+        assertEquals(new BigDecimal("0.00"), state.previousYearTotal());
         assertTrue(state.monthlyComparisons().values().stream()
-                .allMatch(comparison -> comparison.variation().isEmpty()));
+                .allMatch(comparison -> comparison.variationPercentage().isEmpty()));
     }
 
     @Test
@@ -142,7 +158,7 @@ public class YearComparisonServiceTest {
         expense.setId(id);
         expense.setExpenseType(type);
         expense.setDate(LocalDate.parse(date));
-        expense.setValue(0D);
+        expense.setValue(BigDecimal.valueOf(0D));
         expense.setComment("");
         return expense;
     }
@@ -157,10 +173,10 @@ public class YearComparisonServiceTest {
                                   final double previous,
                                   final double variation) {
         final Comparison comparison = comparison(state, month);
-        assertEquals(current, comparison.currentValue(), DELTA);
-        assertEquals(previous, comparison.previousValue(), DELTA);
-        assertTrue(comparison.variation().isPresent());
-        assertEquals(variation, comparison.variation().getAsDouble(), DELTA);
+        assertEquals(BigDecimal.valueOf(current).setScale(2), comparison.currentValue());
+        assertEquals(BigDecimal.valueOf(previous).setScale(2), comparison.previousValue());
+        assertTrue(comparison.variationPercentage().isPresent());
+        assertEquals(BigDecimal.valueOf(variation).movePointRight(2).setScale(2, java.math.RoundingMode.HALF_UP), comparison.variationPercentage().orElseThrow());
     }
 
     private Comparison comparison(final YearComparisonState state, final Month month) {
@@ -187,7 +203,7 @@ public class YearComparisonServiceTest {
         private YearSummaryRow row(final String month, final double total) {
             final YearSummaryRow row = new YearSummaryRow();
             row.month = month;
-            row.total = total;
+            row.total = BigDecimal.valueOf(total).setScale(2);
             return row;
         }
     }

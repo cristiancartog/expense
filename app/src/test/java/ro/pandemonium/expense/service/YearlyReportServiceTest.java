@@ -20,6 +20,7 @@ import static ro.pandemonium.expense.service.YearlyReportState.PeriodMode.YEAR_T
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -55,8 +56,8 @@ public class YearlyReportServiceTest {
         assertComparison(state.withoutSpecial(), 175, 100, 0.75D);
         assertComparison(state.byExpenseType().get(FOOD), 150, 100, 0.5D);
         assertComparison(state.byExpenseType().get(SPECIAL), 75, 50, 0.5D);
-        assertEquals(0D, state.byExpenseType().get(OTHER).previousValue(), DELTA);
-        assertFalse(state.byExpenseType().get(OTHER).variation().isPresent());
+        assertEquals(0, state.byExpenseType().get(OTHER).previousValue().compareTo(BigDecimal.valueOf(0D)));
+        assertFalse(state.byExpenseType().get(OTHER).variationPercentage().isPresent());
         verifyRange(store.expenseDao, "2024-01-01", "2024-12-31");
         verifyRange(store.expenseDao, "2023-01-01", "2023-12-31");
     }
@@ -127,8 +128,8 @@ public class YearlyReportServiceTest {
 
         final YearlyReportState state = service(store.expenseDao).initialize(2024);
 
-        assertFalse(state.withSpecial().variation().isPresent());
-        assertFalse(state.byExpenseType().get(FOOD).variation().isPresent());
+        assertFalse(state.withSpecial().variationPercentage().isPresent());
+        assertFalse(state.byExpenseType().get(FOOD).variationPercentage().isPresent());
     }
 
     @Test
@@ -178,7 +179,7 @@ public class YearlyReportServiceTest {
         final Expense expense = new Expense();
         expense.setId(id);
         expense.setExpenseType(type);
-        expense.setValue(value);
+        expense.setValue(BigDecimal.valueOf(value));
         expense.setDate(LocalDate.parse(date));
         expense.setComment("");
         return expense;
@@ -192,10 +193,10 @@ public class YearlyReportServiceTest {
                                   final double current,
                                   final double previous,
                                   final double variation) {
-        assertEquals(current, comparison.currentValue(), DELTA);
-        assertEquals(previous, comparison.previousValue(), DELTA);
-        assertTrue(comparison.variation().isPresent());
-        assertEquals(variation, comparison.variation().getAsDouble(), DELTA);
+        assertEquals(0, comparison.currentValue().compareTo(BigDecimal.valueOf(current)));
+        assertEquals(0, comparison.previousValue().compareTo(BigDecimal.valueOf(previous)));
+        assertTrue(comparison.variationPercentage().isPresent());
+        assertEquals(BigDecimal.valueOf(variation).movePointRight(2).setScale(2, java.math.RoundingMode.HALF_UP), comparison.variationPercentage().orElseThrow());
     }
 
     private void verifyRange(final ExpenseDao expenseDao, final String start, final String end) {

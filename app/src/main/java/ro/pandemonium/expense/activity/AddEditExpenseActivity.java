@@ -17,7 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -32,15 +32,15 @@ import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.service.AddEditExpenseService;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
 import ro.pandemonium.expense.view.adapter.ExpenseTypeSpinnerAdapter;
-
 
 @AndroidEntryPoint
 public class AddEditExpenseActivity extends AppCompatActivity
         implements TextWatcher, DatePickerDialog.OnDateSetListener {
 
-    private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat(Constants.ADD_ACTIVITY_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = ExpenseFormatUtil.inputFormatter(Locale.getDefault());
 
     @Inject
     AddEditExpenseService addEditExpenseService;
@@ -98,7 +98,7 @@ public class AddEditExpenseActivity extends AppCompatActivity
                 return;
             }
 
-            valueField.setText(NUMBER_FORMATTER.format(expense.getValue()));
+            valueField.setText(numberFormatter.format(expense.getValue()));
             spinner.setSelection(position);
             commentField.setText(expense.getComment());
         }

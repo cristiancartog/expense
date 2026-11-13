@@ -3,6 +3,7 @@ package ro.pandemonium.expense.model;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -10,7 +11,7 @@ public class Expense implements Serializable {
 
     private Long id;
     private ExpenseType expenseType;
-    private Double value;
+    private BigDecimal value;
     private LocalDate date;
     private String comment;
 
@@ -22,11 +23,11 @@ public class Expense implements Serializable {
         this.expenseType = expenseType;
     }
 
-    public Double getValue() {
+    public BigDecimal getValue() {
         return value;
     }
 
-    public void setValue(final Double value) {
+    public void setValue(final BigDecimal value) {
         this.value = value;
     }
 

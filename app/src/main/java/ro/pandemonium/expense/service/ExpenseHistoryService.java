@@ -1,7 +1,9 @@
 package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
+import static ro.pandemonium.expense.util.ExpenseMathUtil.ZERO;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -44,9 +46,9 @@ public final class ExpenseHistoryService {
         }
         final List<MonthlyValues> monthlyValues = new ArrayList<>();
         for (ExpenseMonthlySummary summary : summariesByMonth.values()) {
-            final Map<ExpenseType, Double> values = new EnumMap<>(ExpenseType.class);
+            final Map<ExpenseType, BigDecimal> values = new EnumMap<>(ExpenseType.class);
             for (ExpenseType expenseType : expenseTypes) {
-                values.put(expenseType, summary.getValues().getOrDefault(expenseType, 0D));
+                values.put(expenseType, summary.getValues().getOrDefault(expenseType, ZERO));
             }
             monthlyValues.add(new MonthlyValues(summary.getYearMonth(), values));
         }

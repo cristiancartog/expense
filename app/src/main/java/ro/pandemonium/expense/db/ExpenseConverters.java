@@ -1,7 +1,10 @@
 package ro.pandemonium.expense.db;
 
+import static ro.pandemonium.expense.util.ExpenseMathUtil.SCALE;
+
 import androidx.room.TypeConverter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import ro.pandemonium.expense.model.ExpenseType;
@@ -9,6 +12,18 @@ import ro.pandemonium.expense.model.ExpenseType;
 public final class ExpenseConverters {
 
     private ExpenseConverters() {
+    }
+
+    // Room calls these converters from generated DAO code. The integer represents
+    // value * 10^SCALE (e.g. 12.50 -> 1250), independently of the currency.
+    @TypeConverter
+    public static Long valueToScaledInteger(final BigDecimal value) {
+        return value == null ? null : value.movePointRight(SCALE).longValueExact();
+    }
+
+    @TypeConverter
+    public static BigDecimal scaledIntegerToValue(final Long scaledValue) {
+        return scaledValue == null ? null : BigDecimal.valueOf(scaledValue, SCALE);
     }
 
     @TypeConverter

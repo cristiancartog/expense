@@ -5,11 +5,6 @@ public class Constants {
     public static final String APPLICATION_NAME = "EXPENSES";
 
     // formatter(s)
-    public static final String NUMBER_FORMAT_PATTERN = "###,###.00";
-    public static final String PERCENT_FORMAT_PATTERN = "+##.00 %;-##.00 %";
-    public static final String LEADING_ZERO_FORMAT = "00";
-    public static final String ADD_ACTIVITY_FORMAT_PATTERN = "#.##";
-    public static final String DATE_FORMAT_PATTERN_DB = "yyyy-MM-dd";
     public static final String DATE_FORMAT_PATTERN_FILE_TIMESTAMP = "yyyy-MM-dd--HH-mm-ss";
     public static final String DATE_FORMAT_PATTERN_DISPLAY = "dd MMM yyyy";
     public static final String DATE_FORMAT_PATTERN_MONTH = "MMM yyyy";

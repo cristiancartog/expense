@@ -11,7 +11,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -24,11 +23,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import ro.pandemonium.expense.Constants;
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 public class ExpenseListAdapter extends BaseAdapter {
@@ -40,7 +39,7 @@ public class ExpenseListAdapter extends BaseAdapter {
 
     private Filters filters;
 
-    private final NumberFormat numberFormatter = new DecimalFormat(Constants.NUMBER_FORMAT_PATTERN);
+    private final NumberFormat numberFormatter = ExpenseFormatUtil.amountFormatter();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
 
     @Override
