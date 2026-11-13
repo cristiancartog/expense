@@ -15,6 +15,7 @@ public class Constants {
     public static final String INTENT_FILTERS = "filters";
     public static final String INTENT_EXPENSE = "expense";
     public static final String INTENT_CHANGED_EXPENSES = "changedExpenses";
+    public static final String INTENT_DELETED_EXPENSE_IDS = "deletedExpenseIds";
     public static final String INTENT_YEAR = "year";
     public static final String INTENT_EXPENSE_TYPE = "expenseType";
 }

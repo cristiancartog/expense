@@ -1,7 +1,6 @@
 package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
-
 import static ro.pandemonium.expense.service.ExpenseEntityMapper.toExpenses;
 
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.scopes.ActivityScoped;
 import ro.pandemonium.expense.db.ExpenseDao;
-import ro.pandemonium.expense.db.ExpenseEntity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
 import ro.pandemonium.expense.model.Filters;
@@ -22,6 +20,7 @@ public final class ExpenseSearchService {
 
     private final ExpenseDao expenseDao;
     private final List<Expense> changedExpenses = new ArrayList<>();
+    private final List<Long> deletedExpenseIds = new ArrayList<>();
     private boolean initialized;
 
     @Inject
@@ -41,6 +40,7 @@ public final class ExpenseSearchService {
                                       .reversed());
 
         changedExpenses.clear();
+        deletedExpenseIds.clear();
         initialized = true;
         return List.copyOf(loadedExpenses);
     }
@@ -56,9 +56,29 @@ public final class ExpenseSearchService {
         changedExpenses.add(expense);
     }
 
+    public void delete(final Expense expense) {
+        requireInitialized();
+        requireNonNull(expense);
+        final Long expenseId = requireNonNull(expense.getId());
+
+        final int deletedCount = expenseDao.delete(expenseId);
+        if (deletedCount != 1) {
+            throw new IllegalStateException("Expense with id " + expenseId + " was not deleted");
+        }
+        changedExpenses.removeIf(changedExpense -> expenseId.equals(changedExpense.getId()));
+        deletedExpenseIds.add(expenseId);
+    }
+
     public List<Expense> changedExpenses() {
         requireInitialized();
+
         return List.copyOf(changedExpenses);
+    }
+
+    public List<Long> deletedExpenseIds() {
+        requireInitialized();
+
+        return List.copyOf(deletedExpenseIds);
     }
 
     private void requireInitialized() {

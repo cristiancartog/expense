@@ -120,16 +120,21 @@ public final class ExpenseMainService {
         return new ExpenseMainUpdate(expense, operationType,!alreadyInCurrentList && isInCurrentMonth(expense));
     }
 
-    public List<ExpenseMainUpdate> reconcileChanges(final List<Expense> currentExpenses, final List<Expense> changedExpenses) {
+    public List<ExpenseMainUpdate> reconcileChanges(final List<Expense> currentExpenses, final List<Expense> changedExpenses, final List<Long> deletedExpenseIds) {
         requireInitialized();
         requireNonNull(currentExpenses);
         requireNonNull(changedExpenses);
+        requireNonNull(deletedExpenseIds);
 
+        final Set<Long> deletedIds = new HashSet<>(deletedExpenseIds);
         final Set<Long> currentExpenseIds = new HashSet<>();
         currentExpenses.forEach(expense -> currentExpenseIds.add(requireNonNull(expense.getId())));
         final List<ExpenseMainUpdate> updates = new ArrayList<>();
         for (Expense expense : changedExpenses) {
             final Long expenseId = requireNonNull(expense.getId());
+            if (deletedIds.contains(expenseId)) {
+                continue;
+            }
             final boolean alreadyInCurrentList = currentExpenseIds.contains(expenseId);
             final ExpenseMainUpdate.OperationType operationType = operationType(expense, alreadyInCurrentList);
             if (operationType == ADD) {
@@ -138,6 +143,11 @@ public final class ExpenseMainService {
                 currentExpenseIds.remove(expenseId);
             }
             updates.add(new ExpenseMainUpdate(expense, operationType, operationType == ADD));
+        }
+        for (Expense expense : currentExpenses) {
+            if (deletedIds.contains(expense.getId())) {
+                updates.add(new ExpenseMainUpdate(expense, REMOVE, false));
+            }
         }
         return List.copyOf(updates);
     }

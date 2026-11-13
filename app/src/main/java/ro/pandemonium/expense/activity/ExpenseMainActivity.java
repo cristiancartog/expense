@@ -3,6 +3,7 @@ package ro.pandemonium.expense.activity;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
+import static ro.pandemonium.expense.Constants.INTENT_DELETED_EXPENSE_IDS;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
@@ -396,9 +397,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private void processSearchResultActivityResult(final int resultCode, final Intent data) {
         if (resultCode == RESULT_OK && data != null) {
             final List<Expense> changedExpenses = (List<Expense>) data.getSerializableExtra(INTENT_CHANGED_EXPENSES, ArrayList.class);
+            final List<Long> deletedExpenseIds = (List<Long>) data.getSerializableExtra(INTENT_DELETED_EXPENSE_IDS, ArrayList.class);
             final List<ExpenseMainUpdate> updates = mainService.reconcileChanges(
                     expenseListAdapter.getExpenses(true),
-                    changedExpenses != null ? changedExpenses : List.of()
+                    changedExpenses != null ? changedExpenses : List.of(),
+                    deletedExpenseIds != null ? deletedExpenseIds : List.of()
             );
             if (updates.stream().anyMatch(ExpenseMainUpdate::clearFilters)) {
                 clearFilters();

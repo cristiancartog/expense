@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.activity;
 
+import static java.util.Objects.requireNonNull;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,7 @@ import androidx.appcompat.app.ActionBar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -76,13 +79,24 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         }
 
         final Expense expense = data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class);
+        requireNonNull(expense);
         searchService.update(expense);
         expenseListAdapter.updateExpense(expense);
         expenseListAdapter.notifyDataSetChanged();
         updateTotal();
+        updateActivityResult();
+    }
 
+    @Override
+    void deleteExpense(final Expense expense) {
+        searchService.delete(expense);
+        updateActivityResult();
+    }
+
+    private void updateActivityResult() {
         final Intent result = new Intent();
         result.putExtra(Constants.INTENT_CHANGED_EXPENSES, new ArrayList<>(searchService.changedExpenses()));
+        result.putExtra(Constants.INTENT_DELETED_EXPENSE_IDS, new ArrayList<>(searchService.deletedExpenseIds()));
         setResult(RESULT_OK, result);
     }
 

@@ -155,11 +155,15 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                 .setMessage(R.string.removeExpenseDialogMessage)
                 .setPositiveButton(R.string.removeExpenseDialogYes, (dialog, which) -> {
                     final Expense expense = expenseListAdapter.deleteExpenseForTag(view.getTag());
-                    expenseDao.delete(expense.getId());
+                    deleteExpense(expense);
                     updateTotal();
                 })
                 .setNegativeButton(R.string.removeExpenseDialogNo, null)
                 .show();
+    }
+
+    void deleteExpense(final Expense expense) {
+        expenseDao.delete(expense.getId());
     }
 
     @Override

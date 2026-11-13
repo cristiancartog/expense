@@ -72,6 +72,7 @@ public class ExpenseSearchServiceTest {
 
         assertThrows(UnsupportedOperationException.class, expenses::clear);
         assertThrows(UnsupportedOperationException.class, () -> changedExpenses.add(expense));
+        assertThrows(UnsupportedOperationException.class, () -> service.deletedExpenseIds().add(expense.getId()));
     }
 
     @Test
@@ -79,6 +80,60 @@ public class ExpenseSearchServiceTest {
         assertThrows(IllegalStateException.class, () -> service.update(expense(1L, "2026-04-10", 10D)));
 
         verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void deleteRequiresInitialization() {
+        assertThrows(IllegalStateException.class, () -> service.delete(expense(1L, "2026-04-10", 10D)));
+        assertThrows(IllegalStateException.class, service::deletedExpenseIds);
+
+        verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void deletePreservesEditsToOtherExpenses() {
+        service.initialize(filters);
+        when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
+        when(expenseDao.delete(1L)).thenReturn(1);
+        final Expense deletedExpense = expense(1L, "2026-04-10", 10D);
+        final Expense survivingExpense = expense(2L, "2026-04-11", 20D);
+        service.update(deletedExpense);
+        service.update(survivingExpense);
+
+        service.delete(deletedExpense);
+
+        assertEquals(List.of(survivingExpense), service.changedExpenses());
+        assertEquals(List.of(1L), service.deletedExpenseIds());
+        verify(expenseDao).delete(1L);
+    }
+
+    @Test
+    public void failedDeletionPreservesPendingEditsWithoutRecordingADeletion() {
+        service.initialize(filters);
+        when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
+        final Expense expense = expense(1L, "2026-04-10", 10D);
+        service.update(expense);
+        when(expenseDao.delete(1L)).thenThrow(new IllegalStateException("delete failed")).thenReturn(0);
+
+        assertThrows(IllegalStateException.class, () -> service.delete(expense));
+        assertThrows(IllegalStateException.class, () -> service.delete(expense));
+
+        assertEquals(List.of(expense), service.changedExpenses());
+        assertEquals(List.of(), service.deletedExpenseIds());
+    }
+
+    @Test
+    public void initializeClearsPreviousEditsAndDeletions() {
+        service.initialize(filters);
+        when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
+        when(expenseDao.delete(1L)).thenReturn(1);
+        service.delete(expense(1L, "2026-04-10", 10D));
+        service.update(expense(2L, "2026-04-11", 20D));
+
+        service.initialize(filters);
+
+        assertEquals(List.of(), service.changedExpenses());
+        assertEquals(List.of(), service.deletedExpenseIds());
     }
 
     @Test

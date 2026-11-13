@@ -44,6 +44,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntConsumer;
@@ -52,6 +53,8 @@ import ro.pandemonium.expense.db.ExpenseDao;
 import ro.pandemonium.expense.db.ExpenseEntity;
 import ro.pandemonium.expense.model.Expense;
 import ro.pandemonium.expense.model.ExpenseType;
+import ro.pandemonium.expense.model.Filters;
+import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.FileUtil;
 
 public class ExpenseMainServiceTest {
@@ -186,7 +189,8 @@ public class ExpenseMainServiceTest {
                         expense(1L, FOOD, "2026-11-04", 10D),
                         expense(2L, PETROL, "2026-11-04", 20D)
                 ),
-                List.of(updated, movedOut, movedIn, stillOutside)
+                List.of(updated, movedOut, movedIn, stillOutside),
+                List.of()
         );
 
         assertEquals(List.of(UPDATE, REMOVE, ADD, NONE), updates.stream()
@@ -204,10 +208,74 @@ public class ExpenseMainServiceTest {
 
         final List<ExpenseMainUpdate> updates = service.reconcileChanges(
                 List.of(expense(1L, FOOD, "2026-11-04", 10D)),
-                List.of(specialExpense)
+                List.of(specialExpense),
+                List.of()
         );
 
         assertEquals(REMOVE, updates.getFirst().operationType());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void returningFromSearchAfterDeletionRemovesTheCurrentMonthExpenseAndItsValue(final boolean editBeforeDeleting) {
+        final Expense deletedExpense = expense(1L, FOOD, "2026-11-04", 10D);
+        final Expense remainingExpense = expense(2L, FOOD, "2026-11-05", 20D);
+        final List<ExpenseEntity> databaseExpenses = new ArrayList<>(List.of(entity(deletedExpense), entity(remainingExpense)));
+        when(expenseDao.fetchExpensesInMonth(SPECIAL.getDbId(), CURRENT_MONTH.toString())).thenAnswer(ignored -> List.copyOf(databaseExpenses));
+        when(expenseDao.fetchExpenses(List.of(FOOD.getDbId()), Set.of())).thenAnswer(ignored -> List.copyOf(databaseExpenses));
+        when(expenseDao.update(any(ExpenseEntity.class))).thenAnswer(invocation -> {
+            final ExpenseEntity updated = invocation.getArgument(0);
+            databaseExpenses.removeIf(expense -> expense.id.equals(updated.id));
+            databaseExpenses.add(updated);
+            return 1;
+        });
+        when(expenseDao.delete(deletedExpense.getId())).thenAnswer(ignored -> databaseExpenses.removeIf(expense -> expense.id.equals(deletedExpense.getId())) ? 1 : 0);
+        final List<Expense> currentExpenses = new ArrayList<>(service.initialize().expenses());
+        assertEquals(new BigDecimal("30.00"), ExpenseUtil.computeTotalValue(currentExpenses));
+        final ExpenseSearchService searchService = new ExpenseSearchService(expenseDao);
+        searchService.initialize(new Filters(List.of(FOOD), Set.of()));
+
+        if (editBeforeDeleting) {
+            searchService.update(expense(1L, FOOD, "2026-11-06", 15D));
+            searchService.update(expense(1L, FOOD, "2026-11-07", 16D));
+        }
+        searchService.delete(deletedExpense);
+        final List<ExpenseMainUpdate> updates = service.reconcileChanges(
+                currentExpenses,
+                searchService.changedExpenses(),
+                searchService.deletedExpenseIds()
+        );
+
+        assertTrue(searchService.changedExpenses().isEmpty());
+        assertEquals(List.of(1L), searchService.deletedExpenseIds());
+        assertEquals(List.of(new ExpenseMainUpdate(deletedExpense, REMOVE, false)), updates);
+        updates.forEach(update -> currentExpenses.remove(update.expense()));
+        assertEquals(List.of(remainingExpense), currentExpenses);
+        assertEquals(new BigDecimal("20.00"), ExpenseUtil.computeTotalValue(currentExpenses));
+        assertEquals(Map.of(FOOD, new BigDecimal("20.00")), service.totalsByExpenseType(currentExpenses));
+        assertEquals(currentExpenses, service.reload().expenses());
+        verify(expenseDao).delete(1L);
+        verify(expenseDao, times(editBeforeDeleting ? 2 : 0)).update(any(ExpenseEntity.class));
+    }
+
+    @Test
+    public void reconcileChangesGivesDeletionPriorityOverStaleEditsAndDoesNotAddDeletedExpenses() {
+        initializeEmptyMonth();
+        final Expense original = expense(1L, FOOD, "2026-11-04", 10D);
+        final Expense staleEdit = expense(1L, FOOD, "2026-11-05", 15D);
+        final Expense movedInThenDeleted = expense(2L, FOOD, "2026-11-06", 20D);
+        final Expense survivingEdit = expense(3L, FOOD, "2026-11-07", 30D);
+
+        final List<ExpenseMainUpdate> updates = service.reconcileChanges(
+                List.of(original),
+                List.of(staleEdit, movedInThenDeleted, survivingEdit),
+                List.of(1L, 2L)
+        );
+
+        assertEquals(List.of(
+                new ExpenseMainUpdate(survivingEdit, ADD, true),
+                new ExpenseMainUpdate(original, REMOVE, false)
+        ), updates);
     }
 
     @Test
