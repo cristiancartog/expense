@@ -268,14 +268,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         }
         applyUpdate(update);
 
-        expenseListAdapter.notifyDataSetChanged();
+        renderExpenses();
 
         if (update.operationType() == ExpenseMainUpdate.OperationType.ADD) {
             expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
         }
-
-        updateTotal();
-        updatePieData();
     }
 
     private void processSelectedBackupFile(final Uri backupFile) {
@@ -405,9 +402,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 clearFilters();
             }
             updates.forEach(this::applyUpdate);
-            expenseListAdapter.notifyDataSetChanged();
-            updateTotal();
-            updatePieData();
+            renderExpenses();
         }
     }
 
@@ -441,20 +436,21 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         yearMonth = state.yearMonth();
         clearFilters();
         expenseListAdapter.updateExpenseList(state.expenses());
-        updateTotal();
-        updateMonthButtonLabel();
+        renderExpenses();
         expenseList.smoothScrollToPosition(expenseListAdapter.getCount());
-        updatePieData();
     }
 
     @Override
-    protected void filtersUpdated() {
+    void renderExpenses() {
+        super.renderExpenses();
+        updateMonthButtonLabel();
         updatePieData();
     }
 
+    private void updateMonthButtonLabel() {
+        changeMonthButton.setText(yearMonth.format(dateFormatter));
+    }
     private void updatePieData() {
-        updateMonthButtonLabel();
-
         Map<ExpenseType, BigDecimal> expenseTypeValues = mainService.totalsByExpenseType(expenseListAdapter.getExpenses(false));
 
         final List<PieEntry> entries = new ArrayList<>();
@@ -487,10 +483,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
         pieChart.setData(data);
         pieChart.notifyDataSetChanged();
         pieChart.invalidate();
-    }
-
-    private void updateMonthButtonLabel() {
-        changeMonthButton.setText(yearMonth.format(dateFormatter));
     }
 
     @Override

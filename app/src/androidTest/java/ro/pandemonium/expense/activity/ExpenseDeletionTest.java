@@ -16,6 +16,7 @@ import android.os.SystemClock;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.room.Room;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
@@ -32,8 +33,10 @@ import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,6 +50,7 @@ import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.service.ExpenseMainService;
 import ro.pandemonium.expense.service.ExpenseSearchService;
 import ro.pandemonium.expense.util.ExpenseFormatUtil;
+import ro.pandemonium.expense.view.ExpenseTypeUi;
 
 @RunWith(Parameterized.class)
 public class ExpenseDeletionTest {
@@ -94,7 +98,7 @@ public class ExpenseDeletionTest {
             searchScenario.onActivity(activity -> {
                 activity.searchService = new ExpenseSearchService(database.expenseDao());
                 activity.expenseListAdapter.updateExpenseList(activity.searchService.initialize(FILTERS));
-                activity.updateTotal();
+                activity.renderExpenses();
             });
         }
         scenario.onActivity(activity -> {
@@ -102,6 +106,7 @@ public class ExpenseDeletionTest {
             activity.expenseListAdapter.sortExpenses(Comparator.comparing(Expense::getId));
             assertEquals(2, activity.expenseListAdapter.getCount());
             assertTotal(activity, "30.00");
+            assertPieData(activity, Map.of(FOOD, 10F, PETROL, 20F));
         });
     }
 
@@ -206,6 +211,7 @@ public class ExpenseDeletionTest {
         assertEquals(2, activity.expenseListAdapter.getCount());
         assertEquals(firstId, ((Expense) activity.expenseListAdapter.getItem(0)).getId().longValue());
         assertTotal(activity, "30.00");
+        assertPieData(activity, Map.of(FOOD, 10F, PETROL, 20F));
         if (activity instanceof ExpenseSearchResultActivity search) {
             assertEquals(1, search.searchService.changedExpenses().size());
             assertTrue(search.searchService.deletedExpenseIds().isEmpty());
@@ -238,13 +244,76 @@ public class ExpenseDeletionTest {
             assertEquals(1, activity.expenseListAdapter.getCount());
             assertEquals(secondId, ((Expense) activity.expenseListAdapter.getItem(0)).getId().longValue());
             assertTotal(activity, "20.00");
-            if (activity instanceof ExpenseMainActivity) {
-                final PieChart chart = activity.findViewById(R.id.expenseListPieChart);
-                assertEquals(20F, chart.getData().getYValueSum(), 0.001F);
-            }
+            assertPieData(activity, Map.of(PETROL, 20F));
             if (activity instanceof ExpenseSearchResultActivity search) {
                 assertEquals(List.of(firstId), search.searchService.deletedExpenseIds());
             }
+        });
+    }
+
+    @Test
+    public void deletionRefreshesHiddenChartBeforeItIsShown() {
+        scenario.onActivity(activity -> {
+            if (activity instanceof ExpenseMainActivity) {
+                assertEquals(View.GONE, activity.findViewById(R.id.expenseListPieChart).getVisibility());
+            }
+            openConfirmation(activity);
+            confirm(activity);
+        });
+        scenario.onActivity(activity -> {
+            assertEquals(1, activity.expenseListAdapter.getCount());
+            assertTotal(activity, "20.00");
+            assertPieData(activity, Map.of(PETROL, 20F));
+            showChart(activity);
+            assertPieData(activity, Map.of(PETROL, 20F));
+        });
+    }
+
+    @Test
+    public void deletingLastExpenseClearsChart() {
+        scenario.onActivity(activity -> {
+            openConfirmation(activity);
+            confirm(activity);
+        });
+        scenario.onActivity(activity -> {
+            final View row = activity.expenseListAdapter.getView(0, null, activity.expenseList);
+            activity.deleteButtonPressed(row.findViewById(R.id.expenseListItemDelete));
+            confirm(activity);
+        });
+        scenario.onActivity(activity -> {
+            assertEquals(0, activity.expenseListAdapter.getCount());
+            assertTrue(database.expenseDao().fetchAllExpenses().isEmpty());
+            assertTotal(activity, "0.00");
+            assertPieData(activity, Map.of());
+            showChart(activity);
+            assertPieData(activity, Map.of());
+        });
+    }
+
+    @Test
+    public void deletingOnlyVisibleExpenseClearsFilteredChart() {
+        scenario.onActivity(activity -> {
+            activity.expenseListAdapter.filterBy(new Filters(List.of(FOOD), Set.of()));
+            activity.renderExpenses();
+            assertPieData(activity, Map.of(FOOD, 10F));
+            openConfirmation(activity);
+            confirm(activity);
+        });
+        scenario.onActivity(activity -> {
+            assertEquals(0, activity.expenseListAdapter.getCount());
+            assertTrue(activity.expenseListAdapter.isFiltered());
+            final var formatter = ExpenseFormatUtil.amountFormatter();
+            final String expectedTotal = activity.getString(
+                    R.string.abstractExpenseListActivityFilteredTotalLabel,
+                    formatter.format(BigDecimal.ZERO),
+                    formatter.format(BigDecimal.ZERO),
+                    formatter.format(new BigDecimal("20.00"))
+            );
+            assertEquals(expectedTotal, activity.totalTextView.getText().toString());
+            assertPieData(activity, Map.of());
+            activity.clearFilters();
+            assertTotal(activity, "20.00");
+            assertPieData(activity, Map.of(PETROL, 20F));
         });
     }
 
@@ -258,6 +327,7 @@ public class ExpenseDeletionTest {
         });
         scenario.onActivity(activity -> {
             assertEquals(1, activity.expenseListAdapter.getExpenses(true).size());
+            assertPieData(activity, Map.of(PETROL, 20F));
             activity.clearFilters();
             assertEquals(1, activity.expenseListAdapter.getCount());
             assertTotal(activity, "20.00");
@@ -279,7 +349,34 @@ public class ExpenseDeletionTest {
             assertEquals(0, notifications.get());
             assertEquals(2, activity.expenseListAdapter.getCount());
             assertTotal(activity, "30.00");
+            assertPieData(activity, Map.of(FOOD, 10F, PETROL, 20F));
         });
+    }
+
+    private void showChart(final AbstractExpenseListActivity activity) {
+        if (activity instanceof ExpenseMainActivity) {
+            final SwitchCompat chartSwitch = activity.findViewById(R.id.expenseListSwitchChartReportButton);
+            chartSwitch.setChecked(true);
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.expenseListPieChart).getVisibility());
+        }
+    }
+
+    private void assertPieData(final AbstractExpenseListActivity activity, final Map<ExpenseType, Float> expectedValues) {
+        if (activity instanceof ExpenseMainActivity) {
+            final PieChart chart = activity.findViewById(R.id.expenseListPieChart);
+            final var dataSet = chart.getData().getDataSet();
+            assertEquals(expectedValues.size(), dataSet.getEntryCount());
+            final Map<String, Float> actualValues = new HashMap<>();
+            for (int index = 0; index < dataSet.getEntryCount(); index++) {
+                final var entry = dataSet.getEntryForIndex(index);
+                actualValues.put(entry.getLabel(), entry.getY());
+            }
+            expectedValues.forEach((type, value) -> {
+                final String label = activity.getString(ExpenseTypeUi.getTextResource(type));
+                assertTrue("Missing chart slice: " + label, actualValues.containsKey(label));
+                assertEquals(value, actualValues.get(label), 0.001F);
+            });
+        }
     }
 
     private void assertTotal(final AbstractExpenseListActivity activity, final String expected) {

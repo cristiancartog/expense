@@ -163,7 +163,7 @@ public class ExpenseCategoryShortcutTest {
         original.id = database.expenseDao().insert(original);
         scenario.onActivity(activity -> {
             activity.expenseListAdapter.updateExpenseList(activity.mainService.reload().expenses());
-            activity.updateTotal();
+            activity.renderExpenses();
             switch (shortcut) {
                 case "special" -> activity.specialExpensesRequested(null);
                 case "subscription" -> activity.subscriptionExpensesRequested(null);

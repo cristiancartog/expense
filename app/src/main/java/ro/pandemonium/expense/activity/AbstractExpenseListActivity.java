@@ -96,8 +96,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
                     lastUsedFilters = filters;
                     expenseListAdapter.filterBy(filters);
                     filtersButton.setImageResource(R.mipmap.ic_filtered);
-                    updateTotal();
-                    filtersUpdated();
+                    renderExpenses();
                 });
     }
 
@@ -105,7 +104,9 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         expenseListAdapter.sortExpenses(mapSortingMenuItemToComparator.get(item.getOrder()));
     }
 
-    void filtersUpdated() {
+    void renderExpenses() {
+        expenseListAdapter.notifyDataSetChanged();
+        updateTotal();
     }
 
     void addEditExpense(int position) {
@@ -126,8 +127,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
             expenseListAdapter.clearFilters();
             filtersButton.setImageResource(R.mipmap.ic_filter);
         }
-        updateTotal();
-        filtersUpdated();
+        renderExpenses();
     }
 
     void updateTotal() {
@@ -160,9 +160,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
         }
 
         expenseListAdapter.deleteExpense(expenseId);
-        expenseListAdapter.notifyDataSetChanged();
-        updateTotal();
-        filtersUpdated();
+        renderExpenses();
     }
 
     abstract void deleteExpense(Long expenseId);

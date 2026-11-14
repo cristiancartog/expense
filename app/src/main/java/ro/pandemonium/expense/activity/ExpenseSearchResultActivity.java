@@ -81,8 +81,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
         requireNonNull(expense);
         searchService.update(expense);
         expenseListAdapter.updateExpense(expense);
-        expenseListAdapter.notifyDataSetChanged();
-        updateTotal();
+        renderExpenses();
         updateActivityResult();
     }
 
@@ -101,6 +100,6 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
     private void showExpenses(final List<Expense> expenses) {
         expenseListAdapter.updateExpenseList(expenses);
-        updateTotal();
+        renderExpenses();
     }
 }
