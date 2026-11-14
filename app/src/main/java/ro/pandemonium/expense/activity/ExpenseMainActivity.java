@@ -46,11 +46,11 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -188,40 +188,38 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
                 ExpenseType.orderedExpenseTypes(),
                 filters -> {
                     lastUsedGlobalFilters = filters;
-
-                    final Intent searchDatabaseIntent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-                    searchDatabaseIntent.putExtra(INTENT_FILTERS, filters);
-                    searchResultLauncher.launch(searchDatabaseIntent);
+                    openSearchResults(filters);
                 });
     }
 
     public void specialExpensesRequested(@NonNull final MenuItem item) {
-        drawerLayout.closeDrawer(GravityCompat.START);
-        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-        intent.putExtra(INTENT_FILTERS, new Filters(Collections.singletonList(ExpenseType.SPECIAL), Collections.emptySet()));
-        startActivity(intent);
+        openCategoryExpenses(List.of(ExpenseType.SPECIAL));
     }
 
     public void subscriptionExpensesRequested(@NonNull final MenuItem item) {
-        drawerLayout.closeDrawer(GravityCompat.START);
-        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.subscriptionExpenses(), Collections.emptySet()));
-        startActivity(intent);
+        openCategoryExpenses(ExpenseType.subscriptionExpenses());
     }
 
     public void recurrentExpensesRequested(@NonNull final MenuItem item) {
+        openCategoryExpenses(ExpenseType.recurrentExpenses());
+    }
+
+    private void openCategoryExpenses(final List<ExpenseType> expenseTypes) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        Intent intent = new Intent(ExpenseMainActivity.this, ExpenseSearchResultActivity.class);
-        intent.putExtra(INTENT_FILTERS, new Filters(ExpenseType.recurrentExpenses(), Collections.emptySet()));
-        startActivity(intent);
+        openSearchResults(new Filters(expenseTypes, Set.of()));
+    }
+
+    private void openSearchResults(final Filters filters) {
+        final Intent intent = new Intent(this, ExpenseSearchResultActivity.class);
+        intent.putExtra(INTENT_FILTERS, filters);
+        searchResultLauncher.launch(intent);
     }
 
     public void yearlyReportRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        Intent yearlyReportIntent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
-        yearlyReportIntent.putExtra(INTENT_YEAR, yearMonth.getYear());
-
-        startActivity(yearlyReportIntent);
+        Intent intent = new Intent(ExpenseMainActivity.this, YearlyExpenseReportActivity.class);
+        intent.putExtra(INTENT_YEAR, yearMonth.getYear());
+        startActivity(intent);
     }
 
     public void expenseHistoryRequested(@NonNull final MenuItem item) {
