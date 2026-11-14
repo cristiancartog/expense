@@ -77,6 +77,7 @@
     <string name="removeExpenseDialogMessage">Really delete expense</string>
     <string name="removeExpenseDialogYes">Yes</string>
     <string name="removeExpenseDialogNo">No</string>
+    <string name="removeExpenseFailed">Could not delete the expense.</string>
 
     <!-- filter expenses dialog -->
     <string name="filterExpenseDialogTitle">Expense Type selection</string>

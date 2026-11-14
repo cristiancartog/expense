@@ -108,9 +108,29 @@ public class ExpenseMainServiceTest {
         assertThrows(IllegalStateException.class, service::previousMonth);
         assertThrows(IllegalStateException.class, () -> service.selectMonth(YearMonth.of(2026, 11)));
         assertThrows(IllegalStateException.class, service::reload);
+        assertThrows(IllegalStateException.class, () -> service.delete(1L));
         assertThrows(IllegalStateException.class, () -> service.saveExpense(expense));
 
         verifyNoInteractions(expenseDao);
+    }
+
+    @Test
+    public void deletePersistsTheCapturedExpenseId() {
+        initializeEmptyMonth();
+        when(expenseDao.delete(42L)).thenReturn(1);
+
+        service.delete(42L);
+
+        verify(expenseDao).delete(42L);
+    }
+
+    @Test
+    public void deletePropagatesDatabaseFailureAndRejectsAlreadyDeletedRows() {
+        initializeEmptyMonth();
+        when(expenseDao.delete(42L)).thenThrow(new IllegalStateException("delete failed")).thenReturn(0);
+
+        assertThrows(IllegalStateException.class, () -> service.delete(42L));
+        assertThrows(IllegalStateException.class, () -> service.delete(42L));
     }
 
     @Test
@@ -239,7 +259,7 @@ public class ExpenseMainServiceTest {
             searchService.update(expense(1L, FOOD, "2026-11-06", 15D));
             searchService.update(expense(1L, FOOD, "2026-11-07", 16D));
         }
-        searchService.delete(deletedExpense);
+        searchService.delete(deletedExpense.getId());
         final List<ExpenseMainUpdate> updates = service.reconcileChanges(
                 currentExpenses,
                 searchService.changedExpenses(),

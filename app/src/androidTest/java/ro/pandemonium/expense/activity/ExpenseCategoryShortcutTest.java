@@ -182,7 +182,7 @@ public class ExpenseCategoryShortcutTest {
                 search.expenseListAdapter.updateExpenseList(search.searchService.initialize(filters));
                 final Expense expense = (Expense) search.expenseListAdapter.getItem(0);
                 if (delete) {
-                    search.deleteExpense(expense);
+                    search.deleteExpense(expense.getId());
                 } else {
                     expense.setDate(editedMonth.atDay(15));
                     expense.setExpenseType(editedType);

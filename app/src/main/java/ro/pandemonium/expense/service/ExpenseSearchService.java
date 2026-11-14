@@ -56,10 +56,9 @@ public final class ExpenseSearchService {
         changedExpenses.add(expense);
     }
 
-    public void delete(final Expense expense) {
+    public void delete(final Long expenseId) {
         requireInitialized();
-        requireNonNull(expense);
-        final Long expenseId = requireNonNull(expense.getId());
+        requireNonNull(expenseId);
 
         final int deletedCount = expenseDao.delete(expenseId);
         if (deletedCount != 1) {

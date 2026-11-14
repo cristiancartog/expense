@@ -98,6 +98,16 @@ public final class ExpenseMainService {
         return load(yearMonth);
     }
 
+    public void delete(final Long expenseId) {
+        requireInitialized();
+        requireNonNull(expenseId);
+
+        final int deletedCount = expenseDao.delete(expenseId);
+        if (deletedCount != 1) {
+            throw new IllegalStateException("Expense with id " + expenseId + " was not deleted");
+        }
+    }
+
     public ExpenseMainUpdate saveExpense(final Expense expense) {
         requireInitialized();
         requireNonNull(expense);

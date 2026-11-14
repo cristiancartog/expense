@@ -1,5 +1,6 @@
 package ro.pandemonium.expense.view.adapter;
 
+import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_DISPLAY;
 
 import android.graphics.Color;
@@ -21,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import ro.pandemonium.expense.R;
@@ -34,7 +36,6 @@ public class ExpenseListAdapter extends BaseAdapter {
 
     private final List<Expense> expenses = new LinkedList<>();
     private final List<Expense> backupExpenses = new LinkedList<>();
-    private final Map<Object, Expense> mapDeleteButtonTagToExpense = new HashMap<>();
     private final LongSparseArray<Expense> mapExpenseIdToExpense = new LongSparseArray<>();
 
     private Filters filters;
@@ -71,8 +72,7 @@ public class ExpenseListAdapter extends BaseAdapter {
                 : Color.BLACK);
 
         final ImageButton deleteButton = view.findViewById(R.id.expenseListItemDelete);
-        deleteButton.setTag(index);
-        mapDeleteButtonTagToExpense.put(deleteButton.getTag(), expense);
+        deleteButton.setTag(expense.getId());
 
         final TextView currentNr = view.findViewById(R.id.expenseListItemNumber);
         currentNr.setText(String.format(Locale.getDefault(), "%d.", index + 1));
@@ -147,25 +147,18 @@ public class ExpenseListAdapter extends BaseAdapter {
         return mapExpenseTypesToCount;
     }
 
-    public Expense deleteExpenseForTag(final Object tag) {
-        final Expense expense = mapDeleteButtonTagToExpense.get(tag);
-
-        expenses.remove(expense);
-        if (isFiltered()) {
-            backupExpenses.remove(expense);
-        }
-        mapDeleteButtonTagToExpense.remove(tag);
-
-        notifyDataSetChanged();
-
-        return expense;
+    public void deleteExpense(final Expense expense) {
+        deleteExpense(expense.getId());
     }
 
-    public void deleteExpense(final Expense expense) {
-        expenses.remove(expense);
+    public void deleteExpense(final Long expenseId) {
+        requireNonNull(expenseId);
+
+        expenses.removeIf(expenseItem -> Objects.equals(expenseItem.getId(), expenseId));
         if (isFiltered()) {
-            backupExpenses.remove(expense);
+            backupExpenses.removeIf(expenseItem -> Objects.equals(expenseItem.getId(), expenseId));
         }
+        mapExpenseIdToExpense.remove(expenseId);
     }
 
     public void sortExpenses(final Comparator<Expense> comparator) {

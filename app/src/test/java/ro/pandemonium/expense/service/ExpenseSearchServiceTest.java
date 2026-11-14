@@ -84,7 +84,7 @@ public class ExpenseSearchServiceTest {
 
     @Test
     public void deleteRequiresInitialization() {
-        assertThrows(IllegalStateException.class, () -> service.delete(expense(1L, "2026-04-10", 10D)));
+        assertThrows(IllegalStateException.class, () -> service.delete(1L));
         assertThrows(IllegalStateException.class, service::deletedExpenseIds);
 
         verifyNoInteractions(expenseDao);
@@ -100,7 +100,7 @@ public class ExpenseSearchServiceTest {
         service.update(deletedExpense);
         service.update(survivingExpense);
 
-        service.delete(deletedExpense);
+        service.delete(deletedExpense.getId());
 
         assertEquals(List.of(survivingExpense), service.changedExpenses());
         assertEquals(List.of(1L), service.deletedExpenseIds());
@@ -115,8 +115,10 @@ public class ExpenseSearchServiceTest {
         service.update(expense);
         when(expenseDao.delete(1L)).thenThrow(new IllegalStateException("delete failed")).thenReturn(0);
 
-        assertThrows(IllegalStateException.class, () -> service.delete(expense));
-        assertThrows(IllegalStateException.class, () -> service.delete(expense));
+        assertThrows(IllegalStateException.class, () -> service.delete(expense.getId()));
+        assertEquals(List.of(expense), service.changedExpenses());
+        assertEquals(List.of(), service.deletedExpenseIds());
+        assertThrows(IllegalStateException.class, () -> service.delete(expense.getId()));
 
         assertEquals(List.of(expense), service.changedExpenses());
         assertEquals(List.of(), service.deletedExpenseIds());
@@ -127,7 +129,7 @@ public class ExpenseSearchServiceTest {
         service.initialize(filters);
         when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
         when(expenseDao.delete(1L)).thenReturn(1);
-        service.delete(expense(1L, "2026-04-10", 10D));
+        service.delete(1L);
         service.update(expense(2L, "2026-04-11", 20D));
 
         service.initialize(filters);

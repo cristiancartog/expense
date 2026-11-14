@@ -421,6 +421,11 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     @Override
+    void deleteExpense(final Long expenseId) {
+        mainService.delete(expenseId);
+    }
+
+    @Override
     public void onDateSet(final DatePicker datePicker, final int year, final int monthOfYear, final int dayOfMonth) {
         final YearMonth selectedYearMonth = YearMonth.of(year, monthOfYear + 1);
         if (!yearMonth.equals(selectedYearMonth)) {

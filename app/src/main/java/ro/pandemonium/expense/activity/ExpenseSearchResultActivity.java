@@ -11,7 +11,6 @@ import androidx.appcompat.app.ActionBar;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -88,8 +87,8 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
     }
 
     @Override
-    void deleteExpense(final Expense expense) {
-        searchService.delete(expense);
+    void deleteExpense(final Long expenseId) {
+        searchService.delete(expenseId);
         updateActivityResult();
     }
 
