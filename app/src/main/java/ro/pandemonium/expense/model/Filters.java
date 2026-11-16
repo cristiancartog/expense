@@ -7,6 +7,8 @@ import java.util.Set;
 public record Filters(List<ExpenseType> expenseTypes,
                       Set<String> comments) implements Serializable {
 
+    public static final Filters EMPTY_FILTERS = new Filters(List.of(), Set.of());
+
     public boolean isSelectionEmpty() {
         return expenseTypes.isEmpty() && comments.isEmpty();
     }

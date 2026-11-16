@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.model.ExpenseType;
@@ -86,14 +87,9 @@ public class ExpenseTypeSelectionDialog extends Dialog {
         adapter.setAvailableExpenseTypes(availableExpenseTypes);
         adapter.notifyDataSetChanged();
 
-        if (filters != null) {
-            selectExpenseTypes(filters.expenseTypes());
-            setComments(filters.comments());
-        } else {
-            selectNone();
-        }
-
-        commentField.setText("");
+        selectExpenseTypes(filters.expenseTypes());
+        setComments(filters.comments());
+        commentField.setText(EMPTY_STRING);
     }
 
     private Filters getSelectedExpenseTypes() {
@@ -163,30 +159,22 @@ public class ExpenseTypeSelectionDialog extends Dialog {
     }
 
     private void selectExpenseTypes(final List<ExpenseType> expenseTypes) {
-        if (expenseTypes == null) {
-            selectNone();
-        } else {
-            final int adapterCount = adapter.getCount();
-            for (int i = 0; i < adapterCount; i++) {
-                final ExpenseType expenseType = (ExpenseType) adapter.getItem(i);
-                expenseTypeList.setItemChecked(i, expenseTypes.contains(expenseType));
-            }
-        }
+        selectNone();
+
+        IntStream.range(0, adapter.getCount())
+                 .filter(index -> expenseTypes.contains(adapter.getItem(index)))
+                 .forEach(index -> expenseTypeList.setItemChecked(index, true));
     }
 
-    private void setComments(Set<String> comments) {
+    private void setComments(final Set<String> comments) {
         this.comments.clear();
         commentsSection.removeAllViews();
-        for (String comment : comments) {
-            comments.add(comment);
-            addCommentsLineItem(comment);
-        }
+        comments.forEach(this::addCommentsLineItem);
     }
 
     private void selectNone() {
-        for (int i = 0; i < adapter.getCount(); i++) {
-            expenseTypeList.setItemChecked(i, false);
-        }
+        expenseTypeList.clearChoices();
+        expenseTypeList.requestLayout();
     }
 
     private void addCommentsLineItem(String comment) {

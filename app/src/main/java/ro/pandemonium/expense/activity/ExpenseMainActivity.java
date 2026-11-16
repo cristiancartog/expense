@@ -8,6 +8,7 @@ import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
+import static ro.pandemonium.expense.model.Filters.EMPTY_FILTERS;
 
 import android.app.DatePickerDialog;
 import android.app.AlertDialog;
@@ -96,7 +97,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private PieChart pieChart;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
     // dialogs
-    private Filters lastUsedGlobalFilters;
+    private Filters lastUsedGlobalFilters = EMPTY_FILTERS;
     private TaskRunner expenseLoader;
     private TaskRunner databaseTransferRunner;
     private AlertDialog restoreConfirmationDialog;
@@ -224,7 +225,7 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     public void expenseHistoryRequested(@NonNull final MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        expenseTypeSelectionDialog.show(null,
+        expenseTypeSelectionDialog.show(EMPTY_FILTERS,
                 Arrays.asList(ExpenseType.values()),
                 filters -> {
                     final Intent intent = new Intent(ExpenseMainActivity.this, ExpenseHistoryChartActivity.class);

@@ -2,6 +2,7 @@ package ro.pandemonium.expense.activity;
 
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
+import static ro.pandemonium.expense.model.Filters.EMPTY_FILTERS;
 import static ro.pandemonium.expense.util.ExpenseMathUtil.percentage;
 
 import android.content.Intent;
@@ -53,7 +54,7 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     // dialogs
     ExpenseTypeSelectionDialog expenseTypeSelectionDialog;
     ExpenseDeletionDialog deleteConfirmationDialog;
-    private Filters lastUsedFilters;
+    private Filters lastUsedFilters = EMPTY_FILTERS;
     ImageButton filtersButton;
 
     AbstractExpenseListActivity() {
