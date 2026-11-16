@@ -128,3 +128,21 @@ private void method4 () {
   method()2;
 }
 ```
+
+5. in if statements, if the list of conditions exceeds decent line length put every condition on a new line
+
+```
+# instead of this
+if (condition1() && (condition2 || condition3) && (condition4 || condition 5 || condition6)) {
+    ...
+}
+
+# do this
+if (condition1()
+    && (condition2 || condition3)
+    && (condition4 || condition5 || condition6)
+) {
+    ...
+}
+
+```
