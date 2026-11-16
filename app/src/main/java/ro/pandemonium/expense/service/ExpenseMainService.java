@@ -152,7 +152,7 @@ public final class ExpenseMainService {
             } else if (operationType == REMOVE) {
                 currentExpenseIds.remove(expenseId);
             }
-            updates.add(new ExpenseMainUpdate(expense, operationType, operationType == ADD));
+            updates.add(new ExpenseMainUpdate(expense, operationType, false));
         }
         for (Expense expense : currentExpenses) {
             if (deletedIds.contains(expense.getId())) {

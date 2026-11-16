@@ -35,10 +35,11 @@ import ro.pandemonium.expense.view.ExpenseTypeUi;
 public class ExpenseListAdapter extends BaseAdapter {
 
     private final List<Expense> expenses = new LinkedList<>();
-    private final List<Expense> backupExpenses = new LinkedList<>();
+    private final List<Expense> allExpenses = new LinkedList<>();
     private final LongSparseArray<Expense> mapExpenseIdToExpense = new LongSparseArray<>();
 
     private Filters filters;
+    private Comparator<Expense> comparator;
 
     private final NumberFormat numberFormatter = ExpenseFormatUtil.amountFormatter();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
@@ -95,8 +96,9 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void addExpense(final Expense expense) {
-        expenses.add(expense);
+        allExpenses.add(expense);
         mapExpenseIdToExpense.put(expense.getId(), expense);
+        refreshVisibleExpenses();
     }
 
     public void updateExpense(final Expense expense) {
@@ -106,34 +108,29 @@ public class ExpenseListAdapter extends BaseAdapter {
             localExpense.setValue(expense.getValue());
             localExpense.setDate(expense.getDate());
             localExpense.setComment(expense.getComment());
+            refreshVisibleExpenses();
         }
     }
 
     /**
-     * Replaces current expenses with the ones provided.
+     * Replaces current expenses with the ones provided, preserving active filters.
      * @param newExpenses - the new expenses
      */
     public void updateExpenseList(final List<Expense> newExpenses) {
-        if (isFiltered()) {
-            clearFilters();
-        }
-        expenses.clear();
-        expenses.addAll(newExpenses);
+        allExpenses.clear();
+        allExpenses.addAll(newExpenses);
 
         mapExpenseIdToExpense.clear();
         for (Expense expense : newExpenses) {
             mapExpenseIdToExpense.put(expense.getId(), expense);
         }
 
+        refreshVisibleExpenses();
         notifyDataSetChanged();
     }
 
     public List<Expense> getExpenses(final boolean includeUnfiltered) {
-        return new ArrayList<>(includeUnfiltered
-                ? (isFiltered()
-                   ? backupExpenses
-                   : expenses)
-                : expenses);
+        return new ArrayList<>(includeUnfiltered ? allExpenses : expenses);
     }
 
     public Map<ExpenseType, Integer> getExpenseTypes() {
@@ -154,15 +151,14 @@ public class ExpenseListAdapter extends BaseAdapter {
     public void deleteExpense(final Long expenseId) {
         requireNonNull(expenseId);
 
-        expenses.removeIf(expenseItem -> Objects.equals(expenseItem.getId(), expenseId));
-        if (isFiltered()) {
-            backupExpenses.removeIf(expenseItem -> Objects.equals(expenseItem.getId(), expenseId));
-        }
+        allExpenses.removeIf(expenseItem -> Objects.equals(expenseItem.getId(), expenseId));
         mapExpenseIdToExpense.remove(expenseId);
+        refreshVisibleExpenses();
     }
 
     public void sortExpenses(final Comparator<Expense> comparator) {
-        expenses.sort(comparator);
+        this.comparator = comparator;
+        refreshVisibleExpenses();
         notifyDataSetChanged();
     }
 
@@ -171,41 +167,39 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void filterBy(final Filters filters) {
-        if (isFiltered()) {
-            expenses.clear();
-            expenses.addAll(backupExpenses);
-        } else {
-            backupExpenses.addAll(expenses);
-        }
-
-        this.filters = filters;
-
-        expenses.removeIf(expense -> {
-            List<ExpenseType> expenseTypes = filters.expenseTypes();
-            return !expenseTypes.contains(expense.getExpenseType())
-                    && !matchesComment(expense.getComment());
-        });
-
+        this.filters = requireNonNull(filters);
+        refreshVisibleExpenses();
         notifyDataSetChanged();
     }
 
-    private boolean matchesComment(String comment) {
-        Set<String> comments = filters.comments();
-
-        for (String filterComment : comments) {
-            if (comment.contains(filterComment)) {
-                return true;
-            }
+    private void refreshVisibleExpenses() {
+        if (comparator != null) {
+            allExpenses.sort(comparator);
         }
 
-        return false;
+        final List<Expense> visibleExpenses = allExpenses.stream()
+                                                         .filter(this::isVisible)
+                                                         .toList();
+        expenses.clear();
+        expenses.addAll(visibleExpenses);
+    }
+
+    private boolean isVisible(final Expense expense) {
+        return !isFiltered()
+                || filters.expenseTypes().contains(expense.getExpenseType())
+                || matchesComment(expense.getComment());
+    }
+
+    private boolean matchesComment(final String comment) {
+        return filters.comments()
+                      .stream()
+                      .anyMatch(comment::contains);
     }
 
     public Set<ExpenseType> expenseTypeSet() {
         Set<ExpenseType> expenseTypeSet = new HashSet<>();
 
-        List<Expense> expensesSource = isFiltered() ? backupExpenses : this.expenses;
-        for (Expense expense : expensesSource) {
+        for (Expense expense : allExpenses) {
             expenseTypeSet.add(expense.getExpenseType());
         }
 
@@ -213,10 +207,8 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void clearFilters() {
-        expenses.clear();
-        expenses.addAll(backupExpenses);
-        backupExpenses.clear();
         filters = null;
+        refreshVisibleExpenses();
         notifyDataSetChanged();
     }
 

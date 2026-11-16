@@ -216,7 +216,7 @@ public class ExpenseMainServiceTest {
         assertEquals(List.of(UPDATE, REMOVE, ADD, NONE), updates.stream()
                 .map(ExpenseMainUpdate::operationType)
                 .toList());
-        assertEquals(List.of(false, false, true, false), updates.stream()
+        assertEquals(List.of(false, false, false, false), updates.stream()
                 .map(ExpenseMainUpdate::clearFilters)
                 .toList());
     }
@@ -293,7 +293,7 @@ public class ExpenseMainServiceTest {
         );
 
         assertEquals(List.of(
-                new ExpenseMainUpdate(survivingEdit, ADD, true),
+                new ExpenseMainUpdate(survivingEdit, ADD, false),
                 new ExpenseMainUpdate(original, REMOVE, false)
         ), updates);
     }

@@ -79,9 +79,7 @@ public class ExpenseSearchResultActivity extends AbstractExpenseListActivity {
 
         final Expense expense = data.getSerializableExtra(Constants.INTENT_EXPENSE, Expense.class);
         requireNonNull(expense);
-        searchService.update(expense);
-        expenseListAdapter.updateExpense(expense);
-        renderExpenses();
+        showExpenses(searchService.update(expense));
         updateActivityResult();
     }
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,6 +59,31 @@ public class ExpenseSearchServiceTest {
 
         assertEquals(List.of(updatedFirstExpense, updatedSecondExpense), service.changedExpenses());
         verify(expenseDao, org.mockito.Mockito.times(2)).update(any(ExpenseEntity.class));
+    }
+
+    @Test
+    public void updateReloadsTheOriginalSearchWithoutClearingPendingChanges() {
+        final Filters criteria = new Filters(List.of(FOOD), Set.of("Coffee%_"));
+        final Expense original = expense(1L, "2026-04-10", 10D);
+        final Expense newlyMatching = expense(2L, "2026-04-20", 20D);
+        final Expense edited = expense(1L, "2026-04-12", 15D);
+        final List<Integer> typeIds = List.of(FOOD.getDbId());
+        when(expenseDao.fetchExpenses(typeIds, criteria.comments()))
+                .thenReturn(List.of(entity(original)))
+                .thenReturn(List.of(entity(newlyMatching)))
+                .thenReturn(List.of(entity(edited), entity(newlyMatching)));
+        when(expenseDao.update(any(ExpenseEntity.class))).thenReturn(1);
+        service.initialize(criteria);
+
+        assertEquals(List.of(newlyMatching), service.update(edited));
+        assertEquals(List.of(newlyMatching, edited), service.update(edited));
+        assertEquals(2, service.changedExpenses().size());
+        final var order = inOrder(expenseDao);
+        order.verify(expenseDao).fetchExpenses(typeIds, criteria.comments());
+        order.verify(expenseDao).update(any(ExpenseEntity.class));
+        order.verify(expenseDao).fetchExpenses(typeIds, criteria.comments());
+        order.verify(expenseDao).update(any(ExpenseEntity.class));
+        order.verify(expenseDao).fetchExpenses(typeIds, criteria.comments());
     }
 
     @Test

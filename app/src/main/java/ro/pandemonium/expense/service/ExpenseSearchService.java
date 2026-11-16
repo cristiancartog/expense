@@ -2,6 +2,7 @@ package ro.pandemonium.expense.service;
 
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.service.ExpenseEntityMapper.toExpenses;
+import static ro.pandemonium.expense.util.CollectionUtil.convertList;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,6 +23,7 @@ public final class ExpenseSearchService {
     private final List<Expense> changedExpenses = new ArrayList<>();
     private final List<Long> deletedExpenseIds = new ArrayList<>();
     private boolean initialized;
+    private Filters filters;
 
     @Inject
     public ExpenseSearchService(final ExpenseDao expenseDao) {
@@ -31,21 +33,15 @@ public final class ExpenseSearchService {
     public List<Expense> initialize(final Filters filters) {
         requireNonNull(filters);
 
-        final List<Integer> expenseTypeIds = filters.expenseTypes()
-                                                    .stream()
-                                                    .map(ExpenseType::getDbId)
-                                                    .toList();
-        final List<Expense> loadedExpenses = new ArrayList<>(toExpenses(expenseDao.fetchExpenses(expenseTypeIds, filters.comments())));
-        loadedExpenses.sort(Comparator.comparing(Expense::getDate)
-                                      .reversed());
-
+        this.filters = filters.copy();
         changedExpenses.clear();
         deletedExpenseIds.clear();
         initialized = true;
-        return List.copyOf(loadedExpenses);
+
+        return loadExpenses();
     }
 
-    public void update(final Expense expense) {
+    public List<Expense> update(final Expense expense) {
         requireInitialized();
         requireNonNull(expense);
 
@@ -54,6 +50,19 @@ public final class ExpenseSearchService {
             throw new IllegalStateException("Expense with id " + expense.getId() + " was not updated");
         }
         changedExpenses.add(expense);
+
+        return loadExpenses();
+    }
+
+    private List<Expense> loadExpenses() {
+        final List<Integer> expenseTypeIds = convertList(filters.expenseTypes(), ExpenseType::getDbId);
+
+        return toExpenses(expenseDao.fetchExpenses(expenseTypeIds, filters.comments()))
+                .stream()
+                .sorted(Comparator.comparing(Expense::getDate)
+                        .reversed()
+                )
+                .toList();
     }
 
     public void delete(final Long expenseId) {

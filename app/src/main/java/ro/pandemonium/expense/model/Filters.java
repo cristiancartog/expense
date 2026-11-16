@@ -9,6 +9,9 @@ public record Filters(List<ExpenseType> expenseTypes,
 
     public boolean isSelectionEmpty() {
         return expenseTypes.isEmpty() && comments.isEmpty();
+    }
 
+    public Filters copy() {
+        return new Filters(List.copyOf(expenseTypes), Set.copyOf(comments));
     }
 }
