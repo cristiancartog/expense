@@ -39,7 +39,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     private final LongSparseArray<Expense> mapExpenseIdToExpense = new LongSparseArray<>();
 
     private Filters filters;
-    private Comparator<Expense> comparator;
+    private Comparator<Expense> comparator = (first, second) -> 0;
 
     private final NumberFormat numberFormatter = ExpenseFormatUtil.amountFormatter();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_DISPLAY, Locale.US);
@@ -113,7 +113,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     /**
-     * Replaces current expenses with the ones provided, preserving active filters.
+     * Replaces current expenses with the ones provided, preserving active filters and sorting.
      * @param newExpenses - the new expenses
      */
     public void updateExpenseList(final List<Expense> newExpenses) {
@@ -157,7 +157,7 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     public void sortExpenses(final Comparator<Expense> comparator) {
-        this.comparator = comparator;
+        this.comparator = requireNonNull(comparator);
         refreshVisibleExpenses();
         notifyDataSetChanged();
     }
@@ -173,15 +173,12 @@ public class ExpenseListAdapter extends BaseAdapter {
     }
 
     private void refreshVisibleExpenses() {
-        if (comparator != null) {
-            allExpenses.sort(comparator);
-        }
-
         final List<Expense> visibleExpenses = allExpenses.stream()
                                                          .filter(this::isVisible)
                                                          .toList();
         expenses.clear();
         expenses.addAll(visibleExpenses);
+        expenses.sort(comparator);
     }
 
     private boolean isVisible(final Expense expense) {
