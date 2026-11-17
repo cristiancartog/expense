@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.activity;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_COUNT_MAP;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE_EXPENSE_TO_EDIT;
 import static ro.pandemonium.expense.model.Filters.EMPTY_FILTERS;
@@ -7,12 +9,15 @@ import static ro.pandemonium.expense.util.ExpenseMathUtil.percentage;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +31,8 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import ro.pandemonium.expense.R;
 import ro.pandemonium.expense.activity.dialog.ExpenseDeletionDialog;
@@ -35,6 +42,7 @@ import ro.pandemonium.expense.model.Filters;
 import ro.pandemonium.expense.util.ExpenseFormatUtil;
 import ro.pandemonium.expense.util.ExpenseUtil;
 import ro.pandemonium.expense.util.SystemBarInsets;
+import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.adapter.ExpenseListAdapter;
 
 public abstract class AbstractExpenseListActivity extends AppCompatActivity {
@@ -56,6 +64,14 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     ExpenseDeletionDialog deleteConfirmationDialog;
     private Filters lastUsedFilters = EMPTY_FILTERS;
     ImageButton filtersButton;
+
+    private TaskRunner expenseLoader;
+    private TextView loadStatus;
+    private ProgressBar loadProgress;
+    private Button retryLoadButton;
+    private boolean loading;
+    private boolean initialized;
+    private Runnable pendingLoad;
 
     AbstractExpenseListActivity() {
         mapSortingMenuItemToComparator.append(1, Comparator.comparing(Expense::getDate));
@@ -82,6 +98,70 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
 
         expenseTypeSelectionDialog = new ExpenseTypeSelectionDialog(this);
         deleteConfirmationDialog = new ExpenseDeletionDialog(this);
+        expenseLoader = new TaskRunner(this);
+        loadStatus = findViewById(R.id.expenseListLoadStatus);
+        loadProgress = findViewById(R.id.expenseListLoadProgress);
+        retryLoadButton = findViewById(R.id.expenseListRetryLoad);
+    }
+
+    public final void retryExpenseLoad(final View view) {
+        if (!loading && pendingLoad != null) {
+            pendingLoad.run();
+        }
+    }
+
+    final <T> void loadExpenses(final Supplier<T> operation, final Consumer<T> resultConsumer) {
+        if (loading) {
+            return;
+        }
+
+        pendingLoad = () -> loadExpenses(operation, resultConsumer);
+        loading = true;
+        loadStatus.setText(R.string.expenseListLoading);
+        loadStatus.setVisibility(VISIBLE);
+        loadProgress.setVisibility(VISIBLE);
+        retryLoadButton.setVisibility(GONE);
+        updateExpenseActions(canUseExpenses());
+        expenseLoader.submit(
+                operation,
+                result -> {
+                    resultConsumer.accept(result);
+                    finishExpenseLoad();
+                },
+                this::failExpenseLoad
+        );
+    }
+
+    final boolean canUseExpenses() {
+        return initialized && !loading;
+    }
+
+    void updateExpenseActions(final boolean enabled) {
+        expenseList.setEnabled(enabled);
+        filtersButton.setEnabled(enabled);
+    }
+
+    private void finishExpenseLoad() {
+        initialized = true;
+        loading = false;
+        pendingLoad = null;
+        loadStatus.setVisibility(GONE);
+        loadProgress.setVisibility(GONE);
+        retryLoadButton.setVisibility(GONE);
+        updateExpenseActions(canUseExpenses());
+    }
+
+    private void failExpenseLoad(final Exception error) {
+        Log.e(getClass().getSimpleName(), "Could not load expenses", error);
+        loading = false;
+        loadProgress.setVisibility(GONE);
+        loadStatus.setText(expenseLoadErrorMessage(initialized));
+        retryLoadButton.setVisibility(VISIBLE);
+        updateExpenseActions(canUseExpenses());
+    }
+
+    String expenseLoadErrorMessage(final boolean initialized) {
+        return getString(initialized ? R.string.expenseListReloadError : R.string.expenseListInitialLoadError);
     }
 
     @Override
@@ -91,6 +171,10 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     }
 
     void showFiltersDialog() {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         expenseTypeSelectionDialog.show(lastUsedFilters,
                 expenseListAdapter.expenseTypeSet(),
                 filters -> {
@@ -111,6 +195,10 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     }
 
     void addEditExpense(int position) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         final Expense expense = (Expense) expenseListAdapter.getItem(position);
 
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
@@ -120,7 +208,18 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     }
 
     final void launchAddEditExpense(final Intent intent) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         addEditExpenseLauncher.launch(intent);
+    }
+
+    final boolean clearFilters(final View view) {
+        if (canUseExpenses()) {
+            clearFilters();
+        }
+        return true;
     }
 
     void clearFilters() {
@@ -148,11 +247,19 @@ public abstract class AbstractExpenseListActivity extends AppCompatActivity {
     }
 
     public void deleteButtonPressed(final View view) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         final Long expenseId = (Long) view.getTag();
         deleteConfirmationDialog.show(() -> confirmExpenseDeletion(expenseId));
     }
 
     private void confirmExpenseDeletion(final Long expenseId) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         try {
             deleteExpense(expenseId);
         } catch (RuntimeException error) {

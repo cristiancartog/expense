@@ -1,5 +1,7 @@
 package ro.pandemonium.expense.activity;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static java.util.Objects.requireNonNull;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_CHANGED_EXPENSES;
@@ -10,8 +12,8 @@ import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
 import static ro.pandemonium.expense.Constants.INTENT_YEAR;
 import static ro.pandemonium.expense.model.Filters.EMPTY_FILTERS;
 
-import android.app.DatePickerDialog;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -31,6 +33,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -39,7 +42,6 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import androidx.appcompat.widget.SwitchCompat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -68,9 +70,9 @@ import ro.pandemonium.expense.service.DatabaseTransferProgress;
 import ro.pandemonium.expense.service.ExpenseMainService;
 import ro.pandemonium.expense.service.ExpenseMainState;
 import ro.pandemonium.expense.service.ExpenseMainUpdate;
+import ro.pandemonium.expense.util.TaskRunner;
 import ro.pandemonium.expense.view.ExpenseChartValueFormatter;
 import ro.pandemonium.expense.view.ExpenseTypeUi;
-import ro.pandemonium.expense.util.TaskRunner;
 
 @AndroidEntryPoint
 public class ExpenseMainActivity extends AbstractExpenseListActivity
@@ -98,7 +100,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN_MONTH, Locale.getDefault());
     // dialogs
     private Filters lastUsedGlobalFilters = EMPTY_FILTERS;
-    private TaskRunner expenseLoader;
     private TaskRunner databaseTransferRunner;
     private AlertDialog restoreConfirmationDialog;
     private AlertDialog databaseTransferDialog;
@@ -122,7 +123,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        expenseLoader = new TaskRunner(this);
         databaseTransferRunner = new TaskRunner(this);
 
         drawerLayout = findViewById(R.id.main_drawer);
@@ -157,18 +157,34 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     public void changeMonth(final View view) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         new DatePickerDialog(this, this, yearMonth.getYear(), yearMonth.getMonthValue() - 1, 1).show();
     }
 
     public void listNextMonth(final View view) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         loadExpenses(mainService::nextMonth);
     }
 
     public void listPreviousMonth(final View view) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         loadExpenses(mainService::previousMonth);
     }
 
     public void addExpense(final View view) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         final Intent addExpenseIntent = new Intent(this, AddEditExpenseActivity.class);
         addExpenseIntent.putExtra(INTENT_EXPENSE_COUNT_MAP, new HashMap<>(expenseListAdapter.getExpenseTypes()));
         launchAddEditExpense(addExpenseIntent);
@@ -176,11 +192,6 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     public void filterList(final View view) {
         showFiltersDialog();
-    }
-
-    private boolean clearFilters(final View view) {
-        super.clearFilters();
-        return true;
     }
 
     public void dbSearchRequested(@NonNull final MenuItem item) {
@@ -423,6 +434,10 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
 
     @Override
     public void onDateSet(final DatePicker datePicker, final int year, final int monthOfYear, final int dayOfMonth) {
+        if (!canUseExpenses()) {
+            return;
+        }
+
         final YearMonth selectedYearMonth = YearMonth.of(year, monthOfYear + 1);
         if (!yearMonth.equals(selectedYearMonth)) {
             loadExpenses(() -> mainService.selectMonth(selectedYearMonth));
@@ -430,7 +445,25 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     }
 
     private void loadExpenses(final Supplier<ExpenseMainState> operation) {
-        expenseLoader.submit(operation, this::showExpenses);
+        loadExpenses(operation, this::showExpenses);
+    }
+
+    @Override
+    void updateExpenseActions(final boolean enabled) {
+        super.updateExpenseActions(enabled);
+        for (int id : new int[]{R.id.expenseListPreviousMonth, R.id.expenseListNextMonth,
+                R.id.expenseListChangeMonthButton, R.id.addExpenseButton,
+                R.id.expenseListSwitchChartReportButton, R.id.expenseListPieChart}) {
+            findViewById(id).setEnabled(enabled);
+        }
+        drawerLayout.setDrawerLockMode(enabled ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+
+    @Override
+    String expenseLoadErrorMessage(final boolean initialized) {
+        return initialized
+                ? getString(R.string.expenseListMonthLoadError, yearMonth.format(dateFormatter))
+                : super.expenseLoadErrorMessage(false);
     }
 
     private void showExpenses(final ExpenseMainState state) {
@@ -494,8 +527,8 @@ public class ExpenseMainActivity extends AbstractExpenseListActivity
     @Override
     public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
         if (buttonView.getId() == R.id.expenseListSwitchChartReportButton) {
-            pieChart.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            expenseList.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+            pieChart.setVisibility(isChecked ? VISIBLE : GONE);
+            expenseList.setVisibility(isChecked ? GONE : VISIBLE);
         }
     }
 

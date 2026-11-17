@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.activity.ExpenseActivityTestSupport.awaitExpensesLoaded;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
 
@@ -72,6 +73,7 @@ public class ExpenseCategoryShortcutTest {
                        .allowMainThreadQueries()
                        .build();
         scenario = ActivityScenario.launch(ExpenseMainActivity.class);
+        awaitExpensesLoaded(scenario);
         scenario.onActivity(activity -> {
             // Keep the application's installed data untouched; both screens use this test database.
             activity.mainService = new ExpenseMainService(database.expenseDao(), context);
@@ -173,6 +175,7 @@ public class ExpenseCategoryShortcutTest {
         });
         final ExpenseSearchResultActivity search = (ExpenseSearchResultActivity) searchMonitor.waitForActivityWithTimeout(5_000);
         assertNotNull("Shortcut did not open search results", search);
+        awaitExpensesLoaded(search);
         instrumentation.waitForIdleSync();
         instrumentation.runOnMainSync(() -> {
             try {

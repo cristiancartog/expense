@@ -32,6 +32,11 @@
     <string name="expenseListSwitchChart">Chart</string>
     <string name="expenseListPreviousMonthButton">previous month</string>
     <string name="expenseListNextMonthButton">next month</string>
+    <string name="expenseListLoading">Loading expenses…</string>
+    <string name="expenseListInitialLoadError">Could not load expenses. Please retry.</string>
+    <string name="expenseListReloadError">Could not reload expenses. Still showing the previous results.</string>
+    <string name="expenseListMonthLoadError">Could not load the requested month. Still showing %1$s.</string>
+    <string name="expenseListRetryLoad">Retry</string>
 
     <!-- expense search result-->
     <string name="expenseSearchResultTitle">Expenses</string>

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.activity.ExpenseActivityTestSupport.awaitExpensesLoaded;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 import static ro.pandemonium.expense.model.ExpenseType.PETROL;
 
@@ -83,6 +84,7 @@ public class ExpenseDeletionTest {
         if (screen.equals("main")) {
             final ActivityScenario<ExpenseMainActivity> mainScenario = ActivityScenario.launch(ExpenseMainActivity.class);
             scenario = mainScenario;
+            awaitExpensesLoaded(scenario);
             mainScenario.onActivity(activity -> {
                 activity.mainService = new ExpenseMainService(database.expenseDao(), context);
                 activity.mainService.initialize();
@@ -95,6 +97,7 @@ public class ExpenseDeletionTest {
             intent.putExtra(INTENT_FILTERS, new Filters(List.of(), Set.of()));
             final ActivityScenario<ExpenseSearchResultActivity> searchScenario = ActivityScenario.launch(intent);
             scenario = searchScenario;
+            awaitExpensesLoaded(scenario);
             searchScenario.onActivity(activity -> {
                 activity.searchService = new ExpenseSearchService(database.expenseDao());
                 activity.expenseListAdapter.updateExpenseList(activity.searchService.initialize(FILTERS));

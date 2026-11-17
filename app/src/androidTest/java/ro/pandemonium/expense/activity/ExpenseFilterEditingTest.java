@@ -8,6 +8,7 @@ import static org.junit.Assume.assumeTrue;
 import static ro.pandemonium.expense.Constants.DATE_FORMAT_PATTERN_MONTH;
 import static ro.pandemonium.expense.Constants.INTENT_EXPENSE;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.activity.ExpenseActivityTestSupport.awaitExpensesLoaded;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 import static ro.pandemonium.expense.model.ExpenseType.PETROL;
 import static ro.pandemonium.expense.model.ExpenseType.SPECIAL;
@@ -91,6 +92,7 @@ public class ExpenseFilterEditingTest {
         if (screen.equals("main")) {
             final ActivityScenario<ExpenseMainActivity> mainScenario = ActivityScenario.launch(ExpenseMainActivity.class);
             scenario = mainScenario;
+            awaitExpensesLoaded(scenario);
             mainScenario.onActivity(activity -> {
                 activity.mainService = new ExpenseMainService(database.expenseDao(), context);
                 activity.mainService.initialize();
@@ -102,6 +104,7 @@ public class ExpenseFilterEditingTest {
             intent.putExtra(INTENT_FILTERS, new Filters(List.of(), Set.of()));
             final ActivityScenario<ExpenseSearchResultActivity> searchScenario = ActivityScenario.launch(intent);
             scenario = searchScenario;
+            awaitExpensesLoaded(scenario);
             searchScenario.onActivity(activity -> {
                 activity.searchService = new ExpenseSearchService(database.expenseDao());
                 activity.expenseListAdapter.updateExpenseList(activity.searchService.initialize(globalFilters()));
@@ -204,6 +207,7 @@ public class ExpenseFilterEditingTest {
             scenario.onActivity(activity -> ((ExpenseMainActivity) activity).recurrentExpensesRequested(null));
             final ExpenseSearchResultActivity search = (ExpenseSearchResultActivity) monitor.waitForActivityWithTimeout(5_000);
             assertNotNull("Search results did not open", search);
+            awaitExpensesLoaded(search);
             instrumentation.waitForIdleSync();
             instrumentation.runOnMainSync(() -> {
                 try {

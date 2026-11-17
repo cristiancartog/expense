@@ -3,6 +3,7 @@ package ro.pandemonium.expense.activity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static ro.pandemonium.expense.Constants.INTENT_FILTERS;
+import static ro.pandemonium.expense.activity.ExpenseActivityTestSupport.awaitExpensesLoaded;
 import static ro.pandemonium.expense.model.ExpenseType.FOOD;
 import static ro.pandemonium.expense.model.ExpenseType.OTHER;
 import static ro.pandemonium.expense.model.ExpenseType.PETROL;
@@ -59,6 +60,7 @@ public class ExpenseSortingTest {
         final Intent intent = new Intent(ApplicationProvider.getApplicationContext(), ExpenseSearchResultActivity.class);
         intent.putExtra(INTENT_FILTERS, new Filters(List.of(), Set.of()));
         scenario = ActivityScenario.launch(intent);
+        awaitExpensesLoaded(scenario);
         scenario.onActivity(activity -> activity.expenseListAdapter.updateExpenseList(List.of(
                 expense(1, PETROL, 20, "10.00", "match"),
                 expense(2, FOOD, 10, "30.00", "match"),
